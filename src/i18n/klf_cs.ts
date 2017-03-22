@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="cs_CZ">
+<TS version="2.0" language="cs_CZ">
 <context>
     <name>KLFAboutDialog</name>
     <message>
@@ -18,7 +18,7 @@
     <name>KLFAboutDialogUI</name>
     <message>
         <source>About KLatexFormula</source>
-        <translation type="vanished">O programu KLatexFormula</translation>
+        <translation>O programu KLatexFormula</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -32,7 +32,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;KLatexFormula On the Web&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Home Page at http://klatexformula.sourceforge.net/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/doc/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Documentation at http://klatexformula.sourceforge.net/doc/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Nimbus Sans L&apos;; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -46,7 +46,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>OK</source>
-        <translation type="vanished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -60,7 +60,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;KLatexFormula On the Web&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Home Page at http://klatexformula.sourceforge.net/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/doc/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Documentation at http://klatexformula.sourceforge.net/doc/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot;&quot;&gt;
@@ -83,7 +83,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Philippe Faist, philippe.faist@bluewin.ch&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;&quot;&gt;KLatexFormula On the Web&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;http://klatexformula.sourceforge.net/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot;font-weight:400; font-style:normal;&quot;&gt;
@@ -100,27 +100,27 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klftools/klfadvancedconfigeditor.ui" line="14"/>
         <source>Advanced Configuration Editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Pokročilý editor nastavení</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor.cpp" line="63"/>
         <source>Config Entry</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavit záznam</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor.cpp" line="64"/>
         <source>Current Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Nynější hodnota</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor.cpp" line="64"/>
         <source>Encoded Value Entry</source>
-        <translation type="unfinished"></translation>
+        <translation>Nynější hodnota (zakódovaná)</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor.cpp" line="81"/>
         <source>Reset Default Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Vrátit na výchozí hodnotu</translation>
     </message>
 </context>
 <context>
@@ -128,34 +128,34 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="170"/>
         <source>You are changing an advanced config setting. Please confirm your action.</source>
-        <translation type="unfinished"></translation>
+        <translation>Měníte pokročilé nastavení parametru. Potvrďte, prosím, změnu.</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="172"/>
         <source>Change config entry %1 from %2 to %3?</source>
-        <translation type="unfinished"></translation>
+        <translation>Změnit nastavení parametru %1 z %2 na %3?</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="186"/>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="305"/>
         <source>Error</source>
-        <translation type="unfinished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="187"/>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="306"/>
         <source>Failed to set config entry `%1&apos;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nepodařilo se změnit nastavení parametru `%1&apos;.</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="287"/>
         <source>You are resetting an advanced config setting to its factory default value. Please confirm your action.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vracíte pokročilé nastavení hodnoty parametru na výchozí hodnotu. Potvrďte, prosím, změnu.</translation>
     </message>
     <message>
         <location filename="../klftools/klfadvancedconfigeditor_p.h" line="290"/>
         <source>Change config entry %1 from %2 to its factory default value %3?</source>
-        <translation type="unfinished"></translation>
+        <translation>Změnit nastavení parametru %1 z %2 na jeho výchozí hodnotu %3?</translation>
     </message>
 </context>
 <context>
@@ -163,7 +163,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klfexporter_p.h" line="105"/>
         <source>%1 Format</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Formát</translation>
     </message>
 </context>
 <context>
@@ -178,7 +178,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klfmainwin_p.h" line="645"/>
         <source>Can&apos;t read latex equation information from PDF file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze přečíst informaci v LaTeXu o rovnici ze souboru PDF.</translation>
     </message>
     <message>
         <location filename="../klfmainwin_p.h" line="734"/>
@@ -275,59 +275,59 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <name>KLFColorChooseWidgetUI</name>
     <message>
         <source>Choose Color</source>
-        <translation type="vanished">Vybrat barvu</translation>
+        <translation>Vybrat barvu</translation>
     </message>
     <message>
         <source>Hex:</source>
-        <translation type="vanished">Hex:</translation>
+        <translation>Hex:</translation>
     </message>
     <message>
         <source>Alpha:</source>
-        <translation type="vanished">Alfa:</translation>
+        <translation>Alfa:</translation>
     </message>
     <message>
         <source>Sat.:</source>
-        <translation type="vanished">Sytost:</translation>
+        <translation>Sytost:</translation>
     </message>
     <message>
         <source>Hue:</source>
-        <translation type="vanished">Barevný odstín:</translation>
+        <translation>Barevný odstín:</translation>
     </message>
     <message>
         <source>Green:</source>
-        <translation type="vanished">Zelená:</translation>
+        <translation>Zelená:</translation>
     </message>
     <message>
         <source>Blue:</source>
-        <translation type="vanished">Modrá:</translation>
+        <translation>Modrá:</translation>
     </message>
     <message>
         <source>Val.:</source>
-        <translation type="vanished">Hodnota:</translation>
+        <translation>Hodnota:</translation>
     </message>
     <message>
         <source>Red:</source>
-        <translation type="vanished">Červená:</translation>
+        <translation>Červená:</translation>
     </message>
     <message>
         <source>Saturation:</source>
-        <translation type="vanished">Sytost:</translation>
+        <translation>Sytost:</translation>
     </message>
     <message>
         <source>Value:</source>
-        <translation type="vanished">Hodnota:</translation>
+        <translation>Hodnota:</translation>
     </message>
     <message>
         <source>Recent</source>
-        <translation type="vanished">Naposledy otevřený</translation>
+        <translation>Naposledy otevřený</translation>
     </message>
     <message>
         <source>Standard</source>
-        <translation type="vanished">Obvyklý</translation>
+        <translation>Obvyklý</translation>
     </message>
     <message>
         <source>Custom</source>
-        <translation type="vanished">Vlastní</translation>
+        <translation>Vlastní</translation>
     </message>
 </context>
 <context>
@@ -355,7 +355,7 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <name>KLFColorDialogUI</name>
     <message>
         <source>Select Color</source>
-        <translation type="vanished">Vybrat barvu</translation>
+        <translation>Vybrat barvu</translation>
     </message>
 </context>
 <context>
@@ -376,33 +376,33 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <message>
         <location filename="../klfexporter_p.h" line="400"/>
         <source>HTML fragment with embedded image data</source>
-        <translation type="unfinished"></translation>
+        <translation>Kousek HTML s daty o vloženém obrázku</translation>
     </message>
 </context>
 <context>
     <name>KLFLatexEdit</name>
     <message>
         <source>Insert Delimiter</source>
-        <translation type="vanished">Vložit oddělovač</translation>
+        <translation>Vložit oddělovač</translation>
     </message>
 </context>
 <context>
     <name>KLFLatexSymbols</name>
     <message>
         <source>Warning: failed to open file `%1&apos;!</source>
-        <translation type="vanished">Varování: nepodařilo se otevřít soubor `%1&apos;!</translation>
+        <translation>Varování: nepodařilo se otevřít soubor `%1&apos;!</translation>
     </message>
     <message>
         <source>Warning: KLFLatexSymbols: error reading cache file ! code=%1</source>
-        <translation type="vanished">Varování: KLFLatexSymbols: chyba při čtení souboru vyrovnávací paměti ! kód chyby=%1</translation>
+        <translation>Varování: KLFLatexSymbols: chyba při čtení souboru vyrovnávací paměti ! kód chyby=%1</translation>
     </message>
     <message>
         <source>Can&apos;t save cache to file `%1&apos;!</source>
-        <translation type="vanished">Nelze uložit vyrovnávací paměť souboru `%1&apos;!</translation>
+        <translation>Nelze uložit vyrovnávací paměť souboru `%1&apos;!</translation>
     </message>
     <message>
         <source>Warning: KLFLatexSymbols: error finding and reading cache file!</source>
-        <translation type="vanished">Varování: KLFLatexSymbols: chyba při hledání a čtení souboru vyrovnávací paměti !</translation>
+        <translation>Varování: KLFLatexSymbols: chyba při hledání a čtení souboru vyrovnávací paměti !</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="15"/>
@@ -412,7 +412,7 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <message>
         <location filename="../klflatexsymbols.ui" line="142"/>
         <source>Search for Symbols ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Hledat symboly...</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="158"/>
@@ -422,27 +422,27 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <message>
         <location filename="../klflatexsymbols.ui" line="171"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Insert the current search result match  [&lt;strong&gt;Ctrl-Space&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Vložit nynější výsledek hledání  [&lt;strong&gt;Ctrl-mezerník&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="187"/>
         <source>Ctrl+Space</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+mezerník</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="194"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Search for Symbols ...  [&lt;strong&gt;Ctrl-F&lt;/strong&gt;, &lt;strong&gt;Ctrl-S&lt;/strong&gt; or &lt;strong&gt;/&lt;/strong&gt;]</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Hledat symboly...  [&lt;strong&gt;Ctrl+F&lt;/strong&gt;, &lt;strong&gt;Ctrl+S&lt;/strong&gt; nebo &lt;strong&gt;/&lt;/strong&gt;]</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="265"/>
         <source>Skip</source>
-        <translation type="unfinished">Přeskočit</translation>
+        <translation>Přeskočit</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="292"/>
         <source>Symbol previews are being generated ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Vytváří se náhledy na symboly...</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="40"/>
@@ -464,15 +464,15 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <name>KLFLatexSymbolsUI</name>
     <message>
         <source>KLatexFormula - LaTeX symbols</source>
-        <translation type="vanished">KLatexFormula - Symboly v LaTeXu</translation>
+        <translation>KLatexFormula - Symboly v LaTeXu</translation>
     </message>
     <message>
         <source>Choose symbol category</source>
-        <translation type="vanished">Vyberte skupinu symbolů</translation>
+        <translation>Vyberte skupinu symbolů</translation>
     </message>
     <message>
         <source>Close this dialog</source>
-        <translation type="vanished">Zavřít toto okno</translation>
+        <translation>Zavřít toto okno</translation>
     </message>
     <message>
         <source>Cl&amp;ose</source>
@@ -480,11 +480,11 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     </message>
     <message>
         <source>&amp;Close</source>
-        <translation type="vanished">&amp;Zavřít</translation>
+        <translation>&amp;Zavřít</translation>
     </message>
     <message>
         <source>Alt+C</source>
-        <translation type="vanished">Alt+C</translation>
+        <translation>Alt+C</translation>
     </message>
 </context>
 <context>
@@ -507,7 +507,7 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <message>
         <location filename="../klflatexsymbols.cpp" line="610"/>
         <source>Key Words:</source>
-        <translation type="unfinished"></translation>
+        <translation>Klíčová slova:</translation>
     </message>
 </context>
 <context>
@@ -796,12 +796,12 @@ V editoru LaTeXového kódu můžete otevřít pouze jeden vzorec.</translation>
     <message>
         <location filename="../klflibbrowser.ui" line="457"/>
         <source>Open Example Library</source>
-        <translation type="unfinished"></translation>
+        <translation>Otevřít knihovnu s příklady</translation>
     </message>
     <message>
         <location filename="../klflibbrowser.ui" line="460"/>
         <source>Open library with examples</source>
-        <translation type="unfinished"></translation>
+        <translation>Otevřít knihovnu s příklady</translation>
     </message>
     <message>
         <location filename="../klflibbrowser.cpp" line="174"/>
@@ -1270,7 +1270,7 @@ Chyba: %3</translation>
     <message>
         <location filename="../klflibentryeditor.ui" line="539"/>
         <source>User Script:</source>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript:</translation>
     </message>
     <message>
         <location filename="../klflibentryeditor.cpp" line="144"/>
@@ -1637,138 +1637,138 @@ Chyba: %3</translation>
     <name>KLFLibraryBrowser</name>
     <message>
         <source>Restore Formula with Style</source>
-        <translation type="vanished">Znovu zavést vzorec se stylem</translation>
+        <translation>Znovu zavést vzorec se stylem</translation>
     </message>
     <message>
         <source>Restore Formula Only</source>
-        <translation type="vanished">Znovu zavést pouze vzorec</translation>
+        <translation>Znovu zavést pouze vzorec</translation>
     </message>
     <message>
         <source>Only display tagged items</source>
-        <translation type="vanished">Zobrazit pouze vzorce označené klíčovými slovy</translation>
+        <translation>Zobrazit pouze vzorce označené klíčovými slovy</translation>
     </message>
     <message>
         <source>Don&apos;t display duplicate items</source>
-        <translation type="vanished">Dvakrát nezobrazovat ten samý vzorec</translation>
+        <translation>Dvakrát nezobrazovat ten samý vzorec</translation>
     </message>
     <message>
         <source>Import ...</source>
-        <translation type="vanished">Zavést...</translation>
+        <translation>Zavést...</translation>
     </message>
     <message>
         <source>Import Into Current Resource ...</source>
-        <translation type="vanished">Zavést do nynějšího zdroje...</translation>
+        <translation>Zavést do nynějšího zdroje...</translation>
     </message>
     <message>
         <source>Import Into Separate Resources ...</source>
-        <translation type="vanished">Zavést do oddělených zdrojů...</translation>
+        <translation>Zavést do oddělených zdrojů...</translation>
     </message>
     <message>
         <source>Export Whole Library ...</source>
-        <translation type="vanished">Vyvést celou knihovnu...</translation>
+        <translation>Vyvést celou knihovnu...</translation>
     </message>
     <message>
         <source>Export Resource [] ...</source>
-        <translation type="vanished">Vyvést zdroj [] ...</translation>
+        <translation>Vyvést zdroj [] ...</translation>
     </message>
     <message>
         <source>Export Current Selection ...</source>
-        <translation type="vanished">Vyvést nynější výběr...</translation>
+        <translation>Vyvést nynější výběr...</translation>
     </message>
     <message>
         <source>Add Resource ...</source>
-        <translation type="vanished">Přidat zdroj...</translation>
+        <translation>Přidat zdroj...</translation>
     </message>
     <message>
         <source>Rename Resource ...</source>
-        <translation type="vanished">Přejmenovat zdroj...</translation>
+        <translation>Přejmenovat zdroj...</translation>
     </message>
     <message>
         <source>Delete Resource</source>
-        <translation type="vanished">Smazat zdroj</translation>
+        <translation>Smazat zdroj</translation>
     </message>
     <message>
         <source>Resources</source>
-        <translation type="vanished">Zdroje</translation>
+        <translation>Zdroje</translation>
     </message>
     <message>
         <source>Export Resource [ %1 ] ...</source>
-        <translation type="vanished">Vyvést zdroj [ %1 ] ...</translation>
+        <translation>Vyvést zdroj [ %1 ] ...</translation>
     </message>
     <message>
         <source>&lt;none&gt;</source>
-        <translation type="vanished">&lt;žádný&gt;</translation>
+        <translation>&lt;žádný&gt;</translation>
     </message>
     <message>
         <source>Import Library Resource</source>
-        <translation type="vanished">Zavést knihovní zdroj</translation>
+        <translation>Zavést knihovní zdroj</translation>
     </message>
     <message>
         <source>KLatexFormula Library Files (*.klf);;All Files (*)</source>
-        <translation type="vanished">Soubory knihovny KLatexFormula (*.klf);;Všechny soubory (*)</translation>
+        <translation>Soubory knihovny KLatexFormula (*.klf);;Všechny soubory (*)</translation>
     </message>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>Unable to open library file %1!</source>
-        <translation type="vanished">Nelze otevřít knihovnní soubor %1!</translation>
+        <translation>Nelze otevřít knihovní soubor %1!</translation>
     </message>
     <message>
         <source>Error: Library file `%1&apos; is incorrect or corrupt!
 </source>
-        <translation type="vanished">Chyba: Knihovna `%1&apos; je nesprávná nebo je poškozena!
+        <translation>Chyba: Knihovna `%1&apos; je nesprávná nebo je poškozena!
 </translation>
     </message>
     <message>
         <source>Import Library Items</source>
-        <translation type="vanished">Zavést knihovní položky</translation>
+        <translation>Zavést knihovní položky</translation>
     </message>
     <message>
         <source>This library file was created by a more recent version of KLatexFormula.
 The process of library importing may fail.</source>
-        <translation type="vanished">Knihovna byla vytvořena o hodně novější verzí KLatexFormula.
+        <translation>Knihovna byla vytvořena o hodně novější verzí KLatexFormula.
 Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Export Library Resource</source>
-        <translation type="vanished">Vyvést knihovní zdroj</translation>
+        <translation>Vyvést knihovní zdroj</translation>
     </message>
     <message>
         <source>Error !</source>
-        <translation type="vanished">Chyba!</translation>
+        <translation>Chyba!</translation>
     </message>
     <message>
         <source>Error: Can&apos;t write to file `%1&apos;!</source>
-        <translation type="vanished">Chyba: Nelze zapisovat do souboru `%1&apos;!</translation>
+        <translation>Chyba: Nelze zapisovat do souboru `%1&apos;!</translation>
     </message>
     <message>
         <source>New Resource</source>
-        <translation type="vanished">Nový zdroj</translation>
+        <translation>Nový zdroj</translation>
     </message>
     <message>
         <source>Please Enter New Resource Name</source>
-        <translation type="vanished">Zadejte, prosím, nový název pro zdroj</translation>
+        <translation>Zadejte, prosím, nový název pro zdroj</translation>
     </message>
     <message>
         <source>Rename Resource</source>
-        <translation type="vanished">Přejmenovat zdroj</translation>
+        <translation>Přejmenovat zdroj</translation>
     </message>
     <message>
         <source>&lt;qt&gt;Are you sure you want to delete resource &lt;b&gt;%1&lt;/b&gt; with all its contents?&lt;/qt&gt;</source>
-        <translation type="vanished">&lt;qt&gt;Jste si jistý, že chcete smazat zdroj &lt;b&gt;%1&lt;/b&gt; s celým jeho obsahem?&lt;/qt&gt;</translation>
+        <translation>&lt;qt&gt;Jste si jistý, že chcete smazat zdroj &lt;b&gt;%1&lt;/b&gt; s celým jeho obsahem?&lt;/qt&gt;</translation>
     </message>
 </context>
 <context>
     <name>KLFLibraryBrowserUI</name>
     <message>
         <source>KLatexFormula Library</source>
-        <translation type="vanished">Knihovna KLatexFormula</translation>
+        <translation>Knihovna KLatexFormula</translation>
     </message>
     <message>
         <source>Incremental search within history items. Find next with F3 key.</source>
-        <translation type="vanished">Přírůstkové hledání v knihovně. Najít další stiskem klávesy F3.</translation>
+        <translation>Přírůstkové hledání v knihovně. Najít další stiskem klávesy F3.</translation>
     </message>
     <message>
         <source>If you insert keywords as LaTeX comments in your formulas (&apos;&lt;tt&gt;%keyword&lt;/tt&gt;&lt;i&gt;[newline]&lt;/i&gt;&apos;) then you can search for those formulas here.</source>
@@ -1776,163 +1776,163 @@ Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>&amp;Search:</source>
-        <translation type="vanished">&amp;Hledat:</translation>
+        <translation>&amp;Hledat:</translation>
     </message>
     <message>
         <source>Clear Search bar</source>
-        <translation type="vanished">Vyprázdnit pruh hledání</translation>
+        <translation>Vyprázdnit pruh hledání</translation>
     </message>
     <message>
         <source>Find Previous [Shift-F3]</source>
-        <translation type="vanished">Najít předchozí [Shift-F3]</translation>
+        <translation>Najít předchozí [Shift-F3]</translation>
     </message>
     <message>
         <source>Find Previous occurrence of search string</source>
-        <translation type="vanished">Najít předchozí výskyt hledaného řetězce</translation>
+        <translation>Najít předchozí výskyt hledaného řetězce</translation>
     </message>
     <message>
         <source>Find Next [F3]</source>
-        <translation type="vanished">Najít další [F3]</translation>
+        <translation>Najít další [F3]</translation>
     </message>
     <message>
         <source>Find Next occurrence of search string</source>
-        <translation type="vanished">Najít další výskyt hledaného řetězce</translation>
+        <translation>Najít další výskyt hledaného řetězce</translation>
     </message>
     <message>
         <source>Preview and Tags</source>
-        <translation type="vanished">Náhled a klíčová slova</translation>
+        <translation>Náhled a klíčová slova</translation>
     </message>
     <message>
         <source>&amp;Category:</source>
-        <translation type="vanished">&amp;Skupina:</translation>
+        <translation>&amp;Skupina:</translation>
     </message>
     <message>
         <source>Update Category</source>
-        <translation type="vanished">Zaktualizovat skupinu</translation>
+        <translation>Zaktualizovat skupinu</translation>
     </message>
     <message>
         <source>Name / &amp;Tags:</source>
-        <translation type="vanished">Název/ &amp;Klíčová slova:</translation>
+        <translation>Název/ &amp;Klíčová slova:</translation>
     </message>
     <message>
         <source>Update Tags</source>
-        <translation type="vanished">Aktualizovat (název/klíčová slova)</translation>
+        <translation>Aktualizovat (název/klíčová slova)</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="vanished">Styl</translation>
+        <translation>Styl</translation>
     </message>
     <message>
         <source>[Style]</source>
-        <translation type="vanished">[Styl]</translation>
+        <translation>[Styl]</translation>
     </message>
     <message>
         <source>Restore current selected formula to KLatexFormula editor, with style</source>
-        <translation type="vanished">Znovu zavést nyní vybraný vzorec do editoru KLatexFormula, se stylem</translation>
+        <translation>Znovu zavést nyní vybraný vzorec do editoru KLatexFormula, se stylem</translation>
     </message>
     <message>
         <source>&amp;Restore Formula</source>
-        <translation type="vanished">&amp;Znovu zavést vzorec</translation>
+        <translation>&amp;Znovu zavést vzorec</translation>
     </message>
     <message>
         <source>Alt+U</source>
-        <translation type="vanished">Alt+U</translation>
+        <translation>Alt+U</translation>
     </message>
     <message>
         <source>Delete de selected history items</source>
-        <translation type="vanished">Smazat vybrané vzorce v historii</translation>
+        <translation>Smazat vybrané vzorce v historii</translation>
     </message>
     <message>
         <source>&amp;Delete item(s)</source>
-        <translation type="vanished">&amp;Smazat vzorec(ce)</translation>
+        <translation>&amp;Smazat vzorec(ce)</translation>
     </message>
     <message>
         <source>&amp;Import/Export</source>
-        <translation type="vanished">&amp;Zavést/Vyvést</translation>
+        <translation>&amp;Zavést/Vyvést</translation>
     </message>
     <message>
         <source>Alt+N</source>
-        <translation type="vanished">Alt+N</translation>
+        <translation>Alt+N</translation>
     </message>
     <message>
         <source>Close this window</source>
-        <translation type="vanished">Zavřít toto okno</translation>
+        <translation>Zavřít toto okno</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="vanished">Zavřít</translation>
+        <translation>Zavřít</translation>
     </message>
     <message>
         <source>Alt+O</source>
-        <translation type="vanished">Alt+O</translation>
+        <translation>Alt+O</translation>
     </message>
 </context>
 <context>
     <name>KLFLibraryListManager</name>
     <message>
         <source>Preview</source>
-        <translation type="vanished">Náhled</translation>
+        <translation>Náhled</translation>
     </message>
     <message>
         <source>Latex Code</source>
-        <translation type="vanished">Latexový kód</translation>
+        <translation>Latexový kód</translation>
     </message>
     <message>
         <source>Tags</source>
-        <translation type="vanished">Klíčová slova</translation>
+        <translation>Klíčová slova</translation>
     </message>
     <message>
         <source>[ No Item Selected ]</source>
-        <translation type="vanished">[ Nevybrán žádný vzorec ]</translation>
+        <translation>[ Nevybrán žádný vzorec ]</translation>
     </message>
     <message>
         <source>[ %1 Items Selected ]</source>
-        <translation type="vanished">[ Vybráno %1 položek ]</translation>
+        <translation>[ Vybráno %1 položek ]</translation>
     </message>
     <message>
         <source>[ Multiple Items Selected ]</source>
-        <translation type="vanished">[ Vybráno několik vzorců ]</translation>
+        <translation>[ Vybráno několik vzorců ]</translation>
     </message>
     <message>
         <source>[ No Items Selected ]</source>
-        <translation type="vanished">[ Nevybrány žádné vzorce ]</translation>
+        <translation>[ Nevybrány žádné vzorce ]</translation>
     </message>
     <message>
         <source>[ Different Styles ]</source>
-        <translation type="vanished">[ Rozdílné styly ]</translation>
+        <translation>[ Rozdílné styly ]</translation>
     </message>
     <message>
         <source>Restore latex formula and style</source>
-        <translation type="vanished">Znovu zavést latexový vzorec se stylem</translation>
+        <translation>Znovu zavést latexový vzorec se stylem</translation>
     </message>
     <message>
         <source>Restore latex formula only</source>
-        <translation type="vanished">Znovu zavést pouze latexový vzorec</translation>
+        <translation>Znovu zavést pouze latexový vzorec</translation>
     </message>
     <message>
         <source>Delete from library</source>
-        <translation type="vanished">Smazat z knihovny</translation>
+        <translation>Smazat z knihovny</translation>
     </message>
     <message>
         <source>Copy to</source>
-        <translation type="vanished">Kopírovat do</translation>
+        <translation>Kopírovat do</translation>
     </message>
     <message>
         <source>Move to</source>
-        <translation type="vanished">Přesunout do</translation>
+        <translation>Přesunout do</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation type="vanished">Obnovit</translation>
+        <translation>Obnovit</translation>
     </message>
     <message>
         <source>delete from Library?</source>
-        <translation type="vanished">Smazat z knihovny?</translation>
+        <translation>Smazat z knihovny?</translation>
     </message>
     <message numerus="yes">
         <source>Are you sure you want to delete %n selected item(s) from library?</source>
         <comment>[[confirmation message box]]</comment>
-        <translation type="vanished">
+        <translation>
             <numerusform>Jste si jistý, že chcete smazat jeden vybraný vzorec z knihovny?</numerusform>
             <numerusform>Jste si jistý, že chcete smazat %1 vybrané vzorce z knihovny?</numerusform>
             <numerusform>Jste si jistý, že chcete smazat %1 vybraných vzorců z knihovny?</numerusform>
@@ -1940,7 +1940,7 @@ Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Are you sure you want to delete %1 selected item(s) from library?</source>
-        <translation type="vanished">Jste si jistý, že chcete smazat %1 vybraný vzorec/vybrané vzorce z knihovny?</translation>
+        <translation>Jste si jistý, že chcete smazat %1 vybraný vzorec/vybrané vzorce z knihovny?</translation>
     </message>
 </context>
 <context>
@@ -1952,11 +1952,11 @@ Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>default</source>
-        <translation type="vanished">výchozí</translation>
+        <translation>výchozí</translation>
     </message>
     <message>
         <source>Default</source>
-        <translation type="vanished">Výchozí</translation>
+        <translation>Výchozí</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1033"/>
@@ -1970,30 +1970,30 @@ Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Can&apos;t install klatexformula.cls to temporary directory !</source>
-        <translation type="vanished">Klatexformula.cls nelze nainstalovat do adresáře s dočasnými soubory!</translation>
+        <translation>Klatexformula.cls nelze nainstalovat do adresáře s dočasnými soubory!</translation>
     </message>
     <message>
         <source>Manage Styles</source>
-        <translation type="vanished">Spravovat styly</translation>
+        <translation>Spravovat styly</translation>
     </message>
     <message>
         <source>Error: Unable to load your style list!</source>
-        <translation type="vanished">Chyba: Nelze nahrát seznam vašich stylů!</translation>
+        <translation>Chyba: Nelze nahrát seznam vašich stylů!</translation>
     </message>
     <message>
         <source>Error: Style file is incorrect or corrupt!
 </source>
-        <translation type="vanished">Chyba: Soubor se stylem je nesprávný, nebo je poškozený!
+        <translation>Chyba: Soubor se stylem je nesprávný, nebo je poškozený!
 </translation>
     </message>
     <message>
         <source>Load Styles</source>
-        <translation type="vanished">Nahrát styly</translation>
+        <translation>Nahrát styly</translation>
     </message>
     <message>
         <source>The style file found was created by a more recent version of KLatexFormula.
 The process of style loading may fail.</source>
-        <translation type="vanished">Soubor s nalezeným stylem byl vytvořen daleko novější verzí KLatexFormula.
+        <translation>Soubor s nalezeným stylem byl vytvořen daleko novější verzí KLatexFormula.
 Nahrání stylu může selhat.</translation>
     </message>
     <message>
@@ -2019,57 +2019,57 @@ Nahrání stylu může selhat.</translation>
     </message>
     <message>
         <source>Unable to open library file!</source>
-        <translation type="vanished">Nelze otevřít knihovnu!</translation>
+        <translation>Nelze otevřít knihovnu!</translation>
     </message>
     <message>
         <source>Error: Library file is incorrect or corrupt!
 </source>
-        <translation type="vanished">Chyba: Soubor s knihovnou je nesprávný, nebo je poškozený!
+        <translation>Chyba: Soubor s knihovnou je nesprávný, nebo je poškozený!
 </translation>
     </message>
     <message>
         <source>Load Library</source>
-        <translation type="vanished">Nahrát knihovnu</translation>
+        <translation>Nahrát knihovnu</translation>
     </message>
     <message>
         <source>The library file found was created by a more recent version of KLatexFormula.
 The process of library loading may fail.</source>
-        <translation type="vanished">Soubor s knihovnou byl vytvořen novější verzí KLatexFormula.
+        <translation>Soubor s knihovnou byl vytvořen novější verzí KLatexFormula.
 Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Unable to load your formula history list!</source>
-        <translation type="vanished">Nelze nahrát seznam s historií vašich vzorců!</translation>
+        <translation>Nelze nahrát seznam s historií vašich vzorců!</translation>
     </message>
     <message>
         <source>Error: History file is incorrect or corrupt!
 </source>
-        <translation type="vanished">Chyba: Soubor s historií je nesprávný, nebo je poškozený!
+        <translation>Chyba: Soubor s historií je nesprávný, nebo je poškozený!
 </translation>
     </message>
     <message>
         <source>Load History</source>
-        <translation type="vanished">Nahrát historii</translation>
+        <translation>Nahrát historii</translation>
     </message>
     <message>
         <source>The history file found was created by a more recent version of KLatexFormula.
 The process of history loading may fail.</source>
-        <translation type="vanished">Soubor s nalezeným stylem byl vytvořen daleko novější verzí KLatexFormula.
+        <translation>Soubor s nalezeným stylem byl vytvořen daleko novější verzí KLatexFormula.
 Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Error: Unable to write to library file `%1&apos;!</source>
-        <translation type="vanished">Chyba: Nelze zapisovat do souboru s knihovnou `%1&apos;!</translation>
+        <translation>Chyba: Nelze zapisovat do souboru s knihovnou `%1&apos;!</translation>
     </message>
     <message>
         <source>Failed open for ToolTip Temp Image!
 %1</source>
-        <translation type="vanished">Nepodařilo se otevřít obrázek s předlohou nástrojové rady!
+        <translation>Nepodařilo se otevřít obrázek s předlohou nástrojové rady!
 %1</translation>
     </message>
     <message>
         <source>Failed write to ToolTip Temp Image file %1!</source>
-        <translation type="vanished">Nepodařilo se zapisovat do souboru obrázku s předlohou nástrojové rady %1!</translation>
+        <translation>Nepodařilo se zapisovat do souboru obrázku s předlohou nástrojové rady %1!</translation>
     </message>
     <message>
         <source>Error: Unable to write to library file!
@@ -2126,35 +2126,35 @@ Zavedení knihovny může selhat.</translation>
     <message>
         <source>package %1</source>
         <comment>[[part of popup text, if one package only]]</comment>
-        <translation type="vanished">balíček %1</translation>
+        <translation>balíček %1</translation>
     </message>
     <message>
         <source>packages %1</source>
         <comment>[[part of popup text, if multiple packages]]</comment>
-        <translation type="vanished">balíčky %1</translation>
+        <translation>balíčky %1</translation>
     </message>
     <message>
         <source> and &lt;i&gt;some more definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when packages also need to be included]]</comment>
-        <translation type="vanished"> a &lt;i&gt;některá další vymezení&lt;/i&gt;</translation>
+        <translation> a &lt;i&gt;některá další vymezení&lt;/i&gt;</translation>
     </message>
     <message>
         <source>&lt;i&gt;some definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when no packages need to be included]]</comment>
-        <translation type="vanished">&lt;i&gt;některá vymezení&lt;/i&gt;</translation>
+        <translation>&lt;i&gt;některá vymezení&lt;/i&gt;</translation>
     </message>
     <message>
         <source>Symbol &lt;tt&gt;%3&lt;/tt&gt; may require &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</source>
-        <translation type="vanished">Symbol &lt;tt&gt;%3&lt;/tt&gt; může vyžadovat &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
+        <translation>Symbol &lt;tt&gt;%3&lt;/tt&gt; může vyžadovat &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
     </message>
     <message>
         <source>Include missing definitions for %1</source>
-        <translation type="vanished">Zahrnout chybějící vymezení pro %1</translation>
+        <translation>Zahrnout chybějící vymezení pro %1</translation>
     </message>
     <message>
         <source>Insert Symbol ...</source>
         <comment>[[context menu entry]]</comment>
-        <translation type="vanished">Vložit symbol...</translation>
+        <translation>Vložit symbol...</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2605"/>
@@ -2163,47 +2163,47 @@ Zavedení knihovny může selhat.</translation>
     </message>
     <message>
         <source>Click and keep mouse button pressed to drag your formula to an other application. Current export profile: %1</source>
-        <translation type="vanished">Klepněte a ponechte tlačítko myši stisknuté, abyste svůj vzorec přetáhl do nějakého jiného programu. Nynější profil pro vyvedení: %1</translation>
+        <translation>Klepněte a ponechte tlačítko myši stisknuté, abyste svůj vzorec přetáhl do nějakého jiného programu. Nynější profil pro vyvedení: %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="142"/>
         <source>Computer Modern (default font)</source>
-        <translation type="unfinished"></translation>
+        <translation>Computer Modern (výchozí písmo)</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="486"/>
         <source>Check for Updates</source>
-        <translation type="unfinished"></translation>
+        <translation>Zkontrolovat aktualizace</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="492"/>
         <source>LaTeX Symbols Palette</source>
-        <translation type="unfinished"></translation>
+        <translation>Paleta LaTeXových symbolů</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="493"/>
         <source>Equation Library Browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Prohlížeč knihovny rovnic</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="494"/>
         <source>Show Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Ukázat podrobnosti</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="495"/>
         <source>Activate Editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Spustit editor</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="496"/>
         <source>Activate Editor and Select All</source>
-        <translation type="unfinished"></translation>
+        <translation>Spustit editor a vybrat vše</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="498"/>
         <source>Show Big Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Ukázat velký náhled</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2609"/>
@@ -2214,22 +2214,22 @@ Zavedení knihovny může selhat.</translation>
         <location filename="../klfmainwin.cpp" line="2653"/>
         <source>Paste Clipboard Contents</source>
         <comment>[[Dock Menu Entry on MacOSX]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Vložit obsah schránky</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3009"/>
         <source>No Font Outlining</source>
-        <translation type="unfinished"></translation>
+        <translation>Žádné obrysy písma</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3010"/>
         <source>Your version of ghostscript does not allow fonts to be outlined.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vaše verze Ghostscriptu neumožňuje přeměnu písem v textu na vektorové obrysy.</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3012"/>
         <source>This means that vector formats may not display well when pasted or dropped into other programs. I&apos;ll continue now without font outlining. To get font outlining, update or downgrade your ghostscript to gs &lt;= 9.07 or gs &gt;= 9.15. To suppress this warning, disable font outlining in &quot;Settings-&gt;Advanced-&gt;LaTeX &amp; Image&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>To znamená, že se vektorové formáty při nahrání v některých vnějších programech nemohou zobrazit správně. Nyní se bude pokračovat bez převedení písem na obrysy. Pro obdržení převodu písem v textu na vektorové obrysy aktualizujte Ghostscript na gs &lt;= 9.07 or gs &gt;= 9.15. Aby se toto varování nezobrazovalo, zakažte převádění písem na vektorové obrysy v Nastavení -&gt; Pokročilé -&gt; LaTeX &amp; obrázky.</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3035"/>
@@ -2265,18 +2265,18 @@ Zavedení knihovny může selhat.</translation>
     <message>
         <location filename="../klfmainwin.cpp" line="3278"/>
         <source>User Script Not Available</source>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript není dostupný</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3279"/>
         <source>The user script %1 is not available.</source>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript %1 není dostupný.</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3313"/>
         <source>&lt;none&gt;</source>
         <comment>[[no user script]]</comment>
-        <translation type="unfinished">&lt;žádný&gt;</translation>
+        <translation>&lt;žádný&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3390"/>
@@ -2296,97 +2296,97 @@ Zavedení knihovny může selhat.</translation>
     <message>
         <location filename="../klfmainwin.cpp" line="3814"/>
         <source>Save Latex Output</source>
-        <translation type="unfinished"></translation>
+        <translation>Uložit LaTeXový výstup</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3838"/>
         <location filename="../klfmainwin.cpp" line="3846"/>
         <location filename="../klfmainwin.cpp" line="3859"/>
         <source>Error saving file</source>
-        <translation type="unfinished"></translation>
+        <translation>Chyba při vkládání souboru</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3839"/>
         <source>Error exporting the data: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Chyba při vyvádění dat: %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3847"/>
         <source>Can&apos;t write to file %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze zapisovat do souboru %1: %2</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3860"/>
         <source>Internal error: can&apos;t determine save format</source>
-        <translation type="unfinished"></translation>
+        <translation>Vnitřní chyba: Nelze určit ukládací formát</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="4149"/>
         <source>Can&apos;t find font</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze najít písmo</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="4149"/>
         <source>Sorry, I don&apos;t know about font `%1&apos;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bohužel, neví se o písmu `%1&apos;.</translation>
     </message>
     <message>
         <source>%1 Image (*.%2)</source>
-        <translation type="vanished">Obrázek %1 (*.%2)</translation>
+        <translation>Obrázek %1 (*.%2)</translation>
     </message>
     <message>
         <source>EPS PostScript (*.eps)</source>
-        <translation type="vanished">PostScript EPS (*.eps)</translation>
+        <translation>PostScript EPS (*.eps)</translation>
     </message>
     <message>
         <source>PDF Portable Document Format (*.pdf)</source>
-        <translation type="vanished">Přenositelný formát dokumentu PDF (Portable Document Format; *.pdf)</translation>
+        <translation>Přenositelný formát dokumentu PDF (Portable Document Format; *.pdf)</translation>
     </message>
     <message>
         <source>Standard JPEG Image (*.jpg *.jpeg)</source>
-        <translation type="vanished">Běžný obrázek JPEG (*.jpg *.jpeg)</translation>
+        <translation>Běžný obrázek JPEG (*.jpg *.jpeg)</translation>
     </message>
     <message>
         <source>Standard PNG Image (*.png)</source>
-        <translation type="vanished">Běžný obrázek PNG (*.png)</translation>
+        <translation>Běžný obrázek PNG (*.png)</translation>
     </message>
     <message>
         <source>Save Image Formula</source>
-        <translation type="vanished">Uložit obrázek vzorce</translation>
+        <translation>Uložit obrázek vzorce</translation>
     </message>
     <message>
         <source>File Exists</source>
-        <translation type="vanished">Soubor existuje</translation>
+        <translation>Soubor existuje</translation>
     </message>
     <message>
         <source>The file &lt;b&gt;%1&lt;/b&gt; already exists.
 Overwrite?</source>
-        <translation type="vanished">Soubor &lt;b&gt;%1&lt;/b&gt; již existuje.
+        <translation>Soubor &lt;b&gt;%1&lt;/b&gt; již existuje.
 Přepsat?</translation>
     </message>
     <message>
         <source>Extension not recognized</source>
-        <translation type="vanished">Přípona nebyla rozpoznána</translation>
+        <translation>Přípona nebyla rozpoznána</translation>
     </message>
     <message>
         <source>Extension &lt;b&gt;%1&lt;/b&gt; not recognized.</source>
-        <translation type="vanished">Přípona &lt;b&gt;%1&lt;/b&gt; nebyla rozpoznána.</translation>
+        <translation>Přípona &lt;b&gt;%1&lt;/b&gt; nebyla rozpoznána.</translation>
     </message>
     <message>
         <source>Press &quot;Change&quot; to change the file name, or &quot;Use PNG&quot; to save as PNG.</source>
-        <translation type="vanished">Klepněte na &quot;Změnit&quot; pro změnu názvu souboru, nebo na &quot;Použít PNG&quot; pro uložení do PNG.</translation>
+        <translation>Klepněte na &quot;Změnit&quot; pro změnu názvu souboru, nebo na &quot;Použít PNG&quot; pro uložení do PNG.</translation>
     </message>
     <message>
         <source>Use PNG</source>
-        <translation type="vanished">Použít PNG</translation>
+        <translation>Použít PNG</translation>
     </message>
     <message>
         <source>Change ...</source>
-        <translation type="vanished">Změnit...</translation>
+        <translation>Změnit...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="vanished">Zrušit</translation>
+        <translation>Zrušit</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="3882"/>
@@ -2395,15 +2395,15 @@ Přepsat?</translation>
     </message>
     <message>
         <source>Sorry, format `%1&apos; is not available.</source>
-        <translation type="vanished">Bohužel, formát `%1&apos; není dostupný.</translation>
+        <translation>Bohužel, formát `%1&apos; není dostupný.</translation>
     </message>
     <message>
         <source>Error: Can&apos;t write to file %1!</source>
-        <translation type="vanished">Chyba: Nelze zapisovat do souboru `%1&apos;!</translation>
+        <translation>Chyba: Nelze zapisovat do souboru `%1&apos;!</translation>
     </message>
     <message>
         <source>Created with KLatexFormula version %1</source>
-        <translation type="vanished">Vytvořeno KLatexFormula verze %1</translation>
+        <translation>Vytvořeno KLatexFormula verze %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="4207"/>
@@ -2468,7 +2468,7 @@ Přepsat?</translation>
     </message>
     <message>
         <source>&amp;Evaluate</source>
-        <translation type="vanished">&amp;Vyhodnotit</translation>
+        <translation>&amp;Vyhodnotit</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="207"/>
@@ -2570,7 +2570,7 @@ Přepsat?</translation>
     <message>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Ukončit KLatexFormula</translation>
+        <translation>Ukončit KLatexFormula</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="515"/>
@@ -2596,23 +2596,23 @@ Přepsat?</translation>
     </message>
     <message>
         <source>&amp;Foreground color:</source>
-        <translation type="vanished">&amp;Barva popředí:</translation>
+        <translation>&amp;Barva popředí:</translation>
     </message>
     <message>
         <source>Check this if you want your formula to have a transparent background</source>
-        <translation type="vanished">Zaškrtněte, pokud chcete, aby měl váš vzorec průhledné pozadí</translation>
+        <translation>Zaškrtněte, pokud chcete, aby měl váš vzorec průhledné pozadí</translation>
     </message>
     <message>
         <source>Use &amp;transparent background</source>
-        <translation type="vanished">Použít &amp;průhledné pozadí</translation>
+        <translation>Použít &amp;průhledné pozadí</translation>
     </message>
     <message>
         <source>Alt+U</source>
-        <translation type="vanished">Alt+U</translation>
+        <translation>Alt+U</translation>
     </message>
     <message>
         <source>&amp;Background color:</source>
-        <translation type="vanished">&amp;Barva pozadí:</translation>
+        <translation>&amp;Barva pozadí:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="569"/>
@@ -2631,15 +2631,15 @@ Přepsat?</translation>
     </message>
     <message>
         <source>Edit LaTeX &amp;preamble:</source>
-        <translation type="vanished">Změnit ú&amp;vod v LaTeXu:</translation>
+        <translation>Změnit ú&amp;vod v LaTeXu:</translation>
     </message>
     <message>
         <source>Image &amp;&amp; Margins</source>
-        <translation type="vanished">Obrázky &amp;&amp; Okraje</translation>
+        <translation>Obrázky &amp;&amp; Okraje</translation>
     </message>
     <message>
         <source>DPI &amp;Resolution:</source>
-        <translation type="vanished">&amp;Rozlišení v DPI:</translation>
+        <translation>&amp;Rozlišení v DPI:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1067"/>
@@ -2655,53 +2655,53 @@ Přepsat?</translation>
         <location filename="../klfmainwin.ui" line="16"/>
         <source>KLatexFormula</source>
         <comment>window title</comment>
-        <translation type="unfinished">KLatexFormula</translation>
+        <translation>KLatexFormula</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="184"/>
         <source>&amp;Run LaTeX</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Spustit LaTeX</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="655"/>
         <source>Font:</source>
-        <translation type="unfinished"></translation>
+        <translation>Písmo:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="677"/>
         <source>Fore/Background:</source>
-        <translation type="unfinished"></translation>
+        <translation>Popředí/Pozadí:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="724"/>
         <source>Transparent</source>
         <extracomment>background color selector</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Průhledné</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="753"/>
         <source>Font Size:</source>
-        <translation type="unfinished"></translation>
+        <translation>Velikost písma:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="760"/>
         <source>(default)</source>
-        <translation type="unfinished"></translation>
+        <translation>(výchozí)</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="787"/>
         <source>Preamble</source>
-        <translation type="unfinished"></translation>
+        <translation>Úvod</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="811"/>
         <source>LaTeX preamble:</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový úvod:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="843"/>
         <source>Image</source>
-        <translation type="unfinished"></translation>
+        <translation>Obrázek</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="919"/>
@@ -2736,32 +2736,32 @@ Přepsat?</translation>
     <message>
         <location filename="../klfmainwin.ui" line="1051"/>
         <source>DPI Resolution:</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozlišení v DPI:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1094"/>
         <source>Scale Vector Formats:</source>
-        <translation type="unfinished"></translation>
+        <translation>Škálovatelné vektorové formáty:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1133"/>
         <source>Script</source>
-        <translation type="unfinished"></translation>
+        <translation>Skript</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1145"/>
         <source>User Script:</source>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript:</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1162"/>
         <source>View user script log ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Zobrazit záznam uživatelského skriptu...</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1263"/>
         <source>&lt;no user script selected or no input to script&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;nevybrán žádný uživatelský skript nebo pro skript není žádný  upravitelný parametr&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1316"/>
@@ -2771,11 +2771,11 @@ Přepsat?</translation>
     <message>
         <location filename="../klfmainwin.ui" line="1319"/>
         <source>St&amp;yle</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Styl</translation>
     </message>
     <message>
         <source>Load St&amp;yle</source>
-        <translation type="vanished">Nahrát s&amp;tyl</translation>
+        <translation>Nahrát s&amp;tyl</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1322"/>
@@ -2784,11 +2784,11 @@ Přepsat?</translation>
     </message>
     <message>
         <source>Save current style (colors, etc.)</source>
-        <translation type="vanished">Uložit nynější styl (barvy, atd.)</translation>
+        <translation>Uložit nynější styl (barvy, atd.)</translation>
     </message>
     <message>
         <source>Sa&amp;ve Style</source>
-        <translation type="vanished">&amp;Uložit styl</translation>
+        <translation>&amp;Uložit styl</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="1335"/>
@@ -2915,127 +2915,126 @@ Přepsat?</translation>
     <message>
         <location filename="../klfmainwin.cpp" line="916"/>
         <source>Save Current Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Uložit nynější styl</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="919"/>
         <source>Save Current Style As Default</source>
-        <translation type="unfinished"></translation>
+        <translation>Uložit nynější styl jako výchozí</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="922"/>
         <source>Manage Styles</source>
-        <translation type="unfinished">Spravovat styly</translation>
+        <translation>Spravovat styly</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="966"/>
         <location filename="../klfmainwin.cpp" line="2808"/>
         <source>Error</source>
-        <translation type="unfinished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="966"/>
         <source>Error: Style file is incorrect or corrupt!
 </source>
-        <translation type="unfinished">Chyba: Soubor se stylem je nesprávný, nebo je poškozený!
-</translation>
+        <translation>Chyba: Soubor se stylem je nesprávný, nebo je poškozený!</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="970"/>
         <source>Load Styles</source>
-        <translation type="unfinished">Nahrát styly</translation>
+        <translation>Nahrát styly</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="971"/>
         <source>The style file found was created by a more recent version of KLatexFormula.
 The process of style loading may fail.</source>
-        <translation type="unfinished">Soubor s nalezeným stylem byl vytvořen daleko novější verzí KLatexFormula.
+        <translation>Nalezený soubor se stylem byl vytvořen daleko novější verzí KLatexFormula.
 Nahrání stylu může selhat.</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1469"/>
         <source>package %1</source>
         <comment>[[part of popup text, if one package only]]</comment>
-        <translation type="unfinished">balíček %1</translation>
+        <translation>balíček %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1472"/>
         <source>packages %1</source>
         <comment>[[part of popup text, if multiple packages]]</comment>
-        <translation type="unfinished">balíčky %1</translation>
+        <translation>balíčky %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1477"/>
         <source> and &lt;i&gt;some more definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when packages also need to be included]]</comment>
-        <translation type="unfinished"> a &lt;i&gt;některá další vymezení&lt;/i&gt;</translation>
+        <translation> a &lt;i&gt;některá další vymezení&lt;/i&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1479"/>
         <source>&lt;i&gt;some definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when no packages need to be included]]</comment>
-        <translation type="unfinished">&lt;i&gt;některá vymezení&lt;/i&gt;</translation>
+        <translation>&lt;i&gt;některá vymezení&lt;/i&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1517"/>
         <source>Symbol &lt;tt&gt;%3&lt;/tt&gt; may require &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</source>
-        <translation type="unfinished">Symbol &lt;tt&gt;%3&lt;/tt&gt; může vyžadovat &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
+        <translation>Symbol &lt;tt&gt;%3&lt;/tt&gt; může vyžadovat &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1720"/>
         <source>Include missing definitions for %1</source>
-        <translation type="unfinished">Zahrnout chybějící vymezení pro %1</translation>
+        <translation>Vložit chybějící vymezení pro %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1741"/>
         <source>Paren Modifier (%1) ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Pozměňovač závorky (%1) ...</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1743"/>
         <source>Change Paren (%1) ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Změnit závorku (%1) ...</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1758"/>
         <source>&lt;no modifier&gt;</source>
         <comment>[[in editor context menu]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>&lt;žádný pozměňovač&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1794"/>
         <source>Enclose in delimiter</source>
-        <translation type="unfinished"></translation>
+        <translation>Uzavřít v oddělovači</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1817"/>
         <source>Parenthesis-like</source>
         <comment>[[in paren menu delimiter type]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Jako závorky</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2087"/>
         <source>&lt;no user script selected&gt;</source>
         <comment>[[popup info]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>&lt;nevybrán žádný uživatelský skript&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2090"/>
         <source>&lt;no user script selected&gt;</source>
         <comment>[[space for user script custom input]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>&lt;nevybrán žádný uživatelský skript&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2116"/>
         <source>&lt;user script has no custom input&gt;</source>
         <comment>[[space for user script custom input]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>&lt;uživatelský skript nepřijímá doplňkové volby&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="2931"/>
         <source>LaTeX error, click &apos;Run LaTeX&apos; to see error message.</source>
         <comment>[[real-time preview tooltip]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Chyba LaTeXu. Klepněte na Spustit LaTeX, abyste uviděl hlášení o chybě.</translation>
     </message>
 </context>
 <context>
@@ -3043,43 +3042,43 @@ Nahrání stylu může selhat.</translation>
     <message>
         <source>KLatexFormula</source>
         <comment>window title</comment>
-        <translation type="vanished">KLatexFormula</translation>
+        <translation>KLatexFormula</translation>
     </message>
     <message>
         <source>Enter &amp;LaTeX expression:</source>
-        <translation type="vanished">Zadejte &amp;LaTeXový výraz:</translation>
+        <translation>Zadejte &amp;LaTeXový výraz:</translation>
     </message>
     <message>
         <source>Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.</source>
-        <translation type="vanished">Zde upravit nebo sem vložit latexový kód. Editor zaměřte pomocí klávesy &lt;strong&gt;F4&lt;/strong&gt;.</translation>
+        <translation>Zde upravit nebo sem vložit latexový kód. Editor zaměřte pomocí klávesy &lt;strong&gt;F4&lt;/strong&gt;.</translation>
     </message>
     <message>
         <source>Clear the above field</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Vyprázdnit pole výše</translation>
+        <translation>Vyprázdnit pole výše</translation>
     </message>
     <message>
         <source>Clicking this button is a utility to clear the LaTeX code entry field above</source>
         <comment>whatsthis</comment>
-        <translation type="vanished">Klepnutí na toto tlačítko je pomůcka pro vyprázdnění záznamu LaTeXového kódu v poli výše</translation>
+        <translation>Klepnutí na toto tlačítko je pomůcka pro vyprázdnění záznamu LaTeXového kódu v poli výše</translation>
     </message>
     <message>
         <source>Ctrl+C</source>
-        <translation type="vanished">Ctrl+C</translation>
+        <translation>Ctrl+C</translation>
     </message>
     <message>
         <source>Evaluate LaTeX Expression [Shift-Enter]</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Vyhodnotit LaTeXový výraz [Shift-Enter]</translation>
+        <translation>Vyhodnotit LaTeXový výraz [Shift-Enter]</translation>
     </message>
     <message>
         <source>Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</source>
         <comment>whatsthistext</comment>
-        <translation type="vanished">Udělat vzorec v &lt;i&gt;LaTeX&lt;/i&gt; výše jako obrázek, který se zobrazí na štítku níže.</translation>
+        <translation>Udělat vzorec v &lt;i&gt;LaTeX&lt;/i&gt; výše jako obrázek, který se zobrazí na štítku níže.</translation>
     </message>
     <message>
         <source>&amp;Evaluate</source>
-        <translation type="vanished">&amp;Vyhodnotit</translation>
+        <translation>&amp;Vyhodnotit</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -3088,238 +3087,238 @@ Nahrání stylu může selhat.</translation>
     <message>
         <source>Show Latex Symbols palette</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Ukázat paletu se symboly pro LaTeX</translation>
+        <translation>Ukázat paletu se symboly pro LaTeX</translation>
     </message>
     <message>
         <source>Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</source>
         <comment>whatsthis text</comment>
-        <translation type="vanished">Klepnutí na toto tlačítko otevře dialog, který vám dovolí podívat se a vybrat LaTeXové symboly, jejichž kódy nemusíte nosit ve svém srdci.</translation>
+        <translation>Klepnutí na toto tlačítko otevře dialog, který vám dovolí podívat se a vybrat LaTeXové symboly, jejichž kódy nemusíte nosit ve svém srdci.</translation>
     </message>
     <message>
         <source>Show Library</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Ukázat knihovnu</translation>
+        <translation>Ukázat knihovnu</translation>
     </message>
     <message>
         <source>Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</source>
         <comment>whatsthis text</comment>
-        <translation type="vanished">Klepnutí na toto tlačítko otevře knihovnu KLatexFormula, která zahrnuje Historii (předtím vyhodnocené výrazy) a Archiv, v němž můžete ukládat rovnice označené klíčovými slovy.</translation>
+        <translation>Klepnutí na toto tlačítko otevře knihovnu KLatexFormula, která zahrnuje Historii (předtím vyhodnocené výrazy) a Archiv, v němž můžete ukládat rovnice označené klíčovými slovy.</translation>
     </message>
     <message>
         <source>Toggle shrinked/expanded mode</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Přepnout mezi zmenšeným/rozšířeným režimem</translation>
+        <translation>Přepnout mezi zmenšeným/rozšířeným režimem</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="vanished">&lt;p style=&quot;white-space: pre&quot;&gt;Vyhodnotit výraz v LaTeXu [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Vyhodnotit výraz v LaTeXu [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="vanished">&lt;p style=&quot;white-space: pre&quot;&gt;Ukázat paletu se symboly pro LaTeX&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Ukázat paletu se symboly pro LaTeX&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="vanished">&lt;p style=&quot;white-space: pre&quot;&gt;Přepnout zmenšený/rozšířený režim&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Přepnout zmenšený/rozšířený režim&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</source>
-        <translation type="vanished">Přepne do rozšířeného režimu nebo zpět do zmenšeného režimu. V rozšířeném režimu si můžete vybrat z více voleb.</translation>
+        <translation>Přepne do rozšířeného režimu nebo zpět do zmenšeného režimu. V rozšířeném režimu si můžete vybrat z více voleb.</translation>
     </message>
     <message>
         <source>Ctrl+E, Ctrl+Space</source>
-        <translation type="vanished">Ctrl+E, Ctrl+Space</translation>
+        <translation>Ctrl+E, Ctrl+Space</translation>
     </message>
     <message>
         <source>Click and keep mouse button pressed to drag your formula to an other application</source>
-        <translation type="vanished">Klepněte a podržte tlačítko myši stisknuté pro přetažení vzorce do jiné aplikace</translation>
+        <translation>Klepněte a podržte tlačítko myši stisknuté pro přetažení vzorce do jiné aplikace</translation>
     </message>
     <message>
         <source>&amp;DRAG</source>
-        <translation type="vanished">&amp;TÁHNOUT</translation>
+        <translation>&amp;TÁHNOUT</translation>
     </message>
     <message>
         <source>Copy formula to clipboard</source>
-        <translation type="vanished">Kopírovat vzorec do schránky</translation>
+        <translation>Kopírovat vzorec do schránky</translation>
     </message>
     <message>
         <source>&amp;COPY</source>
-        <translation type="vanished">&amp;KOPÍROVAT</translation>
+        <translation>&amp;KOPÍROVAT</translation>
     </message>
     <message>
         <source>Alt+Y</source>
-        <translation type="vanished">Alt+Y</translation>
+        <translation>Alt+Y</translation>
     </message>
     <message>
         <source>Save formula to disk</source>
-        <translation type="vanished">Uložit vzorec na disk</translation>
+        <translation>Uložit vzorec na disk</translation>
     </message>
     <message>
         <source>&amp;SAVE</source>
-        <translation type="vanished">&amp;ULOŽIT</translation>
+        <translation>&amp;ULOŽIT</translation>
     </message>
     <message>
         <source>The resulting image will be displayed here</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Výsledný obrázek se zobrazí zde</translation>
+        <translation>Výsledný obrázek se zobrazí zde</translation>
     </message>
     <message>
         <source>Here you can see the image you get after evaluating your LaTeX code.</source>
         <comment>whatsthis</comment>
-        <translation type="vanished">Zde si můžete prohlédnout obrázek, který dostanete po vyhodnocení svého LaTeXového kódu.</translation>
+        <translation>Zde si můžete prohlédnout obrázek, který dostanete po vyhodnocení svého LaTeXového kódu.</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation type="vanished">&lt;p style=&quot;white-space: pre&quot;&gt;Ukázat větší náhled [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Ukázat větší náhled [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
-        <translation type="vanished">Ukončit KLatexFormula</translation>
+        <translation>Ukončit KLatexFormula</translation>
     </message>
     <message>
         <source>Exit KLatexFormula</source>
         <comment>whatsthis</comment>
-        <translation type="vanished">Opustit KLatexFormula</translation>
+        <translation>Opustit KLatexFormula</translation>
     </message>
     <message>
         <source>Quit</source>
-        <translation type="vanished">Ukončit</translation>
+        <translation>Ukončit</translation>
     </message>
     <message>
         <source>Ctrl+Q</source>
-        <translation type="vanished">Ctrl+Q</translation>
+        <translation>Ctrl+Q</translation>
     </message>
     <message>
         <source>Colors</source>
-        <translation type="vanished">Barvy</translation>
+        <translation>Barvy</translation>
     </message>
     <message>
         <source>&amp;Foreground color:</source>
-        <translation type="vanished">&amp;Barva popředí:</translation>
+        <translation>&amp;Barva popředí:</translation>
     </message>
     <message>
         <source>Check this if you want your formula to have a transparent background</source>
-        <translation type="vanished">Zaškrtněte, pokud chcete, aby měl váš obrázek průhledné pozadí</translation>
+        <translation>Zaškrtněte, pokud chcete, aby měl váš obrázek průhledné pozadí</translation>
     </message>
     <message>
         <source>Use &amp;transparent background</source>
-        <translation type="vanished">Použít &amp;průhledné pozadí</translation>
+        <translation>Použít &amp;průhledné pozadí</translation>
     </message>
     <message>
         <source>Alt+U</source>
-        <translation type="vanished">Alt+U</translation>
+        <translation>Alt+U</translation>
     </message>
     <message>
         <source>&amp;Background color:</source>
-        <translation type="vanished">&amp;Barva pozadí:</translation>
+        <translation>&amp;Barva pozadí:</translation>
     </message>
     <message>
         <source>Latex &amp;&amp; Image Settings</source>
-        <translation type="vanished">Nastavení Latexu &amp;&amp; Obrázku</translation>
+        <translation>Nastavení Latexu &amp;&amp; Obrázku</translation>
     </message>
     <message>
         <source>Check this to use a LaTeX math mode</source>
-        <translation type="vanished">Zaškrtněte pro použití LaTeXového matematického režimu</translation>
+        <translation>Zaškrtněte pro použití LaTeXového matematického režimu</translation>
     </message>
     <message>
         <source>Use &amp;Math mode:</source>
-        <translation type="vanished">Použít &amp;matematický režim:</translation>
+        <translation>Použít &amp;matematický režim:</translation>
     </message>
     <message>
         <source>\[ ... \]</source>
-        <translation type="vanished">\[ ... \]</translation>
+        <translation>\[ ... \]</translation>
     </message>
     <message>
         <source>$ ... $</source>
-        <translation type="vanished">$ ... $</translation>
+        <translation>$ ... $</translation>
     </message>
     <message>
         <source>\begin{eqnarray*} ... \end{eqnarray*}</source>
-        <translation type="vanished">\begin{eqnarray*} ... \end{eqnarray*}</translation>
+        <translation>\begin{eqnarray*} ... \end{eqnarray*}</translation>
     </message>
     <message>
         <source>Edit LaTeX &amp;preamble:</source>
-        <translation type="vanished">Změnit ú&amp;vod v LaTeXu:</translation>
+        <translation>Změnit ú&amp;vod v LaTeXu:</translation>
     </message>
     <message>
         <source>DPI &amp;Resolution:</source>
-        <translation type="vanished">&amp;Rozlišení v DPI:</translation>
+        <translation>&amp;Rozlišení v DPI:</translation>
     </message>
     <message>
         <source>Presets</source>
-        <translation type="vanished">Přednastavení</translation>
+        <translation>Přednastavení</translation>
     </message>
     <message>
         <source>Load a previously saved style</source>
-        <translation type="vanished">Nahrát předtím uložený styl</translation>
+        <translation>Nahrát předtím uložený styl</translation>
     </message>
     <message>
         <source>Load St&amp;yle</source>
-        <translation type="vanished">Nahrát s&amp;tyl</translation>
+        <translation>Nahrát s&amp;tyl</translation>
     </message>
     <message>
         <source>Alt+L</source>
-        <translation type="vanished">Alt+L</translation>
+        <translation>Alt+L</translation>
     </message>
     <message>
         <source>Save current style (colors, etc.)</source>
-        <translation type="vanished">Uložit nynější styl (barvy, atd.)</translation>
+        <translation>Uložit nynější styl (barvy, atd.)</translation>
     </message>
     <message>
         <source>Sa&amp;ve Style</source>
-        <translation type="vanished">&amp;Uložit styl</translation>
+        <translation>&amp;Uložit styl</translation>
     </message>
     <message>
         <source>Edit KLatexFormula settings</source>
-        <translation type="vanished">Změnit nastavení KLatexFormula</translation>
+        <translation>Změnit nastavení KLatexFormula</translation>
     </message>
     <message>
         <source>Settings...</source>
-        <translation type="vanished">Nastavení...</translation>
+        <translation>Nastavení...</translation>
     </message>
     <message>
         <source>Alt+N</source>
-        <translation type="vanished">Alt+N</translation>
+        <translation>Alt+N</translation>
     </message>
     <message>
         <source>F1</source>
-        <translation type="vanished">F1</translation>
+        <translation>F1</translation>
     </message>
     <message>
         <source>High Resolution (1200)</source>
-        <translation type="vanished">Vysoké rozlišení (1200)</translation>
+        <translation>Vysoké rozlišení (1200)</translation>
     </message>
     <message>
         <source>Very good resolution</source>
-        <translation type="vanished">Velmi dobré rozlišení</translation>
+        <translation>Velmi dobré rozlišení</translation>
     </message>
     <message>
         <source>Good Resolution (600)</source>
-        <translation type="vanished">Dobré rozlišení (600)</translation>
+        <translation>Dobré rozlišení (600)</translation>
     </message>
     <message>
         <source>Pretty good resolution</source>
-        <translation type="vanished">Docela dobré rozlišení</translation>
+        <translation>Docela dobré rozlišení</translation>
     </message>
     <message>
         <source>Medium Resolution (300)</source>
-        <translation type="vanished">Střední rozlišení (300)</translation>
+        <translation>Střední rozlišení (300)</translation>
     </message>
     <message>
         <source>Medium resolution</source>
-        <translation type="vanished">Střední rozlišení</translation>
+        <translation>Střední rozlišení</translation>
     </message>
     <message>
         <source>Low Resolution (150)</source>
-        <translation type="vanished">Nízké rozlišení (150)</translation>
+        <translation>Nízké rozlišení (150)</translation>
     </message>
     <message>
         <source>Low resolution</source>
-        <translation type="vanished">Nízké rozlišení</translation>
+        <translation>Nízké rozlišení</translation>
     </message>
 </context>
 <context>
@@ -3327,7 +3326,7 @@ Nahrání stylu může selhat.</translation>
     <message>
         <location filename="../klfexporter_p.h" line="270"/>
         <source>OpenOffice Draw</source>
-        <translation type="unfinished">Formát OpenOffice.org</translation>
+        <translation>OpenOffice Draw</translation>
     </message>
 </context>
 <context>
@@ -3335,12 +3334,12 @@ Nahrání stylu může selhat.</translation>
     <message>
         <location filename="../klftools/klfpobjeditwidget.cpp" line="170"/>
         <source>Property</source>
-        <translation type="unfinished"></translation>
+        <translation>Vlastnictví</translation>
     </message>
     <message>
         <location filename="../klftools/klfpobjeditwidget.cpp" line="172"/>
         <source>Value</source>
-        <translation type="unfinished">Hodnota</translation>
+        <translation>Hodnota</translation>
     </message>
 </context>
 <context>
@@ -3355,16 +3354,16 @@ Nahrání stylu může selhat.</translation>
     <name>KLFProgErr</name>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>An error occured!</source>
-        <translation type="vanished">Vyskytla se chyba!</translation>
+        <translation>Vyskytla se chyba!</translation>
     </message>
     <message>
         <location filename="../klftools/klfprogerr.ui" line="15"/>
         <source>Program Output</source>
-        <translation type="unfinished"></translation>
+        <translation>Výstup programu</translation>
     </message>
     <message>
         <location filename="../klftools/klfprogerr.ui" line="78"/>
@@ -3375,22 +3374,22 @@ Nahrání stylu může selhat.</translation>
     <message>
         <location filename="../klftools/klfprogerr.ui" line="84"/>
         <source>Dismiss</source>
-        <translation type="unfinished"></translation>
+        <translation>Zavřít</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="vanished">Zavřít</translation>
+        <translation>Zavřít</translation>
     </message>
 </context>
 <context>
     <name>KLFProgErrUI</name>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>An error occured!</source>
-        <translation type="vanished">Vyskytla se chyba!</translation>
+        <translation>Vyskytla se chyba!</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -3398,7 +3397,7 @@ Nahrání stylu může selhat.</translation>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Lucida Grande&apos;; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="vanished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Lucida Grande&apos;; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -3406,11 +3405,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Close dialog</source>
-        <translation type="vanished">Zavřít dialogové okno</translation>
+        <translation>Zavřít dialogové okno</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="vanished">Zavřít</translation>
+        <translation>Zavřít</translation>
     </message>
 </context>
 <context>
@@ -3457,7 +3456,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klftools/klfsearchbar.ui" line="98"/>
         <source>Close Search Bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Zavřít vyhledávací pole</translation>
     </message>
     <message>
         <location filename="../klftools/klfsearchbar.ui" line="109"/>
@@ -3490,7 +3489,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../klftools/klfsearchbar.cpp" line="474"/>
         <source>Ctrl+G</source>
         <comment>[[find]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+G</translation>
     </message>
     <message>
         <location filename="../klftools/klfsearchbar.cpp" line="475"/>
@@ -3521,70 +3520,70 @@ p, li { white-space: pre-wrap; }
     <name>KLFSettings</name>
     <message>
         <source>Cancel</source>
-        <translation type="vanished">Zrušit</translation>
+        <translation>Zrušit</translation>
     </message>
     <message>
         <source>Apply</source>
-        <translation type="vanished">Použít</translation>
+        <translation>Použít</translation>
     </message>
     <message>
         <source>OK</source>
-        <translation type="vanished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <source>English Default</source>
         <comment>[[first item of language graphical choice box]]</comment>
-        <translation type="vanished">Výchozí anglický</translation>
+        <translation>Výchozí anglický</translation>
     </message>
     <message>
         <source>%1 (%2)</source>
         <comment>[[%1=Language (%2=Country)]]</comment>
-        <translation type="vanished">%1 (%2)</translation>
+        <translation>%1 (%2)</translation>
     </message>
     <message>
         <source>%1</source>
         <comment>[[%1=Language, no country is specified]]</comment>
-        <translation type="vanished">%1</translation>
+        <translation>%1</translation>
     </message>
     <message>
         <source>You need to restart KLatexFormula for your new language settings to take effect.</source>
-        <translation type="vanished">Musíte KLatexFormula spustit znovu, aby se vaše nová jazyková nastavení projevila.</translation>
+        <translation>Musíte KLatexFormula spustit znovu, aby se vaše nová jazyková nastavení projevila.</translation>
     </message>
     <message>
         <source>Main editor font sample - click to change</source>
-        <translation type="vanished">Písmo pro hlavní editor - pro jeho změnu klepněte</translation>
+        <translation>Písmo pro hlavní editor - pro jeho změnu klepněte</translation>
     </message>
     <message>
         <source>Preamble editor font sample - click to change</source>
-        <translation type="vanished">Písmo pro editor úvodu - pro jeho změnu klepněte</translation>
+        <translation>Písmo pro editor úvodu - pro jeho změnu klepněte</translation>
     </message>
     <message>
         <source>Preview Size</source>
-        <translation type="vanished">Velikost náhledu</translation>
+        <translation>Velikost náhledu</translation>
     </message>
     <message>
         <source>Maximum Size of Preview Tooltip on LaTeX formula display</source>
-        <translation type="vanished">Největší velikost nástrojové rady k náhledu při zobrazení vzorce LaTeX</translation>
+        <translation>Největší velikost nástrojové rady k náhledu při zobrazení vzorce LaTeX</translation>
     </message>
     <message>
         <source>System E&amp;xecutables and paths</source>
-        <translation type="vanished">&amp;Spustitelné soubory a cesty v systému</translation>
+        <translation>&amp;Spustitelné soubory a cesty v systému</translation>
     </message>
     <message>
         <source>A&amp;dvanced settings</source>
-        <translation type="vanished">&amp;Pokročilá nastavení</translation>
+        <translation>&amp;Pokročilá nastavení</translation>
     </message>
     <message>
         <source>No Plugins have been loaded. Please install and enable individual plugins before trying to configure them.</source>
-        <translation type="vanished">Nebyly nahrány žádné přídavné moduly. Nainstalujte, prosím, a povolte jednotlivé přídavné moduly před pokusem o jejich nastavení.</translation>
+        <translation>Nebyly nahrány žádné přídavné moduly. Nainstalujte, prosím, a povolte jednotlivé přídavné moduly před pokusem o jejich nastavení.</translation>
     </message>
     <message>
         <source>The Add-On File %1 will be removed from disk.</source>
-        <translation type="vanished">Soubor s přídavnou funkcí %1 bude odstraněn z disku.</translation>
+        <translation>Soubor s přídavnou funkcí %1 bude odstraněn z disku.</translation>
     </message>
     <message>
         <source>Change Langugage</source>
-        <translation type="vanished">Změnit jazyk</translation>
+        <translation>Změnit jazyk</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="113"/>
@@ -3598,11 +3597,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>No Plugins have been loaded. Please install and enable individual plugins first, then come back to this page to configure them.</source>
-        <translation type="vanished">Nebyly nahrány žádné přídavné moduly. Nainstalujte, prosím, nejprve a povolte jednotlivé přídavné moduly, potom se vraťte na tuto stranu a nastavte je.</translation>
+        <translation>Nebyly nahrány žádné přídavné moduly. Nainstalujte, prosím, nejprve a povolte jednotlivé přídavné moduly, potom se vraťte na tuto stranu a nastavte je.</translation>
     </message>
     <message>
         <source>No Plugins Loaded</source>
-        <translation type="vanished">Nenahrány žádné přídavné moduly</translation>
+        <translation>Nenahrány žádné přídavné moduly</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
@@ -3613,7 +3612,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;&quot;&gt;
 &lt;tt&gt;File Location:&lt;/tt&gt; &lt;span style=&quot;font-size: %4pt;&quot;&gt;%5&lt;/span&gt;
 </source>
-        <translation type="vanished">&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
+        <translation>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
 &lt;tt&gt;Název:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Autor:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Popis:&lt;/tt&gt;&lt;/p&gt;
@@ -3624,47 +3623,47 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Remove Plugin?</source>
-        <translation type="vanished">Odstranit přídavný modul?</translation>
+        <translation>Odstranit přídavný modul?</translation>
     </message>
     <message>
         <source>&lt;qt&gt;Are you sure you want to remove Plugin &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</source>
-        <translation type="vanished">&lt;qt&gt;Jste si jistý, že chcete odstranit přídavný modul &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</translation>
+        <translation>&lt;qt&gt;Jste si jistý, že chcete odstranit přídavný modul &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</translation>
     </message>
     <message>
         <source>The Plugin File %1 will be removed from disk.</source>
-        <translation type="vanished">Soubor s přídavným modulem %1 bude odstraněn z disku.</translation>
+        <translation>Soubor s přídavným modulem %1 bude odstraněn z disku.</translation>
     </message>
     <message>
         <source>Remove Plugin</source>
-        <translation type="vanished">Odstranit přídavný modul</translation>
+        <translation>Odstranit přídavný modul</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px;&quot;&gt;Please note the following:&lt;br /&gt;
 &lt;ul&gt;&lt;li&gt;You need to restart KLatexFormula for changes to take effect
 &lt;li&gt;If this plugin was privided in an add-on, you need to remove the corresponding add-on too or the plugin will be automatically re-installed.&lt;/p&gt;</source>
-        <translation type="vanished">&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px;&quot;&gt;Uvědomte si, prosím, následující:&lt;br /&gt;
+        <translation>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px;&quot;&gt;Uvědomte si, prosím, následující:&lt;br /&gt;
 &lt;ul&gt;&lt;li&gt;Musíte KLatexFormula spustit znovu, aby se změny projevily.
 &lt;li&gt;Pokud byl tento přídavný modul poskytnut jako přídavná funkce, musíte také odstranit odpovídající přídavnou funkci, protože jinak bude přídavný modul automaticky nainstalován znovu.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>Failed to remove Plugin.</source>
-        <translation type="vanished">Nepodařilo se odstranit přídavný modul.</translation>
+        <translation>Nepodařilo se odstranit přídavný modul.</translation>
     </message>
     <message>
         <source>Failed to remove Plugin %1.</source>
-        <translation type="vanished">Nepodařilo se odstranit přídavný modul %1.</translation>
+        <translation>Nepodařilo se odstranit přídavný modul %1.</translation>
     </message>
     <message>
         <source>Could not find %1 executable !</source>
-        <translation type="vanished">Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
+        <translation>Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
     </message>
     <message>
         <source>Please check your installation and specify the path to %1 executable manually if it is not installed in $PATH.</source>
-        <translation type="vanished">Prověřte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
+        <translation>Prověřte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
@@ -3676,7 +3675,7 @@ p, li { white-space: pre-wrap; }
 &lt;tt&gt;File Name:&lt;/tt&gt; &lt;span style=&quot;font-size: %5pt;&quot;&gt;%4&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;File Location:&lt;/tt&gt; &lt;span style=&quot;font-size: %5pt;&quot;&gt;%6&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;&lt;i&gt;%7&lt;/i&gt;&lt;/tt&gt;</source>
-        <translation type="vanished">&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
+        <translation>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
 &lt;tt&gt;Název:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Autor:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Popis:&lt;/tt&gt;&lt;/p&gt;
@@ -3688,67 +3687,67 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Add-On installed locally</source>
-        <translation type="vanished">Přídavná funkce nainstalována místně</translation>
+        <translation>Přídavná funkce nainstalována místně</translation>
     </message>
     <message>
         <source>Add-On installed globally on system</source>
-        <translation type="vanished">Přídavná funkce nainstalována celkově v systému</translation>
+        <translation>Přídavná funkce nainstalována celkově v systému</translation>
     </message>
     <message>
         <source>Please select add-on file(s) to import</source>
-        <translation type="vanished">Vyberte, prosím, soubor/soubory s přídavnými funkcemi, které se mají zavést</translation>
+        <translation>Vyberte, prosím, soubor/soubory s přídavnými funkcemi, které se mají zavést</translation>
     </message>
     <message>
         <source>File %1 cannot be accessed.</source>
-        <translation type="vanished">Nelze přistupovat k souboru %1.</translation>
+        <translation>Nelze přistupovat k souboru %1.</translation>
     </message>
     <message>
         <source>An Add-On with the same file name has already been imported.</source>
-        <translation type="vanished">Přídavná funkce se stejným souborovým názvem již byla zavedena.</translation>
+        <translation>Přídavná funkce se stejným souborovým názvem již byla zavedena.</translation>
     </message>
     <message>
         <source>This add-on requires a more recent version of KLatexFormula.
 Required version: %1
 This version: %2</source>
-        <translation type="vanished">Tato přídavná funkce vyžaduje novější verzi programu KLatexFormula.
+        <translation>Tato přídavná funkce vyžaduje novější verzi programu KLatexFormula.
 Požadovaná verze: %1
 Tato verze: %2</translation>
     </message>
     <message>
         <source>Import of add-on file %1 failed.</source>
-        <translation type="vanished">Zavedení souboru s přídavnou funkcí %1 se nezdařilo.</translation>
+        <translation>Zavedení souboru s přídavnou funkcí %1 se nezdařilo.</translation>
     </message>
     <message>
         <source>Import</source>
-        <translation type="vanished">Zavést</translation>
+        <translation>Zavést</translation>
     </message>
     <message>
         <source>Please restart KLatexFormula for changes to take effect.</source>
-        <translation type="vanished">Spusťte, prosím, KLatexFormula znovu, aby se změny projevily.</translation>
+        <translation>Spusťte, prosím, KLatexFormula znovu, aby se změny projevily.</translation>
     </message>
     <message>
         <source>Change Language</source>
-        <translation type="vanished">Změnit jazyk</translation>
+        <translation>Změnit jazyk</translation>
     </message>
     <message>
         <source>Change application language to &lt;b&gt;%1&lt;/b&gt;?</source>
-        <translation type="vanished">Změnit jazyk programu na &lt;b&gt;%1&lt;/b&gt;?</translation>
+        <translation>Změnit jazyk programu na &lt;b&gt;%1&lt;/b&gt;?</translation>
     </message>
     <message>
         <source>Remove Add-On?</source>
-        <translation type="vanished">Odstranit přídavnou funkci?</translation>
+        <translation>Odstranit přídavnou funkci?</translation>
     </message>
     <message>
         <source>&lt;qt&gt;Are you sure you want to remove Add-On &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</source>
-        <translation type="vanished">&lt;qt&gt;Jste si jistý, že chcete odstranit přídavnou funkci &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</translation>
+        <translation>&lt;qt&gt;Jste si jistý, že chcete odstranit přídavnou funkci &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</translation>
     </message>
     <message>
         <source>The Add-On File %1 will be removed from disk, along with plugin(s) %2.</source>
-        <translation type="vanished">Soubor s přídavnou funkcí %1 bude odstraněn z disku, společně s přídavným modulem(y) %2.</translation>
+        <translation>Soubor s přídavnou funkcí %1 bude odstraněn z disku, společně s přídavným modulem(y) %2.</translation>
     </message>
     <message>
         <source>Failed to remove Add-On.</source>
-        <translation type="vanished">Nepodařilo se odstranit přídavnou funkci.</translation>
+        <translation>Nepodařilo se odstranit přídavnou funkci.</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="1085"/>
@@ -3772,11 +3771,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Could not find `%1&apos; executable !</source>
-        <translation type="vanished">Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
+        <translation>Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
     </message>
     <message>
         <source>Please check your installation and specify the path to `%1&apos; executable manually if it is not installed in $PATH.</source>
-        <translation type="vanished">Zkontrolujte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
+        <translation>Zkontrolujte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="18"/>
@@ -3785,7 +3784,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>&amp;Appearance</source>
-        <translation type="vanished">&amp;Vzhled</translation>
+        <translation>&amp;Vzhled</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="120"/>
@@ -3795,139 +3794,139 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfsettings.ui" line="198"/>
         <source>... except when on battery power</source>
-        <translation type="unfinished"></translation>
+        <translation>... vyjma případu, kdy je používána baterie</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="259"/>
         <source>Quick Menu Affects:</source>
-        <translation type="unfinished"></translation>
+        <translation>Nabídka ovlivní:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="288"/>
         <source>Show additional options as:</source>
-        <translation type="unfinished"></translation>
+        <translation>Ukázat dodatečné volby jako:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="482"/>
         <source>TEXINPUTS</source>
-        <translation type="unfinished"></translation>
+        <translation>TEXINPUTS</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="488"/>
         <source>You may specify additional search paths for LaTeX here. Separate paths with &apos;:&apos; on Unix/Mac and with &apos;;&apos; on Windows.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zde stanovte dodatečné prohledávané cesty pro LaTeXové styly. Cesty oddělte &apos;:&apos; na Unix/Mac a &apos;;&apos; na Windows.</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="495"/>
         <source>Specify additional TEXINPUTS paths:</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodatečné prohledávané cesty TEXINPUTS:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="522"/>
         <source>Syntax Highlighting Options</source>
-        <translation type="unfinished"></translation>
+        <translation>Volby pro zvýrazňování skladby</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="555"/>
         <source>General Editor Options</source>
-        <translation type="unfinished"></translation>
+        <translation>Obecné volby pro editor</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="561"/>
         <source>Tab key inserts tab instead of passing on keyboard focus</source>
-        <translation type="unfinished"></translation>
+        <translation>Klávesa TAB vloží tabulátor (zarážku) namísto přejítí na následující prvek (zaměření pomocí klávesnice)</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="568"/>
         <source>Wrap long lines in LaTeX code editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Zalamovat dlouhé řádky v editoru kódu LaTeX</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="578"/>
         <source>Insert Symbol</source>
-        <translation type="unfinished">Vložit symbol</translation>
+        <translation>Vložit symbol</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="584"/>
         <source>Include also necessary preamble definitions</source>
-        <translation type="unfinished"></translation>
+        <translation>Zahrnout nezbytná vymezení do úvodu LaTeXu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="598"/>
         <source>Library Appearance and Behavior</source>
-        <translation type="unfinished"></translation>
+        <translation>Vzhled a chování knihovny</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="634"/>
         <source>Tagging a formula in History copies it to the Archive</source>
-        <translation type="unfinished"></translation>
+        <translation>Přidání značky ke vzorci v historii jej automaticky zkopíruje do archivu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="656"/>
         <location filename="../klfsettings.ui" line="697"/>
         <location filename="../klfsettings.ui" line="1542"/>
         <source> px</source>
-        <translation type="unfinished"></translation>
+        <translation> px</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="780"/>
         <source>User Scripts</source>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelské skripty</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="788"/>
         <source>Reload</source>
-        <translation type="unfinished"></translation>
+        <translation>Obnovit</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="800"/>
         <source>Script Informaton</source>
-        <translation type="unfinished"></translation>
+        <translation>Informace o skriptu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="845"/>
         <source>Script Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení skriptu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="897"/>
         <source>&lt;no user script selected or no settings for script&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;nevybrán žádný uživatelský skript nebo pro skript nepřijímá žádný parametr&gt;</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="922"/>
         <source>Interpreters</source>
-        <translation type="unfinished"></translation>
+        <translation>Překladače</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="928"/>
         <source>Python:</source>
-        <translation type="unfinished"></translation>
+        <translation>Python:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="938"/>
         <source>Shell:</source>
-        <translation type="unfinished"></translation>
+        <translation>Shell:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="986"/>
         <source>Manage Add-Ons and Plugins</source>
-        <translation type="unfinished"></translation>
+        <translation>Spravovat doplňky a přídavné moduly</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1301"/>
         <source>Plugin Configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení přídavných modulů</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1357"/>
         <source>Appearance</source>
-        <translation type="unfinished"></translation>
+        <translation>Vzhled</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1366"/>
         <source>Fonts</source>
-        <translation type="unfinished"></translation>
+        <translation>Písma</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1467"/>
@@ -3951,11 +3950,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Tooltip Preview</source>
-        <translation type="vanished">Náhled na nástrojové rady</translation>
+        <translation>Náhled na nástrojové rady</translation>
     </message>
     <message>
         <source>Max size:</source>
-        <translation type="vanished">Největší velikost:</translation>
+        <translation>Největší velikost:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="148"/>
@@ -3964,7 +3963,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Interface Options</source>
-        <translation type="vanished">Volby pro rozhraní</translation>
+        <translation>Volby pro rozhraní</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2350"/>
@@ -3996,7 +3995,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>LaTeX editor fonts</source>
-        <translation type="vanished">Písma pro editor LaTeXu</translation>
+        <translation>Písma pro editor LaTeXu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1387"/>
@@ -4010,7 +4009,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>&amp;Syntax Highlighting</source>
-        <translation type="vanished">&amp;Zvýrazňování skladby</translation>
+        <translation>&amp;Zvýrazňování skladby</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="528"/>
@@ -4019,7 +4018,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Options</source>
-        <translation type="vanished">Volby</translation>
+        <translation>Volby</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="538"/>
@@ -4028,7 +4027,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Alt+A</source>
-        <translation type="vanished">Alt+A</translation>
+        <translation>Alt+A</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="545"/>
@@ -4037,7 +4036,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Colors</source>
-        <translation type="vanished">Barvy</translation>
+        <translation>Barvy</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1787"/>
@@ -4086,27 +4085,27 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>A&amp;dvanced</source>
-        <translation type="vanished">&amp;Pokročilé</translation>
+        <translation>&amp;Pokročilé</translation>
     </message>
     <message>
         <source>Expand EPS BoundingBox</source>
-        <translation type="vanished">Roztáhnout EPS OhraničujícíBox</translation>
+        <translation>Roztáhnout EPS OhraničujícíBox</translation>
     </message>
     <message>
         <source>Bottom (Postscript points):</source>
-        <translation type="vanished">Dole (postscriptové body):</translation>
+        <translation>Dole (postscriptové body):</translation>
     </message>
     <message>
         <source>Right (Postscript points):</source>
-        <translation type="vanished">Vpravo (postscriptové body):</translation>
+        <translation>Vpravo (postscriptové body):</translation>
     </message>
     <message>
         <source>Left (Postscript points):</source>
-        <translation type="vanished">Vlevo (postscriptové body):</translation>
+        <translation>Vlevo (postscriptové body):</translation>
     </message>
     <message>
         <source>Top (Postscript points):</source>
-        <translation type="vanished">Nahoře (postscriptové body):</translation>
+        <translation>Nahoře (postscriptové body):</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="304"/>
@@ -4155,15 +4154,15 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Have epstopdf :</source>
-        <translation type="vanished">epstopdf:</translation>
+        <translation>epstopdf:</translation>
     </message>
     <message>
         <source>Choose epstopdf executable</source>
-        <translation type="vanished">Vybrat spustitelný soubor pro epstopdf</translation>
+        <translation>Vybrat spustitelný soubor pro epstopdf</translation>
     </message>
     <message>
         <source>Reset defaults</source>
-        <translation type="vanished">Nastavit znovu na výchozí</translation>
+        <translation>Nastavit znovu na výchozí</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1734"/>
@@ -4172,7 +4171,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Outline embedded fonts (eg. for Adobe Illustrator)</source>
-        <translation type="vanished">Obtáhnout vložená písma (např. pro Adobe Illustrator)</translation>
+        <translation>Převést vložená písma na obrysy (např. pro Adobe Illustrator)</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="230"/>
@@ -4196,7 +4195,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Menu Affects:</source>
-        <translation type="vanished">Nabídka ovlivní:</translation>
+        <translation>Nabídka ovlivní:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="266"/>
@@ -4211,147 +4210,147 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfsettings.ui" line="1502"/>
         <source>Glow Color:</source>
-        <translation type="unfinished"></translation>
+        <translation>Barva přisvícení:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1535"/>
         <source>radius:</source>
-        <translation type="unfinished"></translation>
+        <translation>Poloměr:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1552"/>
         <source>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</source>
-        <translation type="unfinished"></translation>
+        <translation>Použít kovový (Metal) vzhled Mac OS X (vyžaduje opětovné spuštění)</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1560"/>
         <source>LaTeX &amp;&amp; Image</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeX &amp;&amp; obrázek</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1569"/>
         <source>EPS BoundingBox Margins</source>
-        <translation type="unfinished"></translation>
+        <translation>Okraje ohraničení EPS</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1584"/>
         <source>Bottom:</source>
-        <translation type="unfinished">Dole:</translation>
+        <translation>Dole:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1594"/>
         <source>Right:</source>
-        <translation type="unfinished">Vpravo:</translation>
+        <translation>Vpravo:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1604"/>
         <source>Top:</source>
-        <translation type="unfinished">Nahoře:</translation>
+        <translation>Nahoře:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1673"/>
         <source>Units:</source>
-        <translation type="unfinished">Jednotky:</translation>
+        <translation>Jednotky:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1680"/>
         <source>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</source>
-        <translation type="unfinished">Postscriptový bod=pt=1;Milimetr=mm=2.835;Centimetr=cm=28.35;1/8 palec=1/8 in=9;Palec=in=72</translation>
+        <translation>Postscriptový bod=pt=1;Milimetr=mm=2.835;Centimetr=cm=28.35;1/8 palec=1/8 in=9;Palec=in=72</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1689"/>
         <source>Left:</source>
-        <translation type="unfinished">Vlevo:</translation>
+        <translation>Vlevo:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1740"/>
         <source>Outline all fonts (eg. for Inkscape, Adobe Illustrator)</source>
-        <translation type="unfinished"></translation>
+        <translation>Převést všechna písma na vektorové obrysy (např. pro Inkscape, Adobe Illustrator)</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1747"/>
         <source>Recalculate Postscript bounding box with ghostscript</source>
-        <translation type="unfinished"></translation>
+        <translation>Přepočítat ohraničení obrázku pomocí ghostscriptu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1758"/>
         <source>Syntax Highlighting</source>
-        <translation type="unfinished"></translation>
+        <translation>Zvýrazňování skladby</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1764"/>
         <source>Syntax Highlighting Colors</source>
-        <translation type="unfinished"></translation>
+        <translation>Barvy zvýrazňování skladby</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2282"/>
         <source>Misc.</source>
-        <translation type="unfinished"></translation>
+        <translation>Různé</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2335"/>
         <source>Really Advanced Settings ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Skutečně pokročilá nastavení...</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2344"/>
         <source>Misc Interface Options</source>
-        <translation type="unfinished"></translation>
+        <translation>Různé volby pro rozhraní</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2385"/>
         <source>System Messages ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Systémová hlášení...</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2394"/>
         <source>Popup preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Okno s náhledem</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2406"/>
         <source>Maximum size:</source>
-        <translation type="unfinished"></translation>
+        <translation>Největší velikost:</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2526"/>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Pokročilé</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2529"/>
         <source>Advanced Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Pokročilá nastavení</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2541"/>
         <source>Interface</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozhraní</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2544"/>
         <source>User Interface Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení uživatelského rozhraní</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2556"/>
         <source>LaTeX</source>
-        <translation type="unfinished">LaTeX</translation>
+        <translation>LaTeX</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2559"/>
         <source>Latex and Image Generation</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeX a vytvoření obrázku</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2571"/>
         <source>Editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Editor</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2574"/>
         <source>LaTeX Editor Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení editoru LaTeXového kódu</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2586"/>
@@ -4361,17 +4360,17 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfsettings.ui" line="2589"/>
         <source>Library Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení knihovny</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2601"/>
         <source>Scripts</source>
-        <translation type="unfinished"></translation>
+        <translation>Skripty</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2604"/>
         <source>User script settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavení  uživatelských skriptů</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="739"/>
@@ -4380,7 +4379,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Appearance and Behavior</source>
-        <translation type="vanished">Vzhled a chování</translation>
+        <translation>Vzhled a chování</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="604"/>
@@ -4399,11 +4398,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>When tagging a formula in History, automatically copy it to the Archive</source>
-        <translation type="vanished">Při označení vzorce v historii jej automaticky zkopírovat do archivu</translation>
+        <translation>Při označení vzorce v historii jej automaticky zkopírovat do archivu</translation>
     </message>
     <message>
         <source>Add-Ons</source>
-        <translation type="vanished">Přídavné funkce</translation>
+        <translation>Přídavné funkce</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="1018"/>
@@ -4447,7 +4446,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Plugins</source>
-        <translation type="vanished">Přídavné moduly</translation>
+        <translation>Přídavné moduly</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="2504"/>
@@ -4470,53 +4469,53 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfsettings.cpp" line="662"/>
         <source>Error</source>
-        <translation type="unfinished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="662"/>
         <source>Could not find %1 executable !</source>
-        <translation type="unfinished">Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
+        <translation>Nepodařilo se najít spustitelný soubor`%1&apos;!</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="664"/>
         <source>Please check your installation and specify the path to %1 executable manually if it is not installed in $PATH.</source>
-        <translation type="unfinished">Prověřte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
+        <translation>Prověřte, prosím, svou instalaci a určete cestu ke spustitelnému souboru `%1&apos; ručně, jestliže není nainstalován v cestě: $PATH.</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="769"/>
         <location filename="../klfsettings.cpp" line="774"/>
         <source>No user script selected.</source>
         <comment>[[user script info label]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nevybrán žádný uživatelský skript</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="783"/>
         <source>User script info error: %1</source>
         <comment>[[user script info label]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Chyba informace o uživatelském skriptu: %1</translation>
     </message>
 </context>
 <context>
     <name>KLFSettingsUI</name>
     <message>
         <source>KLatexFormula - Settings</source>
-        <translation type="vanished">KLatexFormula - Nastavení</translation>
+        <translation>KLatexFormula - Nastavení</translation>
     </message>
     <message>
         <source>&amp;Appearance</source>
-        <translation type="vanished">&amp;Vzhled</translation>
+        <translation>&amp;Vzhled</translation>
     </message>
     <message>
         <source>Application language:</source>
-        <translation type="vanished">Jazyk programu:</translation>
+        <translation>Jazyk programu:</translation>
     </message>
     <message>
         <source>Application Font - click to change</source>
-        <translation type="vanished">Písmo programu - pro jeho změnu klepněte</translation>
+        <translation>Písmo programu - pro jeho změnu klepněte</translation>
     </message>
     <message>
         <source>LaTeX editor fonts</source>
-        <translation type="vanished">Písma pro LaTeX</translation>
+        <translation>Písma pro LaTeX</translation>
     </message>
     <message>
         <source>Main editor font sample - click to change</source>
@@ -4532,7 +4531,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>x</source>
-        <translation type="vanished">x</translation>
+        <translation>x</translation>
     </message>
     <message>
         <source>Maximum Size of Preview Tooltip on LaTeX formula display</source>
@@ -4540,147 +4539,147 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Main editor font - click to change</source>
-        <translation type="vanished">Písmo pro hlavní editor - pro jeho změnu klepněte</translation>
+        <translation>Písmo pro hlavní editor - pro jeho změnu klepněte</translation>
     </message>
     <message>
         <source>Preamble editor font - click to change</source>
-        <translation type="vanished">Písmo pro editor úvodu - pro jeho změnu klepněte</translation>
+        <translation>Písmo pro editor úvodu - pro jeho změnu klepněte</translation>
     </message>
     <message>
         <source>Preview</source>
-        <translation type="vanished">Náhled</translation>
+        <translation>Náhled</translation>
     </message>
     <message>
         <source>Preview formulas as you type</source>
-        <translation type="vanished">Ukazovat náhled vzorců hned při psaní</translation>
+        <translation>Ukazovat náhled vzorců hned při psaní</translation>
     </message>
     <message>
         <source>Preview size:</source>
-        <translation type="vanished">Velikost náhledu:</translation>
+        <translation>Velikost náhledu:</translation>
     </message>
     <message>
         <source>Tooltip Preview</source>
-        <translation type="vanished">Náhled na nástrojové rady</translation>
+        <translation>Náhled na nástrojové rady</translation>
     </message>
     <message>
         <source>Max size:</source>
-        <translation type="vanished">Největší velikost:</translation>
+        <translation>Největší velikost:</translation>
     </message>
     <message>
         <source>Show bigger preview in a tooltip on mouse hover</source>
-        <translation type="vanished">Ukázat větší náhled v nástrojové radě při držení myši</translation>
+        <translation>Ukázat větší náhled v nástrojové radě při držení myši</translation>
     </message>
     <message>
         <source>&amp;Syntax Highlighting</source>
-        <translation type="vanished">&amp;Zvýraznění skladby</translation>
+        <translation>&amp;Zvýraznění skladby</translation>
     </message>
     <message>
         <source>Globally enable syntax highlighting</source>
-        <translation type="vanished">Všeobecně povolit zvýraznění skladby</translation>
+        <translation>Všeobecně povolit zvýraznění skladby</translation>
     </message>
     <message>
         <source>Options</source>
-        <translation type="vanished">Volby</translation>
+        <translation>Volby</translation>
     </message>
     <message>
         <source>Highlight parens only, not whole expression</source>
-        <translation type="vanished">Zvýraznit pouze závorky, ne celý výraz</translation>
+        <translation>Zvýraznit pouze závorky, ne celý výraz</translation>
     </message>
     <message>
         <source>Alt+A</source>
-        <translation type="vanished">Alt+A</translation>
+        <translation>Alt+A</translation>
     </message>
     <message>
         <source>Highlight parens that aren&apos;t closed</source>
-        <translation type="vanished">Zvýraznit závorky, které nejsou zavřeny</translation>
+        <translation>Zvýraznit závorky, které nejsou zavřeny</translation>
     </message>
     <message>
         <source>Colors</source>
-        <translation type="vanished">Barvy</translation>
+        <translation>Barvy</translation>
     </message>
     <message>
         <source>Foreground</source>
-        <translation type="vanished">Popředí</translation>
+        <translation>Popředí</translation>
     </message>
     <message>
         <source>Background</source>
-        <translation type="vanished">Pozadí</translation>
+        <translation>Pozadí</translation>
     </message>
     <message>
         <source>Keyword color:</source>
-        <translation type="vanished">Barva klíčového slova:</translation>
+        <translation>Barva klíčového slova:</translation>
     </message>
     <message>
         <source>Comment color:</source>
-        <translation type="vanished">Barva poznámky:</translation>
+        <translation>Barva poznámky:</translation>
     </message>
     <message>
         <source>Paren match color:</source>
-        <translation type="vanished">Barva pro shodující se závorky:</translation>
+        <translation>Barva pro shodující se závorky:</translation>
     </message>
     <message>
         <source>Paren mismatch color:</source>
-        <translation type="vanished">Barva pro neshodující se závorky:</translation>
+        <translation>Barva pro neshodující se závorky:</translation>
     </message>
     <message>
         <source>Lonely paren color:</source>
-        <translation type="vanished">Barva pro osamělé závorky:</translation>
+        <translation>Barva pro osamělé závorky:</translation>
     </message>
     <message>
         <source>B</source>
-        <translation type="vanished">B</translation>
+        <translation>B</translation>
     </message>
     <message>
         <source>I  </source>
-        <translation type="vanished">I  </translation>
+        <translation>I  </translation>
     </message>
     <message>
         <source>A&amp;dvanced</source>
-        <translation type="vanished">P&amp;okročilé</translation>
+        <translation>P&amp;okročilé</translation>
     </message>
     <message>
         <source>System Executables And Paths</source>
-        <translation type="vanished">Systémové spustitelné soubory a cesty</translation>
+        <translation>Systémové spustitelné soubory a cesty</translation>
     </message>
     <message>
         <source>Add-Ons</source>
-        <translation type="vanished">Přídavné funkce</translation>
+        <translation>Přídavné funkce</translation>
     </message>
     <message>
         <source>Installed Add-Ons</source>
-        <translation type="vanished">Nainstalované přídavné funkce</translation>
+        <translation>Nainstalované přídavné funkce</translation>
     </message>
     <message>
         <source>Add-On Information</source>
-        <translation type="vanished">Informace o přídavné funkci</translation>
+        <translation>Informace o přídavné funkci</translation>
     </message>
     <message>
         <source>Import Add-On File ...</source>
-        <translation type="vanished">Zavést soubor s přídavnou funkcí...</translation>
+        <translation>Zavést soubor s přídavnou funkcí...</translation>
     </message>
     <message>
         <source>Remove Add-On</source>
-        <translation type="vanished">Odstranit přídavnou funkci</translation>
+        <translation>Odstranit přídavnou funkci</translation>
     </message>
     <message>
         <source>Plugin Loading</source>
-        <translation type="vanished">Nahrání přídavného modulu</translation>
+        <translation>Nahrání přídavného modulu</translation>
     </message>
     <message>
         <source>Name</source>
-        <translation type="vanished">Název</translation>
+        <translation>Název</translation>
     </message>
     <message>
         <source>Plugin Information</source>
-        <translation type="vanished">Informace o přídavném modulu</translation>
+        <translation>Informace o přídavném modulu</translation>
     </message>
     <message>
         <source>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</source>
-        <translation type="vanished">Poznámka: Program KLatexFormula je potřeba spustit znovu, aby se změny po nahrání přídavného modulu nebo zavedení/odstranění přídavné funkce použily.</translation>
+        <translation>Poznámka: Program KLatexFormula je potřeba spustit znovu, aby se změny po nahrání přídavného modulu nebo zavedení/odstranění přídavné funkce použily.</translation>
     </message>
     <message>
         <source>Plugins</source>
-        <translation type="vanished">Přídavné moduly</translation>
+        <translation>Přídavné moduly</translation>
     </message>
     <message>
         <source>System E&amp;xecutables and paths</source>
@@ -4688,11 +4687,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Temporary directory:</source>
-        <translation type="vanished">Dočasný adresář:</translation>
+        <translation>Dočasný adresář:</translation>
     </message>
     <message>
         <source>Choose temporary directory</source>
-        <translation type="vanished">Vybrat dočasný adresář</translation>
+        <translation>Vybrat dočasný adresář</translation>
     </message>
     <message>
         <source>/tmp/</source>
@@ -4700,11 +4699,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>latex :</source>
-        <translation type="vanished">latex:</translation>
+        <translation>latex:</translation>
     </message>
     <message>
         <source>Choose latex executable</source>
-        <translation type="vanished">Vybrat spustitelný soubor pro latex</translation>
+        <translation>Vybrat spustitelný soubor pro latex</translation>
     </message>
     <message>
         <source>latex</source>
@@ -4712,11 +4711,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>dvips :</source>
-        <translation type="vanished">dvips:</translation>
+        <translation>dvips:</translation>
     </message>
     <message>
         <source>Choose dvips executable</source>
-        <translation type="vanished">Vybrat spustitelný soubor pro dvips</translation>
+        <translation>Vybrat spustitelný soubor pro dvips</translation>
     </message>
     <message>
         <source>dvips</source>
@@ -4724,11 +4723,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>gs :</source>
-        <translation type="vanished">gs:</translation>
+        <translation>gs:</translation>
     </message>
     <message>
         <source>Choose ghostscript executable</source>
-        <translation type="vanished">Vybrat spustitelný soubor pro ghostscript</translation>
+        <translation>Vybrat spustitelný soubor pro ghostscript</translation>
     </message>
     <message>
         <source>gs</source>
@@ -4736,11 +4735,11 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Have epstopdf :</source>
-        <translation type="vanished">epstopdf:</translation>
+        <translation>epstopdf:</translation>
     </message>
     <message>
         <source>Choose epstopdf executable</source>
-        <translation type="vanished">Vybrat spustitelný soubor pro epstopdf</translation>
+        <translation>Vybrat spustitelný soubor pro epstopdf</translation>
     </message>
     <message>
         <source>epstopdf</source>
@@ -4748,7 +4747,7 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Reset defaults</source>
-        <translation type="vanished">Nastavit znovu na výchozí</translation>
+        <translation>Nastavit znovu na výchozí</translation>
     </message>
     <message>
         <source>A&amp;dvanced settings</source>
@@ -4756,23 +4755,23 @@ Tato verze: %2</translation>
     </message>
     <message>
         <source>Expand EPS BoundingBox</source>
-        <translation type="vanished">Roztáhnout EPS OhraničujícíBox</translation>
+        <translation>Roztáhnout EPS OhraničujícíBox</translation>
     </message>
     <message>
         <source>Bottom (Postscript points):</source>
-        <translation type="vanished">Dole (postscriptové body):</translation>
+        <translation>Dole (postscriptové body):</translation>
     </message>
     <message>
         <source>Right (Postscript points):</source>
-        <translation type="vanished">Vpravo (postscriptové body):</translation>
+        <translation>Vpravo (postscriptové body):</translation>
     </message>
     <message>
         <source>Left (Postscript points):</source>
-        <translation type="vanished">Vlevo (postscriptové body):</translation>
+        <translation>Vlevo (postscriptové body):</translation>
     </message>
     <message>
         <source>Top (Postscript points):</source>
-        <translation type="vanished">Nahoře (postscriptové body):</translation>
+        <translation>Nahoře (postscriptové body):</translation>
     </message>
 </context>
 <context>
@@ -4858,35 +4857,35 @@ Tato verze: %2</translation>
     <name>KLFStyleManagerUI</name>
     <message>
         <source>KLatexFormula - Style Manager</source>
-        <translation type="vanished">KLatexFormula - Správce stylů</translation>
+        <translation>KLatexFormula - Správce stylů</translation>
     </message>
     <message>
         <source>Manage Styles</source>
-        <translation type="vanished">Spravovat styly</translation>
+        <translation>Spravovat styly</translation>
     </message>
     <message>
         <source>Drag and drop styles to move them. Right-click for actions menu.</source>
-        <translation type="vanished">Táhni a pusť styly, abys je přesunul. Po klepnutí pravým tlačítkem myši se objeví nabídka kroků.</translation>
+        <translation>Táhni a pusť styly, abys je přesunul. Po klepnutí pravým tlačítkem myši se objeví nabídka kroků.</translation>
     </message>
     <message>
         <source>Choose an action</source>
-        <translation type="vanished">Vybrat krok</translation>
+        <translation>Vybrat krok</translation>
     </message>
     <message>
         <source>&amp;Actions</source>
-        <translation type="vanished">&amp;Kroky</translation>
+        <translation>&amp;Kroky</translation>
     </message>
     <message>
         <source>Alt+A</source>
-        <translation type="vanished">Alt+A</translation>
+        <translation>Alt+A</translation>
     </message>
     <message>
         <source>Close window</source>
-        <translation type="vanished">Zavřít okno</translation>
+        <translation>Zavřít okno</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="vanished">Zavřít</translation>
+        <translation>Zavřít</translation>
     </message>
 </context>
 <context>
@@ -4894,57 +4893,57 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfsymboleditor.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished">Formulář</translation>
+        <translation>Formulář</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="26"/>
         <source>Symbol Editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Editor symbolu</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="40"/>
         <source>Symbol</source>
-        <translation type="unfinished"></translation>
+        <translation>Symbol</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="46"/>
         <source>Symbol Latex Code:</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový kód symbolu:</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="56"/>
         <source>Has square-bracketed argument</source>
-        <translation type="unfinished"></translation>
+        <translation>Má argument v hranatých závorkách</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="63"/>
         <source>Number of arguments:</source>
-        <translation type="unfinished"></translation>
+        <translation>Počet argumentů:</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="80"/>
         <source>LaTeX code for preview</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový kód pro náhled</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="100"/>
         <source>Preamble</source>
-        <translation type="unfinished"></translation>
+        <translation>Úvod</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="150"/>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Přidat</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="202"/>
         <source>Additional Preamble Definitions</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodatečná vymezení pro úvod</translation>
     </message>
     <message>
         <location filename="../klfsymboleditor.ui" line="228"/>
         <source>Preview:</source>
-        <translation type="unfinished"></translation>
+        <translation>Náhled:</translation>
     </message>
 </context>
 <context>
@@ -4952,7 +4951,7 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfexporter_p.h" line="655"/>
         <source>Uri of temporary %1 file</source>
-        <translation type="unfinished"></translation>
+        <translation>URI dočasného souboru %1</translation>
     </message>
 </context>
 <context>
@@ -4960,7 +4959,7 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfexporter_p.h" line="777"/>
         <source>HTML (with reference to temporary image file)</source>
-        <translation type="unfinished"></translation>
+        <translation>HTML (s odkazem na dočasný soubor s obrázkem)</translation>
     </message>
 </context>
 <context>
@@ -4968,12 +4967,12 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfmainwin_p.h" line="800"/>
         <source>Error</source>
-        <translation type="unfinished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <location filename="../klfmainwin_p.h" line="800"/>
         <source>Can&apos;t open file %1. Read Error.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze otevřít soubor %1. Chyba čtení.</translation>
     </message>
 </context>
 <context>
@@ -4981,12 +4980,12 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfexporter_p.h" line="176"/>
         <source>LaTeX source</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový zdroj</translation>
     </message>
     <message>
         <location filename="../klfexporter_p.h" line="178"/>
         <source>LaTeX source (with KLF metainfo)</source>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový zdroj (s doprovodnou informací KLF)</translation>
     </message>
 </context>
 <context>
@@ -4994,7 +4993,7 @@ Tato verze: %2</translation>
     <message>
         <location filename="../klfexporter_p.h" line="602"/>
         <source>Error running user script %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Chyba při spuštění uživatelského skriptu %1: %2</translation>
     </message>
 </context>
 <context>
@@ -5014,91 +5013,91 @@ Tato verze: %2</translation>
     <name>QObject</name>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>Can&apos;t create local directory `%1&apos; !</source>
-        <translation type="vanished">Nelze vytvořit místní adresář `%1&apos;!</translation>
+        <translation>Nelze vytvořit místní adresář `%1&apos;!</translation>
     </message>
     <message>
         <source>Can&apos;t make local config directory `%1&apos; !</source>
-        <translation type="vanished">Nelze vytvořit místní adresář s nastavením `%1&apos;!</translation>
+        <translation>Nelze vytvořit místní adresář s nastavením `%1&apos;!</translation>
     </message>
     <message>
         <source>Warning: Ignoring --input when --latexinput is given.
 </source>
-        <translation type="vanished">Varování: Přehlíží se --input když je zadán --latexinput.
+        <translation>Varování: Přehlíží se --input když je zadán --latexinput.
 </translation>
     </message>
     <message>
         <source>Error: Can&apos;t read standard input (!)
 </source>
-        <translation type="vanished">Chyba: Nelze přečíst obvyklý vstup (!)
+        <translation>Chyba: Nelze přečíst obvyklý vstup (!)
 </translation>
     </message>
     <message>
         <source>Error: Can&apos;t read input file `%1&apos;.
 </source>
-        <translation type="vanished">Chyba: Nelze přečíst vstupní soubor `%1&apos;.
+        <translation>Chyba: Nelze přečíst vstupní soubor `%1&apos;.
 </translation>
     </message>
     <message>
         <source>Unable to open stderr for write! Error: %1
 </source>
-        <translation type="vanished">Nelze otevřít stderr pro zápis! Chyba: %1
+        <translation>Nelze otevřít stderr pro zápis! Chyba: %1
 </translation>
     </message>
     <message>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
-        <translation type="vanished">Nelze zapisovat do souboru `%1&apos;! Chyba: %2
+        <translation>Nelze zapisovat do souboru `%1&apos;! Chyba: %2
 </translation>
     </message>
     <message>
         <source>PDF format is not available!
 </source>
-        <translation type="vanished">Formát PDF není dostupný!
+        <translation>Formát PDF není dostupný!
 </translation>
     </message>
     <message>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
-        <translation type="vanished">Nelze uložit obrázek do souboru `%1&apos; ve formátu `%2&apos;!
+        <translation>Nelze uložit obrázek do souboru `%1&apos; ve formátu `%2&apos;!
 </translation>
     </message>
     <message>
         <source>Warning: Ignoring --input since --latexinput is given.
 </source>
-        <translation type="vanished">Varování: Přehlíží se --input protože je zadán --latexinput.
+        <translation>Varování: Přehlíží se --input protože je zadán --latexinput.
 </translation>
     </message>
     <message>
         <source>Unable to start Latex program!</source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze spustit program Latex!</translation>
+        <translation>Nelze spustit program Latex!</translation>
     </message>
     <message>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="vanished">Nelze uložit obrázek do souboru `%1&apos; ve formátu `%2&apos;!
+        <translation>Nelze uložit obrázek do souboru `%1&apos; ve formátu `%2&apos;!
 </translation>
     </message>
     <message>
         <source>&lt;b&gt;Style Name&lt;/b&gt;: %1&lt;br&gt;</source>
-        <translation type="vanished">&lt;b&gt;Název stylu&lt;/b&gt;: %1&lt;br&gt;</translation>
+        <translation>&lt;b&gt;Název stylu&lt;/b&gt;: %1&lt;br&gt;</translation>
     </message>
     <message>
         <source>&lt;b&gt;Math Mode&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;DPI Resolution&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Foreground Color&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[SAMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Background is Transparent&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Background Color&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[SAMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;LaTeX Preamble:&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</source>
-        <translation type="vanished">&lt;b&gt;Matematický režim&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;Rozlišení v DPI&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Barva popředí&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[UKÁZKA]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Pozadí je průhledné&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Barva pozadí&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[UKÁZKA]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;LaTeX Úvod:&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</translation>
+        <translation>&lt;b&gt;Matematický režim&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;Rozlišení v DPI&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Barva popředí&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[UKÁZKA]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Pozadí je průhledné&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Barva pozadí&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[UKÁZKA]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;LaTeX Úvod:&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</translation>
     </message>
     <message>
         <source>YES</source>
-        <translation type="vanished">Ano</translation>
+        <translation>Ano</translation>
     </message>
     <message>
         <source>NO</source>
-        <translation type="vanished">Ne</translation>
+        <translation>Ne</translation>
     </message>
     <message>
         <source>
@@ -5195,7 +5194,7 @@ Have a lot of fun!
 
 </source>
         <comment>Command-line help instructions</comment>
-        <translation type="vanished">KLatexFormula od Philippa Faista
+        <translation>KLatexFormula od Philippa Faista
 
 Použití: klatexformula
            Otevře klatexformula obrazové uživatelské rozhraní (GUI)
@@ -5291,25 +5290,25 @@ Užijte si to!
         <source>ERROR: Can&apos;t generate preview for symbol %1 : status %2 !
 	Error: %3
 </source>
-        <translation type="vanished">CHYBA: Nelze vytvořit náhled pro symbol %1 : stav %2 !
+        <translation>CHYBA: Nelze vytvořit náhled pro symbol %1 : stav %2 !
 	Chyba: %3
 </translation>
     </message>
     <message>
         <source>Please wait while generating symbol previews ... </source>
-        <translation type="vanished">Počkejte, prosím, zatímco se vytváří náhledy na symboly... </translation>
+        <translation>Počkejte, prosím, zatímco se vytváří náhledy na symboly... </translation>
     </message>
     <message>
         <source>Skip</source>
-        <translation type="vanished">Přeskočit</translation>
+        <translation>Přeskočit</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="vanished">Zrušit</translation>
+        <translation>Zrušit</translation>
     </message>
     <message>
         <source>[ No Category ]</source>
-        <translation type="vanished">[ Žádná skupina ]</translation>
+        <translation>[ Žádná skupina ]</translation>
     </message>
     <message>
         <location filename="../klfbackend/klffilterprocess.cpp" line="51"/>
@@ -5353,43 +5352,43 @@ Užijte si to!
         <location filename="../klfbackend/klffilterprocess.cpp" line="312"/>
         <source>Unable to start %1 program `%2&apos;!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nelze spustit %1 program `%2&apos;!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klffilterprocess.cpp" line="320"/>
         <source>Program %1 crashed!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Program %1 spadl!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klffilterprocess.cpp" line="365"/>
         <source>Program %1 did not provide any output data.</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Program %1 neposkytl žádná výstupní data.</translation>
     </message>
     <message>
         <location filename="../klfbackend/klffilterprocess.cpp" line="376"/>
         <source>Output file didn&apos;t appear after having called %1!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Výstupní soubor se po zavolání %1 neobjevil!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="480"/>
         <source>User Script broke dependencies in skip-formats list</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript rozbil závislosti v seznamu formátů k přeskočiení</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="536"/>
         <source>Can&apos;t query version of ghostscript located at `%1&apos;.</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nelze se dotázat na verzi Ghostscriptu umístěného na `%1&apos;.</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="616"/>
         <source>Failed to create temporary directory inside `%1&apos;</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nepodařilo se vytvořit dočasný adresář v `%1&apos;</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="647"/>
@@ -5414,27 +5413,27 @@ Užijte si to!
         <location filename="../klfbackend/klfbackend.cpp" line="706"/>
         <source>User Script `%1&apos; is not compatible with current version of KLatexFormula.</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript `%1 se neslučuje s nynější verzí KLatexFormula.</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="713"/>
         <source>User Script `%1&apos; is not usable as backend latex engine!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Uživatelský skript `%1 není použitelný jako jádro (podpůrná vrstva) LaTeXového stroje!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="906"/>
         <source>No latex executable given!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nezadán spustitelný soubor pro latex!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="934"/>
         <source>No dvips executable given!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nezadán spustitelný soubor dvips!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1050"/>
@@ -5445,91 +5444,90 @@ Užijte si to!
         <source>No gs executable given!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nezadán spustitelný soubor gs!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1083"/>
         <source>Installed Ghostscript version %1 may not be used to create font outlines. Please upgrade to gs &gt;= 9.15 (or downgrade to gs &lt;= 9.07).</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nainstalovaná verze Ghostscriptu %1 se nesmí používat na vytváření vektorových obrysů písem. Povyšte, prosím, na gs &gt;= 9.15 (nebo ponižte na gs &lt;= 9.07).</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1248"/>
         <source>This ghostscript (%1) cannot generate SVG.</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Tento Ghostscript (%1) nedokáže vytvořit SVG.</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1348"/>
         <source>Ghostscript did not provide parsable BBox output!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>Ghostscript neposkytl zpracovatelný výstup BBox!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1400"/>
         <source>DVIPS did not provide parsable %%BoundingBox: in its output!</source>
         <comment>KLFBackend</comment>
-        <translation type="unfinished"></translation>
+        <translation>DVIPS neposkytl zpracovatelný %%BoundingBox: ve svém výstupu!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1693"/>
         <source>PDF format is not available!</source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="unfinished"></translation>
+        <translation>Formát PDF není dostupný!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1703"/>
         <source>SVG format is not available!</source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="unfinished"></translation>
+        <translation>Formát SVG není dostupný!</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1743"/>
         <source>Unable to open stdout for write! Error: %1</source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nelze otevřít stdout pro zápis! Chyba: %1</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="1753"/>
         <source>Unable to write to file `%1&apos;! Error: %2</source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="unfinished">Nelze zapisovat do souboru `%1&apos;! Chyba: %2
- {1&apos;?} {2?}</translation>
+        <translation>Nelze zapisovat do souboru `%1&apos;! Chyba: %2</translation>
     </message>
     <message>
         <source>Unable to start Latex program %1!</source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze spustit program Latex %1!</translation>
+        <translation>Nelze spustit program Latex %1!</translation>
     </message>
     <message>
         <source>Latex was killed!</source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">LaTeX byl zabit!</translation>
+        <translation>LaTeX byl zabit!</translation>
     </message>
     <message>
         <source>DVI file didn&apos;t appear after having called Latex!</source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor DVI se po zavolání Latexu neobjevil!</translation>
+        <translation>Soubor DVI se po zavolání Latexu neobjevil!</translation>
     </message>
     <message>
         <source>Unable to start dvips!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze spustit dvips!
+        <translation>Nelze spustit dvips!
 </translation>
     </message>
     <message>
         <source>Dvips was mercilessly killed!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Dvips byl nelítostně ubit!
+        <translation>Dvips byl nelítostně ubit!
 </translation>
     </message>
     <message>
         <source>EPS file didn&apos;t appear after dvips call!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor EPS se po zavolání dvips neobjevil!
+        <translation>Soubor EPS se po zavolání dvips neobjevil!
 </translation>
     </message>
     <message>
@@ -5543,54 +5541,54 @@ Užijte si to!
     <message>
         <source>File &apos;%1&apos; does not contain line &quot;%%BoundingBox: ... &quot; !</source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor &apos;%1&apos; neobsahuje řádek &quot;%%OhraničujícíBox: ... &quot; !</translation>
+        <translation>Soubor &apos;%1&apos; neobsahuje řádek &quot;%%OhraničujícíBox: ... &quot; !</translation>
     </message>
     <message>
         <source>file %1: Line %%BoundingBox: can&apos;t read values!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor %1: Řádek %%OhraničujícíBox: nelze přečíst hodnoty!</translation>
+        <translation>Soubor %1: Řádek %%OhraničujícíBox: nelze přečíst hodnoty!</translation>
     </message>
     <message>
         <source>Can&apos;t write to file &apos;%1&apos;!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze zapisovat do souboru &apos;%1&apos;!
+        <translation>Nelze zapisovat do souboru &apos;%1&apos;!
 </translation>
     </message>
     <message>
         <source>Unable to start gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze spustit gs!
+        <translation>Nelze spustit gs!
 </translation>
     </message>
     <message>
         <source>gs died abnormally!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">gs zemřel neobvykle!
+        <translation>gs zemřel neobvykle!
 </translation>
     </message>
     <message>
         <source>EPS file (with outlined fonts) didn&apos;t appear after call to gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor EPS (s obtaženými písmy) se po zavolání gs neobjevil!
+        <translation>Soubor EPS (s písmy) se po zavolání gs (Ghostscript) pro převod písem na obrysy neobjevil!
 </translation>
     </message>
     <message>
         <source>Unable to read file %1!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze přečíst soubor %1!
+        <translation>Nelze přečíst soubor %1!
 </translation>
     </message>
     <message>
         <source>PNG file didn&apos;t appear after call to gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor PNG se po zavolání gs neobjevil!
+        <translation>Soubor PNG se po zavolání gs neobjevil!
 </translation>
     </message>
     <message>
@@ -5603,28 +5601,28 @@ Užijte si to!
         <source>Unable to start epstopdf!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Nelze spustit epstopdf!
+        <translation>Nelze spustit epstopdf!
 </translation>
     </message>
     <message>
         <source>epstopdf died nastily!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">epstopdf zemřel hnusně!
+        <translation>epstopdf zemřel hnusně!
 </translation>
     </message>
     <message>
         <source>PDF file didn&apos;t appear after call to epstopdf!
 </source>
         <comment>KLFBackend</comment>
-        <translation type="vanished">Soubor PDF se po zavolání epstopdf neobjevil!
+        <translation>Soubor PDF se po zavolání epstopdf neobjevil!
 </translation>
     </message>
     <message>
         <source>PDF format is not available!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="vanished">Formát PDF není dostupný!
+        <translation>Formát PDF není dostupný!
 </translation>
     </message>
     <message>
@@ -5638,14 +5636,14 @@ Užijte si to!
         <source>Unable to open stderr for write! Error: %1
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="vanished">Nelze otevřít stderr pro zápis! Chyba: %1
+        <translation>Nelze otevřít stderr pro zápis! Chyba: %1
 </translation>
     </message>
     <message>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation type="vanished">Nelze zapisovat do souboru `%1&apos;! Chyba: %2
+        <translation>Nelze zapisovat do souboru `%1&apos;! Chyba: %2
 </translation>
     </message>
     <message>
@@ -5658,17 +5656,17 @@ Užijte si to!
     <message>
         <source>(Name Not Provided)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
-        <translation type="vanished">(Název neposkytnut)</translation>
+        <translation>(Název neposkytnut)</translation>
     </message>
     <message>
         <source>(Invalid XML Data Provided By Add-On)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
-        <translation type="vanished">(Přídavnou funkcí poskytnuta neplatná data XML)</translation>
+        <translation>(Přídavnou funkcí poskytnuta neplatná data XML)</translation>
     </message>
     <message>
         <source>(No Author Provided)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
-        <translation type="vanished">(Neposkytnut žádný autor)</translation>
+        <translation>(Neposkytnut žádný autor)</translation>
     </message>
     <message>
         <location filename="../klfmain.cpp" line="122"/>
@@ -5678,19 +5676,19 @@ Užijte si to!
     </message>
     <message>
         <source>All Available Image Formats</source>
-        <translation type="vanished">Všechny dostupné obrázkové formáty
+        <translation>Všechny dostupné obrázkové formáty
 </translation>
     </message>
     <message>
         <source>Error</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog title]]</comment>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>KLatexFormula System Error:
 %1</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog text]]</comment>
-        <translation type="vanished">Systémová chyba KLatexFormula:
+        <translation>Systémová chyba KLatexFormula:
 %1</translation>
     </message>
     <message>
@@ -5756,22 +5754,22 @@ Užijte si to!
     <message>
         <location filename="../main.cpp" line="1023"/>
         <source>Failed to detect local settings. You may have to provide some settings manually.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nepodařilo se zjistit místní nastavení. Budete muset poskytnout některá nastavení ručně.</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1183"/>
         <source>Can&apos;t parse boolean argument: `%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze zpracovat booleovský argument: `%1&apos;</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1198"/>
         <source>Can&apos;t parse number argument: `%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Nelze zpracovat číselný argument: `%1&apos;</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1210"/>
         <source>Expected --borderoffsets=L[,T[,R[,B]]]</source>
-        <translation type="unfinished"></translation>
+        <translation>Očekáváno --borderoffsets=L[,T[,R[,B]]]</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1315"/>
@@ -5802,151 +5800,151 @@ Užijte si to!
         <location filename="../klfbackend/klfuserscript.cpp" line="594"/>
         <source>Script Name:</source>
         <comment>[[user script info text]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Název skriptu:</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfuserscript.cpp" line="599"/>
         <source>Category:</source>
         <comment>[[user script info text]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Skupina:</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfuserscript.cpp" line="605"/>
         <source>Version:</source>
         <comment>[[user script info text]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Verze:</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfuserscript.cpp" line="611"/>
         <source>Author:</source>
         <comment>[[user script info text]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Autor:</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfuserscript.cpp" line="618"/>
         <source>License:</source>
         <comment>[[user script info text]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Povolení:</translation>
     </message>
     <message>
         <location filename="../klfbackend/klfuserscript.cpp" line="890"/>
         <source>Output from %1</source>
         <comment>KLFUserScriptFilterProcess</comment>
-        <translation type="unfinished"></translation>
+        <translation>Výstup z %1</translation>
     </message>
     <message>
         <location filename="../klftools/klfsidewidget.cpp" line="723"/>
         <source>Expand/Shrink Window</source>
         <comment>[[KLFSideWidgetManagerFactory]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Rozšířit/Zmenšit okno</translation>
     </message>
     <message>
         <location filename="../klftools/klfsidewidget.cpp" line="725"/>
         <source>Floating Tool Window</source>
         <comment>[[KLFSideWidgetManagerFactory]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Plovoucí nástrojové okno</translation>
     </message>
     <message>
         <location filename="../klftools/klfsidewidget.cpp" line="727"/>
         <source>Side Drawer</source>
         <comment>[[KLFSideWidgetManagerFactory]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Postranní zásuvka</translation>
     </message>
 </context>
 <context>
     <name>SkinConfigWidget</name>
     <message>
         <source>Form</source>
-        <translation type="vanished">Formulář</translation>
+        <translation>Formulář</translation>
     </message>
     <message>
         <source>Skin:</source>
-        <translation type="vanished">Podoba:</translation>
+        <translation>Podoba:</translation>
     </message>
     <message>
         <source>Re-scan installed skins</source>
-        <translation type="vanished">Prohledat nainstalované podoby znovu</translation>
+        <translation>Prohledat nainstalované podoby znovu</translation>
     </message>
     <message>
         <source>Additional downloaded skins can be installed using the add-on installer in the previous settings tab.</source>
-        <translation type="vanished">Dodatečné stažené podoby lze nainstalovat pomocí instalátoru přídavné funkce, který se nachází na předchozí kartě nastavení.</translation>
+        <translation>Dodatečné stažené podoby lze nainstalovat pomocí instalátoru přídavné funkce, který se nachází na předchozí kartě nastavení.</translation>
     </message>
     <message>
         <source>Forbid skins from changing syntax highlighting scheme</source>
-        <translation type="vanished">Zakázat podoby z nákresu pro zvýraznění změny skladby</translation>
+        <translation>Zakázat podoby z nákresu pro zvýraznění změny skladby</translation>
     </message>
     <message>
         <source>Note that applying skins may be _very_ slow. Note also that sometimes skins don&apos;t display appropriately when set. Try restarting KLatexFormula in that case.</source>
-        <translation type="vanished">Všimněte si, že použití podob může být velmi pomalé. Také si uvědomte, že někdy se podoby, jakmile byly nastaveny, nezobrazují tak, jak se patří. V tom případě zkuste program KLatexFormula spustit znovu.</translation>
+        <translation>Všimněte si, že použití podob může být velmi pomalé. Také si uvědomte, že někdy se podoby, jakmile byly nastaveny, nezobrazují tak, jak se patří. V tom případě zkuste program KLatexFormula spustit znovu.</translation>
     </message>
     <message>
         <source>Warning: some skins will not display properly with Qt 4.4. Please upgrade to Qt 4.5 or higher for skins to display nicely.</source>
-        <translation type="vanished">Varování: Některé podoby se nezobrazí správně s Qt 4.4. Proveďte, prosím, povýšení na Qt 4.5 nebo vyšší verzi Qt, aby se podoby zobrazovaly hezky.</translation>
+        <translation>Varování: Některé podoby se nezobrazí správně s Qt 4.4. Proveďte, prosím, povýšení na Qt 4.5 nebo vyšší verzi Qt, aby se podoby zobrazovaly hezky.</translation>
     </message>
     <message>
         <source>Custom ...</source>
-        <translation type="vanished">Vlastní...</translation>
+        <translation>Vlastní...</translation>
     </message>
     <message>
         <source>Skin Name</source>
-        <translation type="vanished">Název podoby</translation>
+        <translation>Název podoby</translation>
     </message>
     <message>
         <source>Please enter skin name:</source>
-        <translation type="vanished">zadejte, prosím, název podoby:</translation>
+        <translation>zadejte, prosím, název podoby:</translation>
     </message>
     <message>
         <source>[New Skin Name]</source>
-        <translation type="vanished">[Nový název podoby]</translation>
+        <translation>[Nový název podoby]</translation>
     </message>
     <message>
         <source>Error</source>
-        <translation type="vanished">Chyba</translation>
+        <translation>Chyba</translation>
     </message>
     <message>
         <source>Can&apos;t overwrite a built-in skin. Please choose another name.</source>
-        <translation type="vanished">Nelze přepsat vestavěnou podobu. Vyberte, prosím, jiný název.</translation>
+        <translation>Nelze přepsat vestavěnou podobu. Vyberte, prosím, jiný název.</translation>
     </message>
     <message>
         <source>Overwrite skin?</source>
-        <translation type="vanished">Přepsat podobu?</translation>
+        <translation>Přepsat podobu?</translation>
     </message>
     <message>
         <source>You are about to overwrite skin %1. Are you sure?</source>
-        <translation type="vanished">Chystáte se přepsat podobu %1. Jste si jistý?</translation>
+        <translation>Chystáte se přepsat podobu %1. Jste si jistý?</translation>
     </message>
     <message>
         <source>Delete skin?</source>
         <comment>[[confirmation messagebox title]]</comment>
-        <translation type="vanished">Smazat podobu?</translation>
+        <translation>Smazat podobu?</translation>
     </message>
     <message>
         <source>Are you sure you want to delete the skin named `%1&apos; ?</source>
-        <translation type="vanished">Jste si jistý, že chcete smazat podobu nazvanou `%1&apos;?</translation>
+        <translation>Jste si jistý, že chcete smazat podobu nazvanou `%1&apos;?</translation>
     </message>
     <message>
         <source>DESCRIPTION</source>
-        <translation type="vanished">POPIS</translation>
+        <translation>POPIS</translation>
     </message>
     <message>
         <source>(No description provided)</source>
-        <translation type="vanished">(Neposkytnut žádný popis)</translation>
+        <translation>(Neposkytnut žádný popis)</translation>
     </message>
     <message>
         <source>AUTHOR</source>
-        <translation type="vanished">AUTOR</translation>
+        <translation>AUTOR</translation>
     </message>
     <message>
         <source>(No author name provided)</source>
-        <translation type="vanished">(Neposkytnuto žádné autorovo jméno)</translation>
+        <translation>(Neposkytnuto žádné autorovo jméno)</translation>
     </message>
     <message>
         <source>This skin also provides a syntax highlighting color scheme</source>
-        <translation type="vanished">Tato podoba rovněž poskytuje barevné schéma pro zvýrazňování skladby</translation>
+        <translation>Tato podoba rovněž poskytuje barevné schéma pro zvýrazňování skladby</translation>
     </message>
     <message>
         <source>This skin will not alter syntax highlighting color scheme</source>
-        <translation type="vanished">Tato podoba rovněž nezmění barevné schéma pro zvýrazňování skladby</translation>
+        <translation>Tato podoba rovněž nezmění barevné schéma pro zvýrazňování skladby</translation>
     </message>
 </context>
 <context>
@@ -5954,105 +5952,105 @@ Užijte si to!
     <message>
         <source>&lt;p&gt;Some new &lt;b&gt;interface skins&lt;/b&gt; are available in this version. You may want to try the &lt;a href=&quot;%1&quot;&gt;papyrus skin&lt;/a&gt;, the &lt;a href=&quot;%2&quot;&gt;galaxy skin&lt;/a&gt;, the &lt;a href=&quot;%3&quot;&gt;flat skin&lt;/a&gt;, or fall back to the regular &lt;a href=&quot;%4&quot;&gt;default skin&lt;/a&gt;.&lt;/p&gt;</source>
         <comment>[[help new features additional text]]</comment>
-        <translation type="vanished">&lt;p&gt;Některé nové &lt;b&gt;podoby rozhraní&lt;/b&gt; jsou dostupné v této verzi. Možná si budete chtít vyzkoušet &lt;a href=&quot;%1&quot;&gt;Papyrovou podobu&lt;/a&gt;, &lt;a href=&quot;%2&quot;&gt;Galaktickou podobu&lt;/a&gt;, &lt;a href=&quot;%3&quot;&gt;Mělkou podobu&lt;/a&gt;, nebo se vrátit k běžné &lt;a href=&quot;%4&quot;&gt;Výchozí podobě&lt;/a&gt;.&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;Některé nové &lt;b&gt;podoby rozhraní&lt;/b&gt; jsou dostupné v této verzi. Možná si budete chtít vyzkoušet &lt;a href=&quot;%1&quot;&gt;Papyrovou podobu&lt;/a&gt;, &lt;a href=&quot;%2&quot;&gt;Galaktickou podobu&lt;/a&gt;, &lt;a href=&quot;%3&quot;&gt;Mělkou podobu&lt;/a&gt;, nebo se vrátit k běžné &lt;a href=&quot;%4&quot;&gt;Výchozí podobě&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Applying skin &lt;i&gt;%1&lt;/i&gt;, please wait ...</source>
-        <translation type="vanished">nanáší se podoba &lt;i&gt;%1&lt;/i&gt;, prosím, počkejte...</translation>
+        <translation>nanáší se podoba &lt;i&gt;%1&lt;/i&gt;, prosím, počkejte...</translation>
     </message>
     <message>
         <source>Skin</source>
-        <translation type="vanished">Podoba</translation>
+        <translation>Podoba</translation>
     </message>
     <message>
         <source>Personalize the look of KLatexFormula</source>
-        <translation type="vanished">Přizpůsobte si vzhled programu KLatexFormula svým potřebám</translation>
+        <translation>Přizpůsobte si vzhled programu KLatexFormula svým potřebám</translation>
     </message>
 </context>
 <context>
     <name>SysTrayIconConfigWidget</name>
     <message>
         <source>Dock into System Tray</source>
-        <translation type="vanished">Ukotvit v oznamovací části panelu</translation>
+        <translation>Ukotvit v oznamovací části panelu</translation>
     </message>
     <message>
         <source>Restore Windows upon mouse hover</source>
-        <translation type="vanished">Obnovit okna při držení myši</translation>
+        <translation>Obnovit okna při držení myši</translation>
     </message>
     <message>
         <source>Replace main window&apos;s quit button by an iconify and quit button bar</source>
-        <translation type="vanished">Nahradit tlačítko pro ukončení v hlavním okně pruhem s tlačítkem pro ukončení a ikonifikaci</translation>
+        <translation>Nahradit tlačítko pro ukončení v hlavním okně pruhem s tlačítkem pro ukončení a ikonifikaci</translation>
     </message>
     <message>
         <source>Minimize button sends the window to system tray</source>
-        <translation type="vanished">Tlačítko pro zmenšení pošle okno do oznamovací části panelu</translation>
+        <translation>Tlačítko pro zmenšení pošle okno do oznamovací části panelu</translation>
     </message>
 </context>
 <context>
     <name>SysTrayIconPlugin</name>
     <message>
         <source>Minimize</source>
-        <translation type="vanished">Zmenšit</translation>
+        <translation>Zmenšit</translation>
     </message>
     <message>
         <source>Restore</source>
-        <translation type="vanished">Obnovit</translation>
+        <translation>Obnovit</translation>
     </message>
     <message>
         <source>Paste From Clipboard</source>
-        <translation type="vanished">Vložit ze schránky</translation>
+        <translation>Vložit ze schránky</translation>
     </message>
     <message>
         <source>Paste From Mouse Selection</source>
-        <translation type="vanished">Vložit z výběru myší</translation>
+        <translation>Vložit z výběru myší</translation>
     </message>
     <message>
         <source>Quit</source>
-        <translation type="vanished">Ukončit</translation>
+        <translation>Ukončit</translation>
     </message>
     <message>
         <source>System Tray Icon</source>
-        <translation type="vanished">Ikona v oznamovací části panelu</translation>
+        <translation>Ikona v oznamovací části panelu</translation>
     </message>
     <message>
         <source>Dock KLatexFormula into system tray</source>
-        <translation type="vanished">Ukotvit KLatexFormula v oznamovací části panelu</translation>
+        <translation>Ukotvit KLatexFormula v oznamovací části panelu</translation>
     </message>
 </context>
 <context>
     <name>SysTrayMainIconifyButtons</name>
     <message>
         <source>Minimize Window to System Tray</source>
-        <translation type="vanished">Zmešit okno do oznamovací části panelu</translation>
+        <translation>Zmešit okno do oznamovací části panelu</translation>
     </message>
     <message>
         <source>This button minimizes KLatexFormula&apos;s main window to the system tray, without quitting.</source>
-        <translation type="vanished">Toto tlačítko zmenší hlavní okno programu KLatexFormula do oznamovací části panelu, aniž by byl ukončen.</translation>
+        <translation>Toto tlačítko zmenší hlavní okno programu KLatexFormula do oznamovací části panelu, aniž by byl ukončen.</translation>
     </message>
     <message>
         <source>Iconify</source>
-        <translation type="vanished">Ikonifikace</translation>
+        <translation>Ikonifikace</translation>
     </message>
     <message>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation type="vanished">&lt;p style=&quot;white-space: pre&quot;&gt;Ukončit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Ukončit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Quit KLatexFormula [Ctrl+Q]</source>
-        <translation type="vanished">Ukončit KLatexFormula [Ctrl+Q]</translation>
+        <translation>Ukončit KLatexFormula [Ctrl+Q]</translation>
     </message>
     <message>
         <source>This button quits KLatexFormula, instead of minimizing the window to the system tray.</source>
-        <translation type="vanished">Toto tlačítko program KLatexFormula místo zmenšení do oznamovací části panelu ukončí.</translation>
+        <translation>Toto tlačítko program KLatexFormula místo zmenšení do oznamovací části panelu ukončí.</translation>
     </message>
     <message>
         <source>Ctrl+Q</source>
-        <translation type="vanished">Ctrl+Q</translation>
+        <translation>Ctrl+Q</translation>
     </message>
     <message>
         <source>Ctrl+Q</source>
         <comment>SysTrayMainIconifyButtons-&gt;Quit</comment>
-        <translation type="vanished">Ctrl+Q</translation>
+        <translation>Ctrl+Q</translation>
     </message>
 </context>
 <context>
@@ -6073,13 +6071,13 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="15"/>
         <source>AICB for Adobe InDesign</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>AICB pro Adobe InDesign</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="16"/>
         <source>HTML fragment</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Kousek HTML</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="17"/>
@@ -6092,65 +6090,65 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="18"/>
         <source>Temp PDF File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Soubor s předlohou PDF</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="19"/>
         <source>Temp PNG File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Soubor s předlohou PNG</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="20"/>
         <source>Temp PS File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Soubor s předlohou PS</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="21"/>
         <source>PDF</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>PDF</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="23"/>
         <source>EPS</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>EPS</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="24"/>
         <source>LaTeX source</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>LaTeXový zdroj</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="25"/>
         <source>HTML with ref. to temp. image file</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>HTML s ref. k obrázkovému souboru temp.</translation>
     </message>
     <message>
         <source>PNG File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Soubor PNG</translation>
+        <translation>Soubor PNG</translation>
     </message>
     <message>
         <source>HTML</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">HTML</translation>
+        <translation>HTML</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="26"/>
         <source>OpenOffice Draw</source>
         <oldsource>OpenOffice.org format</oldsource>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="unfinished">Formát OpenOffice.org</translation>
+        <translation>OpenOffice Draw</translation>
     </message>
     <message>
         <source>Alien Glow Image</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Zářící obrázek</translation>
+        <translation>Zářící obrázek</translation>
     </message>
 </context>
 <context>
@@ -6159,43 +6157,43 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="28"/>
         <source>foo bar</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>foo bar</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="29"/>
         <source>Relation Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="unfinished">Relační symboly</translation>
+        <translation>Relační symboly</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="30"/>
         <source>plus minus error</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>plus nebo minus chyba</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="31"/>
         <source>set intersection</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>množina průnik</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="32"/>
         <source>direct sum</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Přímý součet</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="33"/>
         <source>set union</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Nastavit sjednocení</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="34"/>
         <source>multiplication product</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Násobení součin</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="35"/>
@@ -6292,31 +6290,31 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="51"/>
         <source>approximately equals</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>stejný, přibližný, přibližně</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="52"/>
         <source>set element in</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>množina prvek včetně</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="53"/>
         <source>set element contains</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>množina prvek obsahuje</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="54"/>
         <source>proportional</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>poměrný</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="55"/>
         <source>integral</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>integrál</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="56"/>
@@ -6394,7 +6392,7 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="68"/>
         <source>square root</source>
         <comment>[[tag: &lt;keywords&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Odmocnina</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="69"/>
@@ -6474,19 +6472,19 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="88"/>
         <source>Greek Alphabet</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="unfinished">Řecká abeceda</translation>
+        <translation>Řecká abeceda</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="89"/>
         <source>Math Alphabets and Fonts</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="unfinished">Matematická abeceda a písma</translation>
+        <translation>Matematická abeceda a písma</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="90"/>
         <source>Text Mode LaTeX Special Characters</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="unfinished">Zvláštní LaTeXové znaky v textovém režimu</translation>
+        <translation>Zvláštní LaTeXové znaky v textovém režimu</translation>
     </message>
 </context>
 <context>
@@ -6495,109 +6493,109 @@ Užijte si to!
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="92"/>
         <source>Times (txfonts)</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Times (txfonts)</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="93"/>
         <source>Times (mathptmx)</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Times (mathptmx)</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="94"/>
         <source>Palatino (pxfonts)</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Palatino (pxfonts)</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="95"/>
         <source>Palatino (newpxmath)</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Palatino (newpxmath)</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="96"/>
         <source>Charter BT</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Charter BT</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="97"/>
         <source>New Century Schoolbook</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>New Century Schoolbook</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="98"/>
         <source>Utopia</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Utopia</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="99"/>
         <source>Garamond</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Garamond</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="100"/>
         <source>Linux Libertine</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Linux Libertine</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="101"/>
         <source>Stix</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Stix</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="102"/>
         <source>Kerkis</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Kerkis</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="103"/>
         <source>kp-fonts</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>kp-fonts</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="104"/>
         <source>kp-fonts (sans serif)</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>kp-fonts (bezpatkové)</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="105"/>
         <source>Computer Modern Sans Serif</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Computer Modern Sans Serif</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="106"/>
         <source>Computer Modern Bright</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Computer Modern Bright</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="107"/>
         <source>Kurier</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Kurier</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="108"/>
         <source>Iwona</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Iwona</translation>
     </message>
     <message>
         <location filename="temp_xmltr_klf_cs.ts.cxx" line="109"/>
         <source>Helvetica</source>
         <comment>[[tag: &lt;title&gt;]]</comment>
-        <translation type="unfinished"></translation>
+        <translation>Helvetica</translation>
     </message>
 </context>
 <context>
@@ -6605,37 +6603,37 @@ Užijte si to!
     <message>
         <source>Relation Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Relační symboly</translation>
+        <translation>Relační symboly</translation>
     </message>
     <message>
         <source>Arrow Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Šipky</translation>
+        <translation>Šipky</translation>
     </message>
     <message>
         <source>Miscellaneous Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Různé symboly</translation>
+        <translation>Různé symboly</translation>
     </message>
     <message>
         <source>Delimiters and Accents</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Oddělovače znaků a přízvuky</translation>
+        <translation>Oddělovače znaků a přízvuky</translation>
     </message>
     <message>
         <source>Greek Alphabet</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Řecká abeceda</translation>
+        <translation>Řecká abeceda</translation>
     </message>
     <message>
         <source>Math Alphabets and Fonts</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Matematická abeceda a písma</translation>
+        <translation>Matematická abeceda a písma</translation>
     </message>
     <message>
         <source>Text Mode LaTeX Special Characters</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation type="vanished">Zvláštní LaTeXové znaky v textovém režimu</translation>
+        <translation>Zvláštní LaTeXové znaky v textovém režimu</translation>
     </message>
 </context>
 <context>
@@ -6643,42 +6641,42 @@ Užijte si to!
     <message>
         <source>Default</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
-        <translation type="vanished">Výchozí</translation>
+        <translation>Výchozí</translation>
     </message>
     <message>
         <source>This skin provides the default appearance for your system.</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Tato podoba poskytuje výchozí vzhled pro váš systém.</translation>
+        <translation>Tato podoba poskytuje výchozí vzhled pro váš systém.</translation>
     </message>
     <message>
         <source>Flat</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
-        <translation type="vanished">Plochý</translation>
+        <translation>Plochý</translation>
     </message>
     <message>
         <source>A flat, gray-ish theme</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Ploché a našedivělé téma</translation>
+        <translation>Ploché a našedivělé téma</translation>
     </message>
     <message>
         <source>Galaxy</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
-        <translation type="vanished">Galaxie</translation>
+        <translation>Galaxie</translation>
     </message>
     <message>
         <source>A generally dark interspace nebula background</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Spíše tmavé téma s mezigalaktickou mlhovinou</translation>
+        <translation>Spíše tmavé téma s mezigalaktickou mlhovinou</translation>
     </message>
     <message>
         <source>Papyrus</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
-        <translation type="vanished">Papyrus</translation>
+        <translation>Papyrus</translation>
     </message>
     <message>
         <source>Hieroglyphic characters are not (yet) supported in klatexformula...</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
-        <translation type="vanished">Hhieroglyfické znaky nejsou (ještě) v KLatexFormula podporovány...</translation>
+        <translation>Hhieroglyfické znaky nejsou (ještě) v KLatexFormula podporovány...</translation>
     </message>
 </context>
 </TS>
