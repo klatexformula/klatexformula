@@ -31,7 +31,7 @@ import subprocess;
 
 if (sys.argv[1] == "--help"):
     print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
-    exit(0);
+    sys.exit(0);
 
 latexfname = sys.argv[1];
 dvifname = os.environ["KLF_FN_DVI"]
