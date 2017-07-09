@@ -24,19 +24,19 @@
 
 from __future__ import print_function
 
-import re;
-import os;
-import sys;
+import re
+import os
+import sys
 
 if (sys.argv[1] == "--help"):
-    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
-    sys.exit(0);
+    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n")
+    sys.exit(0)
 
-latexfname = sys.argv[1];
+latexfname = sys.argv[1]
 
 
-latexinput = os.environ["KLF_INPUT_LATEX"];
-template = os.environ["KLF_ARG_Template"];
+latexinput = os.environ["KLF_INPUT_LATEX"]
+template = os.environ["KLF_ARG_Template"]
 
 
 if (not "%%INPUT" in template):
@@ -58,19 +58,19 @@ You might want to try out the following template for example:
 \\end{document}
 
 """)
-    exit(1);
+    sys.exit(1)
 
 
 
-fulllatex = re.sub(r'%%INPUT\b', lambda m: latexinput, template);
+fulllatex = re.sub(r'%%INPUT\b', lambda m: latexinput, template)
 
-f = open(latexfname, 'w');
-print("Full LaTeX is :\n"+fulllatex);
-f.write(fulllatex);
-f.close();
+f = open(latexfname, 'w')
+print("Full LaTeX is :\n"+fulllatex)
+f.write(fulllatex)
+f.close()
 
 # latex ready.
 
-sys.exit(0);
+sys.exit(0)
 
 

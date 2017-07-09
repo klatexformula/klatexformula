@@ -31,7 +31,7 @@ import os.path
 import argparse
 import subprocess
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+#sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..')) -- no longer needed
 import pyklfuserscript
 
 
@@ -47,7 +47,7 @@ if args.query_default_settings:
     ])
     if convert is not None:
         # found
-        print("convert={}".format(convert));
+        print("convert={}".format(convert))
     sys.exit(0)
 
 
@@ -56,11 +56,11 @@ pngfile = args.inputfile
 
 if format != 'gif':
     print("Invalid format: ", format)
-    sys.exit(1);
+    sys.exit(1)
 
 convert = ""
 if "KLF_USCONFIG_convert" in os.environ:
-    convert = os.environ["KLF_USCONFIG_convert"];
+    convert = os.environ["KLF_USCONFIG_convert"]
 if not convert:
     if os.path.exists("/usr/bin/convert"):
         convert = "/usr/bin/convert"
@@ -68,7 +68,7 @@ if not convert:
         convert = "/usr/local/bin/convert"
 
 
-giffile = re.sub(r'\.png$', r'.gif', pngfile);
+giffile = re.sub(r'\.png$', r'.gif', pngfile)
 
 # CalledProcessError is raised if an error occurs.
 output = subprocess.check_output(args=[convert, pngfile, giffile],
@@ -76,6 +76,6 @@ output = subprocess.check_output(args=[convert, pngfile, giffile],
 
 print("Output from {}: \n{}".format(convert, output.decode('utf-8')))
 
-exit(0);
+sys.exit(0)
 
 

@@ -2,7 +2,7 @@
 <klfuserscript-info klf-compat-version="4">
   <exe-script>custom-latex-cmd.py</exe-script>
   <category>klf-backend-engine</category>
-  <name>Run Custom LaTeX command</name>
+  <name>Run custom LaTeX command</name>
   <author>Philippe Faist, philippe.faist@bluewin.ch</author>
   <version>0.1</version>
   <license>GPL v2+</license>

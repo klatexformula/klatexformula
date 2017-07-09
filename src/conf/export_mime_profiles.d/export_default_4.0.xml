@@ -54,7 +54,10 @@
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
       <win-format>image/svg+xml</win-format>
-      <mac-flavor>public.svg-image</mac-flavor>
+      <!-- NOTE: Inkscape can be really slow if the X11 server has to be
+           started, so don't provide it by default on Mac OS X, especially since
+           Qt doesn't support "Lazy" clipboard data setting on Mac OS X -->
+      <!-- <mac-flavor>public.svg-image</mac-flavor> -->
     </export-type>
     <!-- ... or from the svg-dvisvgm user script. -->
     <export-type exporter="UserScript:svg-dvisvgm" format="svg">
@@ -85,7 +88,8 @@
       <mime-type>application/x-emf</mime-type>
       <mime-type>image/x-emf</mime-type>
       <win-format>CF_ENHMETAFILE</win-format>
-      <!-- no known mac flavor?? anyone?? -->
+      <!-- mac flavor??  ### not necessary: plus, starting X11 is really slow,
+           so don't provide it in the default selection -->
     </export-type>
 
     <!-- OpenOffice.org format -->
@@ -292,10 +296,4 @@
    - to GIMP
    - to Inkscape
 
-  On Linux:
-   - to LibreOffice/OpenOffice
-   - to GIMP
-   - to Thunderbird
-   - to Inkscape
-
-  -->
+  On Linux: - to LibreOffice/OpenOffice - to GIMP - to Thunderbird - to Inkscape -->

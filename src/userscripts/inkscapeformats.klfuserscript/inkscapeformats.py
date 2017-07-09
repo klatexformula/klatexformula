@@ -31,7 +31,7 @@ import sys
 import argparse
 import subprocess
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+#sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..')) -- no longer needed
 import pyklfuserscript
 
 
@@ -67,14 +67,14 @@ format = args.format
 pdffile = args.inputfile
 
 if format not in FORMATS:
-    print("Invalid format: "+format);
-    sys.exit(255);
+    print("Invalid format: "+format)
+    sys.exit(255)
 
 #debug environment
 #print(repr(os.environ))
 
 if "KLF_USCONFIG_inkscape" in os.environ:
-    inkscape = os.environ["KLF_USCONFIG_inkscape"];
+    inkscape = os.environ["KLF_USCONFIG_inkscape"]
 else:
     print("Warning: inkscape config not set.")
     inkscape = "inkscape"

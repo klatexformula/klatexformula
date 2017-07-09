@@ -946,6 +946,7 @@ int main(int argc, char **argv)
     app.setQuitOnLastWindowClosed(false);
 
     int r = app.exec();
+
     main_cleanup();
     klfDbg("application has quit; we have cleaned up main(), ready to return. code="<<r) ;
     // and exit.

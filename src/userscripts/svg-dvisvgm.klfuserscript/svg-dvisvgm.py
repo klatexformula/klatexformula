@@ -30,7 +30,7 @@ import sys
 import argparse
 import subprocess
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+#sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..')) -- no longer needed
 import pyklfuserscript
 
 
@@ -71,11 +71,11 @@ if format not in ('svg', 'svgz'):
 
 dvisvgm = ""
 if "KLF_USCONFIG_dvisvgm" in os.environ:
-    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
+    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"]
 
 if not dvisvgm:
     print("Warning: dvisvgm config not set", file=sys.stderr)
-    dvisvgm = "/usr/bin/dvisvgm";
+    dvisvgm = "/usr/bin/dvisvgm"
 
 print("Using dvisvgm path: {}".format(dvisvgm), file=sys.stderr)
 
@@ -94,10 +94,10 @@ if format == 'svgz':
 
     gzip = ""
     if "KLF_USCONFIG_gzip" in os.environ:
-        gzip = os.environ["KLF_USCONFIG_gzip"];
+        gzip = os.environ["KLF_USCONFIG_gzip"]
     if not gzip:
         print("Warning: gzip config not set", file=sys.stderr)
-        gzip = "/usr/bin/gzip";
+        gzip = "/usr/bin/gzip"
 
     pyklfuserscript.ensure_configured_executable(gzip, exename='gzip', userscript=__name__)
 
@@ -105,6 +105,6 @@ if format == 'svgz':
     output2 = subprocess.check_output(args=[gzip, '-Sz', svgfile], shell=False)
     print("Output from {}: \n{}".format(gzip, output2.decode('utf-8')))
 
-sys.exit(0);
+sys.exit(0)
 
 

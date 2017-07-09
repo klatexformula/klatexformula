@@ -24,16 +24,16 @@
 
 from __future__ import print_function
 
-import re;
-import os;
-import sys;
-import subprocess;
+import re
+import os
+import sys
+import subprocess
 
 if (sys.argv[1] == "--help"):
-    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
-    sys.exit(0);
+    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n")
+    sys.exit(0)
 
-latexfname = sys.argv[1];
+latexfname = sys.argv[1]
 dvifname = os.environ["KLF_FN_DVI"]
 pngfname = os.environ["KLF_FN_PNG"]
 
@@ -44,17 +44,17 @@ latexexe = os.environ["KLF_LATEX"]
 dvipng = os.environ.get("KLF_USCONFIG_dvipng", "dvipng")
 
 if (len(latexexe) == 0):
-    sys.stderr.write("Error: latex executable not found.\n");
-    sys.exit(1);
+    sys.stderr.write("Error: latex executable not found.\n")
+    sys.exit(1)
 
-tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
+tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
 
 def run_cmd(do_cmd, ignore_fail=False):
     print("Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n")
-    res = subprocess.call(do_cmd, cwd=tempdir);
+    res = subprocess.call(do_cmd, cwd=tempdir)
     if (not ignore_fail and res != 0):
-        print("%s failed, res=%d" %(do_cmd[0], res));
-        sys.exit(res>>8);
+        print("%s failed, res=%d" %(do_cmd[0], res))
+        sys.exit(res>>8)
 
 # run latex first to get DVI
 # --------------------------

@@ -2478,7 +2478,17 @@ void KLFMainWin::hideApplication()
 
 void KLFMainWin::quit()
 {
+  // a slot which basically calls qApp->quit() (and can safely be called several
+  // times in the quitting process)
+
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if (d->is_quitting) {
+    // already called.
+    klfDbg("already quitting.") ;
+    return;
+  }
+  d->is_quitting = true;
 
   u->frmDetails->showSideWidget(false);
   u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
@@ -2493,7 +2503,11 @@ void KLFMainWin::quit()
     d->mStyleManager->hide();
   if (d->mSettingsDialog)
     d->mSettingsDialog->hide();
-  qApp->quit();
+
+  if (!d->qapp_quit_called) {
+    d->qapp_quit_called = true;
+    qApp->quit();
+  }
 }
 
 bool KLFMainWin::event(QEvent *e)
@@ -2582,6 +2596,11 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   // ----
   if ( obj == QApplication::instance() ) {
     klfDbg("Application event: type="<<e->type()) ;
+    if ( e->type() == QEvent::Close && ! d->qapp_quit_called ) {
+      // intercept close-event, which means that qApp->quit() was called directly
+      d->qapp_quit_called = true;
+      quit();
+    }
   }
   if ( obj == QApplication::instance() && e->type() == QEvent::FileOpen ) {
     // open a URL or file
@@ -3734,7 +3753,15 @@ void KLFMainWin::slotCopy()
       d->pExporterManager,
       d->output
       );
+
+  klfDbg("created mime data object.") ;
+
+  // On Mac, Qt's clipboard support doesn't allow to query the data later and
+  // gets all data now (that works only for drag & drop) (WHY?!?!?!?!?!?).  But
+  // I can't see any other solution...
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
+
+  klfDbg("set MIME data.") ;
 
   KLFMimeExportProfile profile = d->pMimeExportProfileManager.findExportProfile(
       klfconfig.ExportData.copyExportProfile
@@ -3980,6 +4007,14 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
 			  KlfEnvPathPrepend|KlfEnvPathNoDuplicates);
     klfDbg("added "<<newitems<<" to TEXINPUTS, new environment is "<<settings.execenv) ;
   }
+  // also add the userscripts paths (to expose our `pyklfuserscript` utility or any users'
+  // library) to the PYTHONPATH for python scripts
+  QStringList pypaths;
+  pypaths << klfconfig.globalShareDir+"/userscripts"
+          << klfconfig.homeConfigDirUserScripts ;
+  klfSetEnvironmentPath(&settings.execenv, pypaths, QLatin1String("PYTHONPATH"),
+                        KlfEnvPathPrepend|KlfEnvPathNoDuplicates);
+  klfDbg("Added "<<pypaths<<" to PYTHONPATHS for user scripts to access our python libraries") ;
 
   KLFBackend::klfInput input = currentInputState();
   // setup user script configuration
@@ -4319,6 +4354,7 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
   }
 
   event->accept();
+
   quit();
 }
 

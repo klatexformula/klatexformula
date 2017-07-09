@@ -24,32 +24,32 @@
 
 from __future__ import print_function
 
-import re;
-import os;
-import sys;
-import subprocess;
+import re
+import os
+import sys
+import subprocess
 
 if (sys.argv[1] == "--help"):
-    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
-    exit(0);
+    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n")
+    exit(0)
 
 
-mf_exe_name = 'mf';
-mpost_exe_name = 'mpost';
+mf_exe_name = 'mf'
+mpost_exe_name = 'mpost'
 if (sys.platform.startswith('win')):
-    mf_exe_name = 'mf.exe';
-    mpost_exe_name = 'mpost.exe';
+    mf_exe_name = 'mf.exe'
+    mpost_exe_name = 'mpost.exe'
 
 
 # user input
 
-latexfname = sys.argv[1];
-latexinput = os.environ["KLF_INPUT_LATEX"];
+latexfname = sys.argv[1]
+latexinput = os.environ["KLF_INPUT_LATEX"]
 
 rx_booltrue = re.compile(r'^\s*(t(rue)?|1|on|y(es)?)', flags=re.IGNORECASE)
 
-usefeynmf = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMF']) is not None);
-usefeynmp = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMP']) is not None);
+usefeynmf = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMF']) is not None)
+usefeynmp = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMP']) is not None)
 
 print("usefeynmf=%r, usefeynmp=%r"%(usefeynmf,usefeynmp))
 
@@ -57,34 +57,34 @@ assert usefeynmf != usefeynmp, "Exactly one of usefeynmf or usefeynmp must be sp
 
 # run latex
 
-latexexe = os.environ["KLF_LATEX"];
+latexexe = os.environ["KLF_LATEX"]
 
 if (len(latexexe) == 0):
-    sys.stderr.write("Error: latex executable not found.\n");
-    exit(1);
+    sys.stderr.write("Error: latex executable not found.\n")
+    exit(1)
 
 
 if usefeynmf:
     # guess 'mf' exec location as same as latex exec location
-    mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name);
+    mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name)
     if (len(mfexe) == 0):
-        sys.stderr.write("Error: mf executable not found.\n");
-        exit(1);
+        sys.stderr.write("Error: mf executable not found.\n")
+        exit(1)
 
 else:
     # guess 'mpost' exec location as same as latex exec location
-    mpostexe = os.path.join(os.path.dirname(latexexe),mpost_exe_name);
+    mpostexe = os.path.join(os.path.dirname(latexexe),mpost_exe_name)
     if (len(mpostexe) == 0):
-        sys.stderr.write("Error: mpost executable not found.\n");
-        exit(1);
+        sys.stderr.write("Error: mpost executable not found.\n")
+        exit(1)
 
 
 # prepare LaTeX template with \begin{fmfile}
 # overwrite default-prepared template
 
-tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
+tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
 
-diagramname = 'klffeynmpdiagram';
+diagramname = 'klffeynmpdiagram'
 
 
 def rgba(r, g, b, a):
@@ -106,7 +106,7 @@ if not eval(os.environ["KLF_INPUT_BG_COLOR_TRANSPARENT"]):
     bg_latexuse = "\\pagecolor{klfbgcolor}\n"
 
 
-f = open(latexfname, 'w');
+f = open(latexfname, 'w')
 latexcontents = """\
 \\documentclass{article}
 \\usepackage{amsmath}
@@ -143,18 +143,18 @@ latexcontents += ("""\
 \\end{document}
 """)
 
-print("LaTeX template is: \n" + latexcontents);
-f.write(latexcontents);
-f.close();
+print("LaTeX template is: \n" + latexcontents)
+f.write(latexcontents)
+f.close()
 
 
 
 def run_cmd(do_cmd, ignore_fail=False):
     print("Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n")
-    res = subprocess.call(do_cmd, cwd=tempdir);
+    res = subprocess.call(do_cmd, cwd=tempdir)
     if (not ignore_fail and res != 0):
-        print("%s failed, res=%d" %(do_cmd[0], res));
-        sys.exit(res>>8);
+        print("%s failed, res=%d" %(do_cmd[0], res))
+        sys.exit(res>>8)
 
 
 # now, run latex first time
@@ -181,6 +181,6 @@ run_cmd([latexexe, os.path.basename(latexfname)])
 
 
 
-sys.exit(0);
+sys.exit(0)
 
 

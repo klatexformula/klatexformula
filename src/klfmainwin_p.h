@@ -891,6 +891,9 @@ public:
 #endif
 
     pCmdIface = NULL;
+
+    is_quitting = false;
+    qapp_quit_called = false;
   }
 
 
@@ -966,6 +969,9 @@ public:
   QList<QAction*> pExportProfileQuickMenuActionList;
 
   bool ignore_close_event;
+
+  bool is_quitting;
+  bool qapp_quit_called;
 
   //   /** "last" window status flags are used in eventFilter() to detect individual dialog
   //    * geometries resetting */
