@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <klfuserscript-info klf-compat-version="4">
   <exe-script>dvipng-backend.py</exe-script>
+  <can-provide-default-settings>true</can-provide-default-settings>
   <category>klf-backend-engine</category>
   <name>Direct PNG generation with DVIPNG</name>
   <author>Philippe Faist, philippe.faist@bluewin.ch</author>

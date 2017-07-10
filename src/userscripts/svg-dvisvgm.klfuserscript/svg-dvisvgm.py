@@ -69,17 +69,14 @@ if format not in ('svg', 'svgz'):
 #debug environment
 #print(repr(os.environ))
 
-dvisvgm = ""
-if "KLF_USCONFIG_dvisvgm" in os.environ:
-    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"]
-
+dvisvgm = os.environ.get("KLF_USCONFIG_dvisvgm")
 if not dvisvgm:
     print("Warning: dvisvgm config not set", file=sys.stderr)
     dvisvgm = "/usr/bin/dvisvgm"
 
 print("Using dvisvgm path: {}".format(dvisvgm), file=sys.stderr)
 
-pyklfuserscript.ensure_configured_executable(dvisvgm, exename='dvisvgm', userscript=__name__)
+pyklfuserscript.ensure_configured_executable(dvisvgm, exename='dvisvgm', userscript=__file__)
 
 print("Converting file {}\n".format(dvifile), file=sys.stderr)
 
@@ -99,7 +96,7 @@ if format == 'svgz':
         print("Warning: gzip config not set", file=sys.stderr)
         gzip = "/usr/bin/gzip"
 
-    pyklfuserscript.ensure_configured_executable(gzip, exename='gzip', userscript=__name__)
+    pyklfuserscript.ensure_configured_executable(gzip, exename='gzip', userscript=__file__)
 
     # CalledProcessError is raised if an error occurs.
     output2 = subprocess.check_output(args=[gzip, '-Sz', svgfile], shell=False)

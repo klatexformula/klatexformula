@@ -49,6 +49,8 @@ class KLF_EXPORT KLFFilterProcess
 public:
   KLFFilterProcess(const QString& pTitle = QString(), const KLFBackend::klfSettings *settings = NULL,
                    const QString& rundir = QString());
+  KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
+                   const QString& rundir, bool inheritProcessEnvironment);
   virtual ~KLFFilterProcess();
 
 
@@ -138,7 +140,6 @@ public:
   {
     return do_run(indata, outdatalist);
   }
-
 
 protected:
 

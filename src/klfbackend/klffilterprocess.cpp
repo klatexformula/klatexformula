@@ -102,6 +102,9 @@ struct KLFFilterProcessPrivate {
   {
   }
 
+  void init(const QString& pTitle, const KLFBackend::klfSettings *settings,
+            const QString& rundir, bool inheritProcessEnvironment);
+
   QString progTitle;
   QString programCwd;
   QStringList execEnviron;
@@ -133,39 +136,56 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
                                    const QString& rundir)
 {
   KLF_INIT_PRIVATE(KLFFilterProcess) ;
+  d->init(pTitle, settings, rundir, false);
+}
 
-  d->progTitle = pTitle;
+KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
+                                   const QString& rundir, bool inheritProcessEnvironment)
+{
+  KLF_INIT_PRIVATE(KLFFilterProcess) ;
+  d->init(pTitle, settings, rundir, inheritProcessEnvironment);
+}
 
-  d->collectStdout = NULL;
-  d->collectStderr = NULL;
+void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfSettings *settings,
+                                   const QString& rundir, bool inheritProcessEnvironment)
+{
+  progTitle = pTitle;
 
-  d->outputStdout = true;
-  d->outputStderr = false;
+  collectStdout = NULL;
+  collectStderr = NULL;
 
-  d->interpreters = QMap<QString,QString>();
+  outputStdout = true;
+  outputStderr = false;
+
+  interpreters = QMap<QString,QString>();
 
   if (rundir.size()) {
-    d->programCwd = rundir;
+    programCwd = rundir;
   }
   if (settings != NULL) {
     if (!rundir.size()) {
-      d->programCwd = settings->tempdir;
-      klfDbg("set programCwd to : "<<d->programCwd) ;
+      programCwd = settings->tempdir;
+      klfDbg("set programCwd to : "<<programCwd) ;
     }
-    d->execEnviron = klfMergeEnvironment(QStringList(), settings->execenv, QStringList(),
-                                         KlfEnvPathPrepend|KlfEnvMergeExpandVars);
-    klfDbg("set execution environment to : "<<d->execEnviron) ;
+    QStringList curenv;
+    if (inheritProcessEnvironment) {
+      curenv = klfCurrentEnvironment();
+    }
+    execEnviron = klfMergeEnvironment(curenv, settings->execenv, QStringList(),
+                                      KlfEnvPathPrepend|KlfEnvMergeExpandVars);
+    klfDbg("set execution environment to : "<<execEnviron) ;
     
-    d->interpreters = settings->userScriptInterpreters;
+    interpreters = settings->userScriptInterpreters;
   }
 
-  d->processAppEvents = true;
+  processAppEvents = true;
 
-  d->exitStatus = -1;
-  d->exitCode = -1;
-  d->res = -1;
-  d->resErrorString = QString();
+  exitStatus = -1;
+  exitCode = -1;
+  res = -1;
+  resErrorString = QString();
 }
+
 
 KLFFilterProcess::~KLFFilterProcess()
 {
@@ -290,7 +310,7 @@ bool KLFFilterProcess::do_run(const QByteArray& indata, const QMap<QString, QByt
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  KLFBlockProcess proc;
+  KLFFilterProcessBlockProcess proc(this);
 
   d->exitCode = 0;
   d->exitStatus = 0;

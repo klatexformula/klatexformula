@@ -9,6 +9,9 @@ import argparse
 import platform
 import subprocess
 
+# bump version number to corresponding KLF version whenever we add something to this
+# module, so that it can be detected by user scripts
+__version__ = '4.0.1'
 
 
 rx_xml_escape = re.compile(r"([^ 0-9A-Za-z\!\@\#\$\%\^\*\(\)\_\+\=\{\}\[\]\|\:\'\,\.\/\?\`\~\-])")
@@ -36,8 +39,20 @@ def export_type_args_parser(can_query_default_settings=True):
     return parser
 
 
+def backend_engine_args_parser(can_query_default_settings=True):
+    parser = argparse.ArgumentParser()
+    if can_query_default_settings:
+        # usage: $0 --query-default-settings
+        parser.add_argument("--query-default-settings", action='store_true',
+                            dest='query_default_settings', default=False,
+                            help='print out default settings')
+    # usage: $0 --format=xyz <pdffile>
+    parser.add_argument("texfile", help='the LaTeX input file', nargs='?')
+    return parser
+
+
 def exists_and_is_executable(x):
-    return os.path.isfile(x) and os.access(x, os.X_OK)
+    return x and os.path.isfile(x) and os.access(x, os.X_OK)
 
 def find_executable(exe_names, guess_paths=[]):
    
@@ -57,6 +72,10 @@ def find_executable(exe_names, guess_paths=[]):
 
 
 def ensure_configured_executable(exe, exename, userscript):
+    if userscript.endswith('.py'): # passed __file__
+        # this should extract the "xyz.klfuserscript" part:
+        userscript = os.path.basename(os.path.dirname(os.path.realpath(os.path.abspath(userscript))))
+
     if not exists_and_is_executable(exe):
         print("Error: Can't find {exename} executable. Please set the path to `{exename}` in\n"
               "Settings -> Scripts -> {userscriptname} -> Script Settings"

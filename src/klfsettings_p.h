@@ -91,6 +91,8 @@ public:
 		     KLFPathChooser *destination);
 
 
+  QString getSelectedUserScriptName();
+
   QHash<QString,QWidget*> userScriptConfigWidgets;
   QWidget * getUserScriptConfigWidget(const KLFUserScriptInfo& usinfo, const QString& uifile);
   QVariantMap getUserScriptConfig(QWidget *w);
@@ -119,6 +121,8 @@ public slots: // well "public" only for us... :)
   void reloadUserScripts();
   void refreshUserScriptList();
   void refreshUserScriptSelected();
+
+  void slotUserScriptSettingsQueryDefaults();
 
   void slotChangeFontPresetSender();
   void slotChangeFontSender();

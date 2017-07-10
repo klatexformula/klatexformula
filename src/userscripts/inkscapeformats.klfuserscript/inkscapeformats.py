@@ -81,7 +81,7 @@ else:
 
 print("Using inkscape path: {}".format(inkscape), file=sys.stderr)
 
-pyklfuserscript.ensure_configured_executable(inkscape, exename='inkscape', userscript=__name__)
+pyklfuserscript.ensure_configured_executable(inkscape, exename='inkscape', userscript=__file__)
 
 print("Converting file {}\n".format(pdffile), file=sys.stderr)
 

@@ -136,6 +136,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QStringList env)
 
 bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStringList env)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klfDbg("Running: "<<cmd<<", stdindata/size="<<stdindata.size());
 
   _runstatus = 0;

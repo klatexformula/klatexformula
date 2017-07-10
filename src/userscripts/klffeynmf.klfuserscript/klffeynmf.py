@@ -84,7 +84,7 @@ else:
 
 tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
 
-diagramname = 'klffeynmpdiagram'
+diagramname = 'klffeynmfmpdiagram'
 
 
 def rgba(r, g, b, a):

@@ -3997,6 +3997,8 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
     settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
   }
 
+  klfDbg("settings.execenv = "<<settings.execenv);
+
   klfDbg("backendsettings.setTexInputs = "<<klfconfig.BackendSettings.setTexInputs());
   if (!klfconfig.BackendSettings.setTexInputs().isEmpty()) {
     klfDbg("old environment is"<<settings.execenv);
@@ -4015,6 +4017,8 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
   klfSetEnvironmentPath(&settings.execenv, pypaths, QLatin1String("PYTHONPATH"),
                         KlfEnvPathPrepend|KlfEnvPathNoDuplicates);
   klfDbg("Added "<<pypaths<<" to PYTHONPATHS for user scripts to access our python libraries") ;
+
+  klfDbg("now settings.execenv = "<<settings.execenv);
 
   KLFBackend::klfInput input = currentInputState();
   // setup user script configuration

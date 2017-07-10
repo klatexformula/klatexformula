@@ -844,6 +844,7 @@ struct KLFUserScriptFilterProcessPrivate
 
   KLFUserScriptInfo * usinfo;
 
+  // log of user script output
   static QStringList log;
 };
 
@@ -853,7 +854,7 @@ QStringList KLFUserScriptFilterProcessPrivate::log = QStringList();
 
 KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& userScriptFileName,
 						       const KLFBackend::klfSettings * settings)
-  : KLFFilterProcess("User Script " + userScriptFileName, settings)
+  : KLFFilterProcess("User Script " + userScriptFileName, settings, QString(), true)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg("userScriptFileName= "<<userScriptFileName) ;

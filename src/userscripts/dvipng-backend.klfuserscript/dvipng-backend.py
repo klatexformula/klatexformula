@@ -29,23 +29,43 @@ import os
 import sys
 import subprocess
 
-if (sys.argv[1] == "--help"):
-    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n")
+import pyklfuserscript
+
+
+args = pyklfuserscript.backend_engine_args_parser(can_query_default_settings=True).parse_args()
+
+if args.query_default_settings:
+
+    dvipng = pyklfuserscript.find_executable(['dvipng'], [
+        "/usr/texbin/",
+        "/usr/local/texbin/",
+        "/Library/TeX/texbin/",
+        # add more non-trivial paths here (but not necessary to include /usr/bin/
+        # because we do a PATH search anyway
+    ])
+    if dvipng is not None:
+        print("dvipng={}".format(dvipng))
+
     sys.exit(0)
 
-latexfname = sys.argv[1]
+
+latexfname = args.texfile
 dvifname = os.environ["KLF_FN_DVI"]
 pngfname = os.environ["KLF_FN_PNG"]
 
-# run latex
+#
 
 latexexe = os.environ["KLF_LATEX"]
 
-dvipng = os.environ.get("KLF_USCONFIG_dvipng", "dvipng")
-
-if (len(latexexe) == 0):
+if not latexexe:
     sys.stderr.write("Error: latex executable not found.\n")
     sys.exit(1)
+
+dvipng = os.environ.get("KLF_USCONFIG_dvipng")
+
+print("Using dvipng path: {}".format(dvipng), file=sys.stderr)
+pyklfuserscript.ensure_configured_executable(dvipng, exename='dvipng', userscript=__file__)
+
 
 tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
 

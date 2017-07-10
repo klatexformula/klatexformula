@@ -108,7 +108,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>6</number>
      </property>
      <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
@@ -793,7 +793,7 @@
          </widget>
          <widget class="QTabWidget" name="tabsUserScript">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tabUserScriptInfo">
            <attribute name="title">
@@ -814,7 +814,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>366</width>
-                 <height>79</height>
+                 <height>113</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -913,6 +913,13 @@
                 </item>
                </layout>
               </widget>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="btnUserScriptSettingsQueryDefaults">
+              <property name="text">
+               <string>Re-detect default settings</string>
+              </property>
              </widget>
             </item>
            </layout>
@@ -1317,8 +1324,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>60</width>
-                <height>16</height>
+                <width>98</width>
+                <height>28</height>
                </rect>
               </property>
               <attribute name="label">

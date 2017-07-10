@@ -638,7 +638,8 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "wantpdf", &BackendSettings.wantPDF);
   klf_config_read(s, "wantsvg", &BackendSettings.wantSVG);
   klf_config_read(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
-  klf_config_read(s, "userscriptinterpreters", &BackendSettings.userScriptInterpreters);
+  klf_config_read(s, "userscriptinterpreters", &BackendSettings.userScriptInterpreters,
+                  "QString" /*listOrMapType*/);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
