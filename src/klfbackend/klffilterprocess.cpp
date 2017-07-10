@@ -171,7 +171,8 @@ void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfS
     if (inheritProcessEnvironment) {
       curenv = klfCurrentEnvironment();
     }
-    execEnviron = klfMergeEnvironment(curenv, settings->execenv, QStringList(),
+    execEnviron = klfMergeEnvironment(curenv, settings->execenv,
+				      QStringList()<<"PATH"<<"TEXINPUTS"<<"BIBINPUTS"<<"PYTHONPATH",
                                       KlfEnvPathPrepend|KlfEnvMergeExpandVars);
     klfDbg("set execution environment to : "<<execEnviron) ;
     

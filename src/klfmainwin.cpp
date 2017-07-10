@@ -387,6 +387,9 @@ KLFMainWin::KLFMainWin()
 
   slotReloadUserScripts();
 
+  // need currentSettings() to set PYTHONPATH etc. correctly
+  KLFBackend::klfSettings settings = currentSettings();
+
   // and set up the default config, if the user script can provide a default config
   klfDbg("About to load default settings for user scripts, if necessary.  Currently user script config = "
          << klfconfig.UserScripts.userScriptConfig) ;
@@ -398,7 +401,8 @@ KLFMainWin::KLFMainWin()
       if (usinfo.canProvideDefaultSettings()) {
         // set defaults
         klfDbg("setting default config for user script " << us) ;
-        klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()] = usinfo.queryDefaultSettings(&d->settings);
+        klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()]
+	  = usinfo.queryDefaultSettings( & settings );
         klfDbg("user script config is now " << klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()]) ;
       }
     }

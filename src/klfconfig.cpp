@@ -117,9 +117,9 @@ static QString klf_home_config_dir_abspath()
 
 
 
-// global variable to access our config
-// remember to initialize it in main() in main.cpp !
-KLFConfig klfconfig;
+// global variable to access our config remember to instantiate &
+// initialize it in main() in main.cpp !
+KLFConfig * klf_the_config = NULL;
 
 
 
@@ -171,6 +171,30 @@ static QList<T> settings_read_list(QSettings& s, const QString& basename, const 
     fcode = QFont(f, fps);						\
     found_fcode = true;							\
   }
+
+
+// beware: initialized statically!
+KLFConfig::KLFConfig()
+{
+}
+KLFConfig::~KLFConfig()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+}
+void KLFConfig::prepareDestruction()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  
+  // unset font members -- fix Qt segfault on exit
+  UI.applicationFont = QFont();  
+  UI.latexEditFont = QFont();
+  UI.preambleEditFont = QFont();
+  defaultCMUFont = QFont();
+  defaultStdFont = QFont();
+  defaultTTFont = QFont();
+}
+
+
 
 void KLFConfig::loadDefaults()
 {

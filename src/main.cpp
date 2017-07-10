@@ -333,10 +333,10 @@ void main_cleanup()
 //  foreach(QString s, qttempfiles) {
 //    QFile::remove(pdir.absoluteFilePath(s));
 //  }
+
   // free strdup()'ed strings
   while (--opt_strdup_free_list_n >= 0)
     free(opt_strdup_free_list[opt_strdup_free_list_n]);
-
 }
 
 /** Perform clean-up and ::exit() */
@@ -543,6 +543,7 @@ int main(int argc, char **argv)
     KLFGuiApplication app(qt_argc, qt_argv);
 
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
+
 
 
     // We now package plugins on Windows at the location of the klf executable, so no
@@ -796,163 +797,176 @@ int main(int argc, char **argv)
     }
 
     klfDbgT("$$About to load config$$");
-  
+
+    // the global config -- instantiate & initialize it
+    klf_the_config = new KLFConfig;
+
     // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
     klfconfig.detectMissingSettings();
 
-//    klfDbgT("$$About to main_load_extra_resources$$");
-//    main_load_extra_resources();
+    int app_return_code = -1;
 
-    // done in KLFMainWin constructor
-    //    klf_reload_user_scripts();
+    // protect widgets & stuff created on the stack with this block.
+    {
 
-    klfDbgT("$$About to main_reload_translations$$");
-    klf_reload_translations(&app, klfconfig.UI.locale);
+      //    klfDbgT("$$About to main_load_extra_resources$$");
+      //    main_load_extra_resources();
 
-    KLFColorChooser::setUserMaxColors(klfconfig.UI.maxUserColors);
-    KLFColorChooser::setColorList(klfconfig.UI.userColorList);
-    KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
-						klfconfig.UI.colorChooseWidgetCustom);
+      // done in KLFMainWin constructor
+      //    klf_reload_user_scripts();
 
-    klfDbgT("$$About to create lib factories$$");
+      klfDbgT("$$About to main_reload_translations$$");
+      klf_reload_translations(&app, klfconfig.UI.locale);
 
-    // initialize and register some library resource engine + view factories
-    (void)new KLFLibBasicWidgetFactory(qApp);
-    (void)new KLFLibDBEngineFactory(qApp);
-    (void)new KLFLibLegacyEngineFactory(qApp);
-    (void)new KLFLibDefaultViewFactory(qApp);
+      KLFColorChooser::setUserMaxColors(klfconfig.UI.maxUserColors);
+      KLFColorChooser::setColorList(klfconfig.UI.userColorList);
+      KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
+						  klfconfig.UI.colorChooseWidgetCustom);
+
+      klfDbgT("$$About to create lib factories$$");
+
+      // initialize and register some library resource engine + view factories
+      (void)new KLFLibBasicWidgetFactory(qApp);
+      (void)new KLFLibDBEngineFactory(qApp);
+      (void)new KLFLibLegacyEngineFactory(qApp);
+      (void)new KLFLibDefaultViewFactory(qApp);
 
 
-    klfDbgT( "$$APP FONT setup$$" ) ;
+      klfDbgT( "$$APP FONT setup$$" ) ;
 
-    // our default application font(s) ;-)
-    //
-    // from :/data/fonts ...
-    QFileInfoList appFontsInfoList = QDir(":/data/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
-    // ... and from share-dir/fonts/
-    QString our_share_dir = klfconfig.globalShareDir;
-    if (QFileInfo(our_share_dir+"/fonts").isDir()) {
-      appFontsInfoList << QDir(our_share_dir+"/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
-    }
-    int k;
-    for (k = 0; k < appFontsInfoList.size(); ++k) {
-      klfDbg("Adding application font " << appFontsInfoList[k].absoluteFilePath());
-      QFontDatabase::addApplicationFont(appFontsInfoList[k].absoluteFilePath());
-    }
+      // our default application font(s) ;-)
+      //
+      // from :/data/fonts ...
+      QFileInfoList appFontsInfoList = QDir(":/data/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
+      // ... and from share-dir/fonts/
+      QString our_share_dir = klfconfig.globalShareDir;
+      if (QFileInfo(our_share_dir+"/fonts").isDir()) {
+	appFontsInfoList << QDir(our_share_dir+"/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
+      }
+      int k;
+      for (k = 0; k < appFontsInfoList.size(); ++k) {
+	klfDbg("Adding application font " << appFontsInfoList[k].absoluteFilePath());
+	QFontDatabase::addApplicationFont(appFontsInfoList[k].absoluteFilePath());
+      }
 
-    klfDbg("klfconfig.UI.useSystemAppFont = " << klfconfig.UI.useSystemAppFont
-           << " ; klfconfig.UI.applicationFont = " << klfconfig.UI.applicationFont) ;
-    if (!klfconfig.UI.useSystemAppFont) {
-      QApplication::setFont(klfconfig.UI.applicationFont);
-    }
+      klfDbg("klfconfig.UI.useSystemAppFont = " << klfconfig.UI.useSystemAppFont
+	     << " ; klfconfig.UI.applicationFont = " << klfconfig.UI.applicationFont) ;
+      if (!klfconfig.UI.useSystemAppFont) {
+	QApplication::setFont(klfconfig.UI.applicationFont);
+      }
 
-    klfDbgT( "$$START LOADING$$" ) ;
+      klfDbgT( "$$START LOADING$$" ) ;
 
-    KLFMainWin mainWin;
+      KLFMainWin mainWin;
 
-    if (!opt_skip_plugins) {
-      klfDbg("Plugins are obsolete and won't be loaded.") ;
-//      main_load_plugins(&app, &mainWin);
-    }
+      if (!opt_skip_plugins) {
+	klfDbg("Plugins are obsolete and won't be loaded.") ;
+	//      main_load_plugins(&app, &mainWin);
+      }
 
-    mainWin.show();
+      mainWin.show();
 
-    mainWin.startupFinished();
+      mainWin.startupFinished();
 
-    klfDbgT( "$$END LOADING$$" ) ;
+      klfDbgT( "$$END LOADING$$" ) ;
 
 #if defined(KLF_USE_DBUS)
-    new KLFDBusAppAdaptor(&app, &mainWin);
-    QDBusConnection dbusconn = QDBusConnection::sessionBus();
-    dbusconn.registerService("org.klatexformula.KLatexFormula");
-    dbusconn.registerObject("/MainApplication", &app);
-    if (opt_dbus_export_mainwin)
-      dbusconn.registerObject("/MainWindow/KLFMainWin", &mainWin, QDBusConnection::ExportAllContents
-			      | QDBusConnection::ExportChildObjects);
+      new KLFDBusAppAdaptor(&app, &mainWin);
+      QDBusConnection dbusconn = QDBusConnection::sessionBus();
+      dbusconn.registerService("org.klatexformula.KLatexFormula");
+      dbusconn.registerObject("/MainApplication", &app);
+      if (opt_dbus_export_mainwin)
+	dbusconn.registerObject("/MainWindow/KLFMainWin", &mainWin, QDBusConnection::ExportAllContents
+				| QDBusConnection::ExportChildObjects);
 #endif
 
-    // parse command-line given actions
+      // parse command-line given actions
 
-    // consistency check warning
-    if (opt_output && latexinput.isEmpty()) {
-      qWarning("%s", qPrintable(QObject::tr("Can't use --output without any input")));
-    }
+      // consistency check warning
+      if (opt_output && latexinput.isEmpty()) {
+	qWarning("%s", qPrintable(QObject::tr("Can't use --output without any input")));
+      }
 
-    if ( ! latexinput.isNull() )
-      mainWin.slotSetLatex(latexinput);
+      if ( ! latexinput.isNull() )
+	mainWin.slotSetLatex(latexinput);
 
-    if ( opt_fgcolor != NULL ) {
-      mainWin.slotSetFgColor(QString::fromLocal8Bit(opt_fgcolor));
-    }
-    if ( opt_bgcolor != NULL ) {
-      mainWin.slotSetBgColor(QString::fromLocal8Bit(opt_bgcolor));
-    }
-    if ( opt_dpi > 0 ) {
-      mainWin.slotSetDPI(opt_dpi);
-    }
-    if (opt_mathmode != NULL) {
-      mainWin.slotSetMathMode(QString::fromLocal8Bit(opt_mathmode));
-    }
-    if (opt_preamble != NULL) {
-      qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
-      mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
-    }
-    if (opt_userscript != NULL) {
-      mainWin.slotSetUserScript(QString::fromLocal8Bit(opt_userscript));
-    }
-    if (opt_calcepsbbox >= 0)
-      mainWin.alterSetting(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
-    if (opt_wantsvg >= 0)
-      mainWin.alterSetting(KLFMainWin::altersetting_WantSVG, opt_wantsvg);
-    if (opt_wantpdf >= 0)
-      mainWin.alterSetting(KLFMainWin::altersetting_WantPDF, opt_wantpdf);
-    if (opt_outlinefonts >= 0)
-      mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
-    if (opt_lborderoffset.length())
-      mainWin.alterSetting(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
-    if (opt_tborderoffset.length())
-      mainWin.alterSetting(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
-    if (opt_rborderoffset.length())
-      mainWin.alterSetting(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
-    if (opt_bborderoffset.length())
-      mainWin.alterSetting(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
-    if (opt_tempdir != NULL)
-      mainWin.alterSetting(KLFMainWin::altersetting_TempDir, QString::fromLocal8Bit(opt_tempdir));
-    if (opt_latex != NULL)
-      mainWin.alterSetting(KLFMainWin::altersetting_Latex, QString::fromLocal8Bit(opt_latex));
-    if (opt_dvips != NULL)
-      mainWin.alterSetting(KLFMainWin::altersetting_Dvips, QString::fromLocal8Bit(opt_dvips));
-    if (opt_gs != NULL)
-      mainWin.alterSetting(KLFMainWin::altersetting_Gs, QString::fromLocal8Bit(opt_gs));
-    if (opt_epstopdf != NULL)
-      mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
+      if ( opt_fgcolor != NULL ) {
+	mainWin.slotSetFgColor(QString::fromLocal8Bit(opt_fgcolor));
+      }
+      if ( opt_bgcolor != NULL ) {
+	mainWin.slotSetBgColor(QString::fromLocal8Bit(opt_bgcolor));
+      }
+      if ( opt_dpi > 0 ) {
+	mainWin.slotSetDPI(opt_dpi);
+      }
+      if (opt_mathmode != NULL) {
+	mainWin.slotSetMathMode(QString::fromLocal8Bit(opt_mathmode));
+      }
+      if (opt_preamble != NULL) {
+	qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
+	mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
+      }
+      if (opt_userscript != NULL) {
+	mainWin.slotSetUserScript(QString::fromLocal8Bit(opt_userscript));
+      }
+      if (opt_calcepsbbox >= 0)
+	mainWin.alterSetting(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
+      if (opt_wantsvg >= 0)
+	mainWin.alterSetting(KLFMainWin::altersetting_WantSVG, opt_wantsvg);
+      if (opt_wantpdf >= 0)
+	mainWin.alterSetting(KLFMainWin::altersetting_WantPDF, opt_wantpdf);
+      if (opt_outlinefonts >= 0)
+	mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
+      if (opt_lborderoffset.length())
+	mainWin.alterSetting(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
+      if (opt_tborderoffset.length())
+	mainWin.alterSetting(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
+      if (opt_rborderoffset.length())
+	mainWin.alterSetting(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
+      if (opt_bborderoffset.length())
+	mainWin.alterSetting(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
+      if (opt_tempdir != NULL)
+	mainWin.alterSetting(KLFMainWin::altersetting_TempDir, QString::fromLocal8Bit(opt_tempdir));
+      if (opt_latex != NULL)
+	mainWin.alterSetting(KLFMainWin::altersetting_Latex, QString::fromLocal8Bit(opt_latex));
+      if (opt_dvips != NULL)
+	mainWin.alterSetting(KLFMainWin::altersetting_Dvips, QString::fromLocal8Bit(opt_dvips));
+      if (opt_gs != NULL)
+	mainWin.alterSetting(KLFMainWin::altersetting_Gs, QString::fromLocal8Bit(opt_gs));
+      if (opt_epstopdf != NULL)
+	mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
 
-    if (!opt_noeval && opt_output) {
-      // will actually save only if output is non empty.
-      mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
-				  QString::fromLocal8Bit(opt_format));
-    }
+      if (!opt_noeval && opt_output) {
+	// will actually save only if output is non empty.
+	mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
+				    QString::fromLocal8Bit(opt_format));
+      }
 
 
-    // IMPORT .klf (or other) files passed as arguments
-    QStringList flist;
-    for (int k = 0; klf_args[k] != NULL; ++k)
-      flist << QString::fromLocal8Bit(klf_args[k]);
+      // IMPORT .klf (or other) files passed as arguments
+      QStringList flist;
+      for (int k = 0; klf_args[k] != NULL; ++k)
+	flist << QString::fromLocal8Bit(klf_args[k]);
 
-    QMetaObject::invokeMethod(&mainWin, "openFiles", Qt::QueuedConnection, Q_ARG(QStringList, flist));
+      QMetaObject::invokeMethod(&mainWin, "openFiles", Qt::QueuedConnection, Q_ARG(QStringList, flist));
 
-    app.setQuitOnLastWindowClosed(false);
+      app.setQuitOnLastWindowClosed(false);
 
-    int r = app.exec();
+      app_return_code = app.exec();
+
+    } // block for widgets etc.
+
+    delete klf_the_config; // before deleting the QApplication
+    klf_the_config = NULL;
 
     main_cleanup();
-    klfDbg("application has quit; we have cleaned up main(), ready to return. code="<<r) ;
+    klfDbg("application has quit; we have cleaned up main(), ready to return. code="<<app_return_code) ;
     // and exit.
     // DO NOT CALL ::exit() as this prevents KLFMainWin's destructor from being called.
     // This includes not calling main_exit().
-    return r;
+    return app_return_code;
 
   } else {
     // NON-INTERACTIVE (BATCH MODE, no X11)
@@ -964,6 +978,8 @@ int main(int argc, char **argv)
     QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);
 
     main_setup_app(&app);
+
+    klf_the_config = new KLFConfig;
 
     // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
@@ -1130,6 +1146,9 @@ int main(int argc, char **argv)
     QString output = QString::fromLocal8Bit(opt_output);
     QString format = QString::fromLocal8Bit(opt_format).trimmed().toUpper();
     main_save(klfoutput, output, format);
+
+    delete klf_the_config; // before deleting the QApplication
+    klf_the_config = NULL;
 
     main_exit( 0 );
   }
