@@ -109,10 +109,9 @@ run_cmd([
 
 
 print("To dump all KLF environment variables (user script interface debugging), comment "
-      "out the early 'sys.exit(0)' instruction in this script.")
+      "out the 'sys.exit(0)' instruction in this script after this message.")
 
 sys.exit(0); # comment this line to debug KLF_ env variables values
-
 
 
 #
@@ -151,7 +150,6 @@ dump_env_vars([
     ],
     [
         "KLF_TEMPDIR",
-        "KLF_TEMPFNAME",
         "KLF_LATEX",
         "KLF_DVIPS",
         "KLF_GS",
@@ -167,6 +165,7 @@ dump_env_vars([
         "KLF_SETTINGS_WANT_SVG",
     ],
     [
+        "KLF_TEMPFNAME",
         "KLF_FN_TEX",
         "KLF_FN_LATEX",
         "KLF_FN_DVI",

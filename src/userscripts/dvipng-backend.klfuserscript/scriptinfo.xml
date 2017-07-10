@@ -9,7 +9,7 @@
   <license>GPL v2+</license>
   <settings-form-ui>dvipng_config.ui</settings-form-ui>
   <klf-backend-engine>
-    <spits-out>png</spits-out>
+    <spits-out>dvi png</spits-out>
     <skip-formats selector="all-except">
       dvi
       png

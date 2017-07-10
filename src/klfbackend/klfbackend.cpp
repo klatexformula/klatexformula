@@ -426,7 +426,7 @@ KLF_EXPORT KLFStringSet klfbackend_dependencies(const QString& fmt, bool recursi
   if (fmt == QLatin1String("tex") || fmt == QLatin1String("latex")) {
     // no dependency
   } else if (fmt == QLatin1String("dvi")) {
-    s << "tex";
+    s << "latex";
   } else if (fmt == QLatin1String("eps-raw")) {
     s << "dvi";
   } else if (fmt == QLatin1String("eps-bbox")) {
@@ -720,7 +720,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     addenv
       // program executables
       << "KLF_TEMPDIR=" + settings.tempdir
-      << "KLF_TEMPFNAME=" + tempfname // the base name for all our temp files
       << "KLF_LATEX=" + settings.latexexec
       << "KLF_DVIPS=" + settings.dvipsexec
       << "KLF_GS=" + settings.gsexec
@@ -731,10 +730,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       // more advanced settings
       << klfSettingsToEnvironmentForUserScript(settings)
       // file names (all formed with same basename...) to access by the script
+      << "KLF_TEMPFNAME=" + tempfname // the base name for all our temp files
       << "KLF_FN_TEX=" + fnTex
       << "KLF_FN_LATEX=" + fnTex
       << "KLF_FN_DVI=" + fnDvi
       << "KLF_FN_EPS_RAW=" + fnRawEps
+      << "KLF_FN_EPS_BBOX=" + fnBBoxEps
       << "KLF_FN_EPS_PROCESSED=" + fnProcessedEps
       << "KLF_FN_PNG=" + fnRawPng
       << "KLF_FN_PDFMARKS=" + fnPdfMarks
@@ -1138,6 +1139,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
      *     but do that cleverly; ie. make sure that the EPS was indeed vector-scaled up. Possibly
      *     run the EPS generator twice, once to scale it up, the other for PNG conversion reference.
      */
+    // ### wait... do we want vector scaling to apply to the PNG as well??
 
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
@@ -2025,8 +2027,10 @@ KLF_EXPORT QStringList klfInputToEnvironmentForUserScript(const KLFBackend::klfI
       << "KLF_INPUT_BG_COLOR_WEB=" + QColor(in.bg_color).name()
       << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
       << "KLF_INPUT_DPI=" + QString::number(in.dpi)
+      << "KLF_INPUT_VECTORSCALE=" + klfFmt("%.6g", in.vectorscale)
       << "KLF_INPUT_USERSCRIPT=" + in.userScript
-      << "KLF_INPUT_BYPASS_TEMPLATE=" + QString::number(in.bypassTemplate);
+      << "KLF_INPUT_BYPASS_TEMPLATE=" + QString::number(in.bypassTemplate)
+    ;
   
   // and add custom user parameters
   QMap<QString,QString>::const_iterator cit;
