@@ -77,7 +77,7 @@
     </export-type>
 
     <!-- Never hurts to include HTML (eg. for Thunderbird, GMail, ...) -->
-    <export-type exporter="KLFHtmlDataExporter" format="html">
+    <export-type exporter="KLFHtmlDataExporter" format="html-png">
       <default-qt-formats type="html" />
     </export-type>
 
@@ -150,14 +150,43 @@
     </export-type>
   </profile>
 
-  <!-- An HTML fragment for pasting into gmail or thunderbird -->
-  <profile name="html-fragment">
-    <description>HTML fragment</description>
+  <!-- An HTML fragment for pasting into gmail or thunderbird, with PNG data -->
+  <profile name="html-png-fragment">
+    <description>HTML fragment (PNG)</description>
     <!-- HTML fragment for Thunderbird, GMail, ... -->
+    <export-type exporter="KLFHtmlDataExporter" format="html-png">
+      <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+  <!-- An HTML fragment with a hack for displaying SVG, with PNG fallback -->
+  <profile name="html-fragment">
+    <in-submenu>More HTML fragments</in-submenu>
+    <description>HTML fragment (SVG/PNG)</description>
     <export-type exporter="KLFHtmlDataExporter" format="html">
       <default-qt-formats type="html" />
     </export-type>
   </profile>
+
+  <!-- An HTML fragment with vector SVG data -->
+  <profile name="html-svg-fragment">
+    <in-submenu>More HTML fragments</in-submenu>
+    <description>HTML fragment (SVG)</description>
+    <export-type exporter="KLFHtmlDataExporter" format="html-svg">
+      <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+  <!-- An HTML fragment with reference to a temporary PNG file -->
+  <profile name="KLFTempImgRefHtmlExporter-html">
+    <in-submenu>More HTML fragments</in-submenu>
+    <description>HTML fragment (temp. PNG file)</description>
+    <export-type exporter="KLFTempImgRefHtmlExporter" format="html">
+      <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+
 
   <!-- Just plain simple PNG -->
   <profile name="png">
@@ -233,13 +262,6 @@
       <default-qt-formats type="text" />
       <mime-type>application/x-latex</mime-type>
       <mime-type>application/x-tex</mime-type>
-    </export-type>
-  </profile>
-  <profile name="KLFTempImgRefHtmlExporter-html">
-    <in-submenu>Specific Formats</in-submenu>
-    <description>HTML with ref. to temp. image file</description>
-    <export-type exporter="KLFTempImgRefHtmlExporter" format="html">
-      <default-qt-formats type="html" />
     </export-type>
   </profile>
   <profile name="KLFOpenOfficeDrawExporter-odg">

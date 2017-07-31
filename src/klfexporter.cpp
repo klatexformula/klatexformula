@@ -37,9 +37,12 @@ struct KLFExporterPrivate
 {
   KLF_PRIVATE_HEAD(KLFExporter)
   {
+    exporterManager = NULL;
   }
 
   QString errorString;
+
+  KLFExporterManager * exporterManager;
 };
 
 
@@ -74,8 +77,30 @@ void KLFExporter::setErrorString(const QString & errorString)
   d->errorString = errorString;
 }
 
+void KLFExporter::setExporterManager(KLFExporterManager * ptr)
+{
+  d->exporterManager = ptr;
+}
+
+KLFExporterManager * KLFExporter::getExporterManager() const
+{
+  return d->exporterManager;
+}
+
 
 // =============================================================================
+
+QDataStream & operator<<(QDataStream & stream, const KLFExporterNameAndFormat & ef)
+{
+  return stream << ef.exporterName << ef.format ;
+}
+QDataStream & operator>>(QDataStream & stream, KLFExporterNameAndFormat & ef)
+{
+  return stream >> ef.exporterName >> ef.format ;
+}
+
+
+
 
 struct KLFExporterManagerPrivate
 {
@@ -107,6 +132,8 @@ void KLFExporterManager::registerExporter(KLFExporter *exporter)
 
   d->pExporters.append(exporter);
 
+  exporter->setExporterManager(this);
+
 #ifdef KLF_DEBUG
   klfDbg("Exporter list is now :");
   foreach (KLFExporter * exporter, d->pExporters) {
@@ -120,7 +147,7 @@ void KLFExporterManager::unregisterExporter(KLFExporter *exporter)
 }
 
 
-KLFExporter* KLFExporterManager::exporterByName(const QString & exporterName)
+KLFExporter* KLFExporterManager::exporterByName(const QString & exporterName) const
 {
   int k;
   for (k = 0; k < d->pExporters.size(); ++k) {
@@ -134,6 +161,74 @@ KLFExporter* KLFExporterManager::exporterByName(const QString & exporterName)
 QList<KLFExporter*> KLFExporterManager::exporterList()
 {
   return d->pExporters;
+}
+
+
+
+bool KLFExporterManager::supportsExporterNameAndFormat(const QString & exporterName, const QString & format,
+                                                       const KLFBackend::klfOutput & output) const
+{
+  KLFExporter * exporter = exporterByName(exporterName);
+  if (exporter == NULL) {
+    return false;
+  }
+  return exporter->supports(format, output);
+}
+
+bool KLFExporterManager::supportsOneOfExporterNamesAndFormats(const KLFExporterNameAndFormatList & exporterNamesAndFormats,
+                                                              const KLFBackend::klfOutput & output,
+                                                              KLFExporterNameAndFormat * whichExporterNameAndFormat) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  foreach (const KLFExporterNameAndFormat & ef, exporterNamesAndFormats) {
+    if ( supportsExporterNameAndFormat( ef.exporterName, ef.format, output ) ) {
+      if (whichExporterNameAndFormat != NULL) {
+        *whichExporterNameAndFormat = ef;
+      }
+      return true;
+    }
+  }
+  if (whichExporterNameAndFormat != NULL) {
+    *whichExporterNameAndFormat = KLFExporterNameAndFormat();
+  }
+  return false;
+}
+
+
+QByteArray KLFExporterManager::getDataByExporterNameAndFormat(const QString & exporterName, const QString & format,
+                                                              const KLFBackend::klfOutput & output,
+                                                              const QVariantMap & params)
+{
+  KLFExporter * exporter = exporterByName(exporterName);
+  if (exporter == NULL) {
+    return QByteArray();
+  }
+  if ( ! exporter->supports(format, output) ) {
+    return QByteArray();
+  }
+  return exporter->getData(format, output, params);
+}
+
+QByteArray KLFExporterManager::getDataByExporterNamesAndFormats(const KLFExporterNameAndFormatList& exporterNamesAndFormats,
+                                                                const KLFBackend::klfOutput & output,
+                                                                const QVariantMap & params,
+                                                                KLFExporterNameAndFormat * whichExporterNameAndFormat)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  foreach (const KLFExporterNameAndFormat & ef, exporterNamesAndFormats) {
+    QByteArray data = getDataByExporterNameAndFormat( ef.exporterName, ef.format, output, params );
+    if (data.size() > 0) {
+      klfDbg("Got data from " << expName << " : " << expFmt) ;
+      if (whichExporterNameAndFormat != NULL) {
+        *whichExporterNameAndFormat = ef;
+      }
+      return data;
+    }
+  }
+  if (whichExporterNameAndFormat != NULL) {
+    *whichExporterNameAndFormat = KLFExporterNameAndFormat();
+  }
+  return QByteArray();
 }
 
 
@@ -170,7 +265,8 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
                            : KLFPropertizedObject("KLFExportTypeUserScriptInfo"))
   {
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::Formats, QLatin1String("Formats"));
-    registerBuiltInProperty(KLFExportTypeUserScriptInfo::InputDataType, QLatin1String("InputDataType"));
+    registerBuiltInProperty(KLFExportTypeUserScriptInfo::InputExportersFormats, QLatin1String("InputExportersFormats"));
+    //registerBuiltInProperty(KLFExportTypeUserScriptInfo::InputDataType, QLatin1String("InputDataType"));
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::HasStdoutOutput, QLatin1String("HasStdoutOutput"));
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::MimeExportProfilesXmlFile,
                             QLatin1String("MimeExportProfilesXmlFile"));
@@ -221,6 +317,8 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
 
     QVariantList formatsvlist;
 
+    KLFExporterNameAndFormatList input_exporters_formats;
+
     // read XML contents
     QDomNode n;
     for (n = root.firstChild(); !n.isNull(); n = n.nextSibling()) {
@@ -238,11 +336,13 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
 	val = QString(); // empty value is null string
       }
       if (e.nodeName() == "input-data-type") {
-        if (!property(KLFExportTypeUserScriptInfo::InputDataType).toString().isEmpty()) {
-          _set_xml_parsing_error(QString("duplicate <input-data-type> element"));
-          return;
+        QString exporter;
+        if (e.hasAttribute("exporter")) {
+          exporter = e.attribute("exporter");
+        } else {
+          exporter = QLatin1String("KLFBackendFormatsExporter");
         }
-        setProperty(KLFExportTypeUserScriptInfo::InputDataType, val);
+        input_exporters_formats.push_back(KLFExporterNameAndFormat(exporter, val));
       } else if (e.nodeName() == "has-stdout-output") {
         if (!property(KLFExportTypeUserScriptInfo::HasStdoutOutput).toString().isEmpty()) {
           _set_xml_parsing_error(QString("duplicate <has-stdout-output> element"));
@@ -300,6 +400,7 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
 
     }
 
+    setProperty(KLFExportTypeUserScriptInfo::InputExportersFormats, QVariant::fromValue(input_exporters_formats));
     setProperty(KLFExportTypeUserScriptInfo::Formats, formatsvlist);
 
     klfDbg("Read all klfbackend-engine properties:\n" << qPrintable(toString()));
@@ -363,9 +464,13 @@ QStringList KLFExportTypeUserScriptInfo::formats() const
 {
   return d->formatnames;
 }
-QString KLFExportTypeUserScriptInfo::inputDataType() const
+// QString KLFExportTypeUserScriptInfo::inputDataType() const
+// {
+//   return klfExportTypeInfo(InputDataType).toString();
+// }
+KLFExporterNameAndFormatList KLFExportTypeUserScriptInfo::inputExportersFormats() const
 {
-  return klfExportTypeInfo(InputDataType).toString();
+  return klfExportTypeInfo(InputExportersFormats).value<KLFExporterNameAndFormatList>() ;
 }
 bool KLFExportTypeUserScriptInfo::hasStdoutOutput() const
 {

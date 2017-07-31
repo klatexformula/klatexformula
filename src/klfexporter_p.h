@@ -28,6 +28,7 @@
 #include <QDateTime>
 #include <QByteArray>
 #include <QBuffer>
+#include <QDomDocument>
 
 #include <klfdefs.h>
 #include <klfutil.h>
@@ -375,9 +376,18 @@ public:
 class KLFHtmlDataExporter : public QObject, public KLFExporter
 {
   Q_OBJECT
+private:
+
+  KLFExporterNameAndFormatList svg_exporter_formats;
+
 public:
   KLFHtmlDataExporter(QObject *parent)
-    : QObject(parent), KLFExporter()
+    : QObject(parent), KLFExporter(),
+      svg_exporter_formats( KLFExporterNameAndFormatList()
+                            << KLFExporterNameAndFormat("KLFBackendFormatsExporter", "SVG")
+                            << KLFExporterNameAndFormat("UserScript:svg-dvisvgm", "svg")
+                            << KLFExporterNameAndFormat("UserScript:inkscapeformats", "svg") )
+
   {
   }
   virtual ~KLFHtmlDataExporter()
@@ -389,15 +399,28 @@ public:
     return QLatin1String("KLFHtmlDataExporter");
   }
 
-  virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput& output) const
   {
-    return QStringList() << "html";
+    QStringList list;
+    list << "html" << "html-png";
+
+    KLFExporterManager * exporterManager = getExporterManager();
+    if (exporterManager != NULL &&
+        exporterManager->supportsOneOfExporterNamesAndFormats( svg_exporter_formats, output )) {
+      list << "html-svg";
+    }
+
+    return list;
   }
 
   virtual QString titleFor(const QString & format)
   {
     if (format == "html") {
-      return tr("HTML fragment with embedded image data");
+      return tr("HTML fragment with embedded graphics");
+    } else if (format == "html-png") {
+      return tr("HTML fragment with embedded PNG image");
+    } else if (format == "html-svg") {
+      return tr("HTML fragment with embedded SVG image");
     }
     klfWarning("Invalid format: " << format) ;
     return QString();
@@ -406,6 +429,10 @@ public:
   virtual QStringList fileNameExtensionsFor(const QString & format)
   {
     if (format == "html") {
+      return QStringList() << "html";
+    } else if (format == "html-png") {
+      return QStringList() << "html";
+    } else if (format == "html-svg") {
       return QStringList() << "html";
     }
     klfWarning("Invalid format: " << format) ;
@@ -417,19 +444,159 @@ public:
   {
     clearErrorString();
 
-    if (format != "html") {
+    if (format == "html") {
+      return get_html_mix_data(output, params) ;
+    } else if (format == "html-png") {
+      return get_html_png_data(output, params) ;
+    } else if (format == "html-svg") {
+      return get_html_svg_data(output, params) ;
+    } else {
       klfWarning("Invalid format: " << format) ;
       return QByteArray();
     }
+  }
 
-    int html_export_dpi = params.value("html_export_dpi", (int)klfconfig.ExportData.htmlExportDpi).toInt();
-    int html_export_display_dpi = params.value("html_export_display_dpi",
-                                               (int)klfconfig.ExportData.htmlExportDisplayDpi).toInt();
+  inline QByteArray get_html_mix_data(const KLFBackend::klfOutput& output, const QVariantMap& params)
+  {
+    // generate SVG tags with PNG fallback
 
-    if (output.input.dpi < html_export_dpi * 1.25f) {
-      html_export_dpi = output.input.dpi;
-    } 
+    // use this really neat hack for SVG with PNG fallback:
+    // http://www.kaizou.org/2009/03/inline-svg-fallback/
 
+
+    // try to obtain SVG data
+    QByteArray svgdata;
+
+    KLFExporterManager * exMgr = getExporterManager();
+    if (exMgr == NULL) {
+      klfWarning("Can't get SVG data: exporter manager is NULL!") ;
+      svgdata = QByteArray();
+    } else {
+      svgdata = exMgr->getDataByExporterNamesAndFormats( svg_exporter_formats, output, params );
+    }
+    if (svgdata.size() == 0) {
+      // can't get SVG data, fall back to only PNG
+      klfDbg("Can't get SVG, falling back to PNG only") ;
+      return get_html_png_data(output, params) ;
+    }
+
+    // // First, get the fallback HTML-img code with PNG
+    // QVariantMap p = params;
+    // p["close_img_tag"] = true;
+    // QByteArray htmlpngdata = get_html_png_data(output, p);
+    //
+    // QString ws = QString::number(output.width_pt, 'f', 4);
+    // QString hs = QString::number(output.height_pt, 'f', 4);
+    //    
+    // QByteArray data = QString::fromLatin1(
+    //     "<svg version=\"1.1\" width=\"%1pt\" height=\"%2pt\" viewBox=\"0 0 %3 %4\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"> "
+    //     ).arg(ws, hs, ws, hs).toUtf8() +
+    //   "<switch>" +
+    //   QString::fromLatin1("<foreignObject width=\"%1\" height=\"%2\">").arg(ws, hs).toUtf8() +
+    //   "<img src=\"data:image/svg+xml;base64," + svgdata.toBase64() + "\" "
+    //   +  QString::fromLatin1(" style=\"width: %4pt; height: %5pt; vertical-align: middle;\" />").arg(ws, hs).toUtf8() +
+    //   "</foreignObject>"
+    //   "<foreignObject width=\"0\" height=\"0\">"
+    //   + htmlpngdata +
+    //   "</foreignObject>"
+    //   "</switch>"
+    //   "</svg>";
+    //
+    // data += "<p></p>"; // <p></p> hopefully puts Thunderbird editor cursor there and not
+    //                    // inside the SVG hierarchy.
+    // return data;
+
+
+    // first of all, sanitize the XML document. E.g., single-quote attrs -> double quotes
+    { QDomDocument svgdomdoc;
+      svgdomdoc.setContent(svgdata);
+      svgdata = "";
+      QBuffer buf(&svgdata);
+      QTextStream stream(&buf);
+      buf.open(QIODevice::WriteOnly);
+      svgdomdoc.save(stream, 2);
+    }
+
+    // remove the <?xml...?> header, and add vertical-align style property
+    QString svgstring = QString::fromUtf8(svgdata).trimmed() ;
+    QRegExp xmlheaderrx("\\<\\?\\s*xml\\s*version=['\"][^'\">]+[\"']\\s*encoding=[\"'][^'\">]+[\"']\\?\\>\\s*");
+    svgstring.replace(xmlheaderrx, "");
+    QRegExp svgrx("\\<svg\\s*");
+    svgstring.replace(svgrx, "<svg style=\"vertical-align:middle\" ");
+    
+    // First, get the fallback HTML-img code with PNG
+    QVariantMap p = params;
+    p["close_img_tag"] = true;
+    QByteArray htmlpngdata = get_html_png_data(output, p);
+
+    // Further tweak SVG data to insert fallback code
+    
+    QRegExp svgendrx("\\</\\s*svg\\s*>\\s*$");
+    svgstring.replace(svgendrx,
+                      QString::fromUtf8("<switch>"
+                                        "<g></g>"
+                                        "<foreignObject width=\"0\" height=\"0\">"
+                                        + htmlpngdata +
+                                        "</foreignObject>"
+                                        "</switch>"
+                                        "</svg>"));
+    
+    return svgstring.toUtf8() + "<p></p>"; // <p></p> hopefully puts Thunderbird editor
+                                           // cursor there and not inside the SVG
+                                           // hierarchy.
+
+    //svgdata = svgstring.toUtf8();
+    // // Add the fallback
+    // QByteArray fallbackfakesvg =
+    //   "<svg version=\"1.1\" width=\"0pt\" height=\"0pt\""
+    //   " xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">"
+    //   "<switch>"
+    //   "<g></g>" // empty graphics
+    //   "<foreignObject width=\"0\" height=\"0\">"
+    //   + htmlpngdata +
+    //   "</foreignObject>"
+    //   "</switch>"
+    //   "</svg>";
+    // return "<div style=\"display:inline\">" + svgdata + fallbackfakesvg + "</div>";
+  }
+
+  inline QByteArray get_html_svg_data(const KLFBackend::klfOutput& output, const QVariantMap& params)
+  {
+    // try to obtain SVG data
+    KLFExporterManager * exMgr = getExporterManager();
+    if (exMgr == NULL) {
+      klfWarning("Can't get SVG data: exporter manager is NULL!") ;
+      return QByteArray();
+    }
+    QByteArray svgdata = exMgr->getDataByExporterNamesAndFormats( svg_exporter_formats, output, params );
+
+    if (svgdata.size() == 0) {
+      klfWarning("Can't get SVG data, no exporter managed to provide us SVG.") ;
+      return QByteArray();
+    }
+
+    // Doesn't seem to work great:
+    //
+    // QString svgstring = QString::fromUtf8(svgdata) ;
+    // QRegExp xmlheaderrx("\\<\\?xml version='[^'>]+' encoding='[^'>]+'\\?\\>");
+    // svgstring.replace(xmlheaderrx, "");
+    // klfDbg("Got svgstring :\n" << svgstring) ;
+    // return ("<div style=\"display: inline\">" + svgstring + "</div>").toUtf8();
+
+
+    // So try to use <img src="data:image/svg+xml;base64,..."> instead
+
+    QString latexattr = toHtmlAttrText(klfLatexToPseudoTex(output.input.latex));
+    QString w_in = QString::number(output.width_pt / 72.0, 'f', 4);
+    QString h_in = QString::number(output.width_pt / 72.0, 'f', 4);
+
+    return "<img src=\"data:image/svg+xml;base64," + svgdata.toBase64() + "\" "
+      +  (QString::fromLatin1(" alt=\"%1\" title=\"%2\" style=\"width: %3in; height: %4in; vertical-align: middle;\" />")
+          .arg(latexattr, latexattr, w_in, h_in)).toUtf8();
+  }
+
+  inline QByteArray get_png_data_for_dpi(const KLFBackend::klfOutput & output, int html_export_dpi)
+  {
     QImage img = output.result;
     if (html_export_dpi > 0 && html_export_dpi != output.input.dpi) {
       // needs to be rescaled
@@ -438,6 +605,25 @@ public:
       klfDbg("scaling to "<<html_export_dpi<<" DPI from "<<output.input.dpi<<" DPI... targetSize="<<targetSize) ;
       img = klfImageScaled(img, targetSize);
     }
+    QByteArray png;
+    { QBuffer buffer(&png);
+      buffer.open(QIODevice::WriteOnly);
+      img.save(&buffer, "PNG"); // writes image into ba in PNG format
+    }
+    return png;
+  }
+
+  inline QByteArray get_html_png_data(const KLFBackend::klfOutput& output, const QVariantMap& params)
+  {
+    int html_export_dpi = params.value("html_export_dpi", (int)klfconfig.ExportData.htmlExportDpi).toInt();
+    int html_export_display_dpi = params.value("html_export_display_dpi",
+                                               (int)klfconfig.ExportData.htmlExportDisplayDpi).toInt();
+
+    if (output.input.dpi < html_export_dpi * 1.25f) {
+      html_export_dpi = output.input.dpi;
+    } 
+
+    QByteArray png = get_png_data_for_dpi(output, html_export_dpi);
 
     QSize imgsize = output.result.size();
     imgsize *= (float) html_export_dpi / output.input.dpi;
@@ -447,12 +633,6 @@ public:
     QString w_in = QString::number((float)imgsize.width() / html_export_display_dpi, 'f', 3);
     QString h_in = QString::number((float)imgsize.height() / html_export_display_dpi, 'f', 3);
 
-    QByteArray png;
-    {
-      QBuffer buffer(&png);
-      buffer.open(QIODevice::WriteOnly);
-      img.save(&buffer, "PNG"); // writes image into ba in PNG format
-    }
     QByteArray base64imgdata = png.toBase64();
     
     klfDbg("origimg/size="<<output.result.size()<<"; origDPI="<<output.input.dpi
@@ -464,6 +644,10 @@ public:
       QString::fromLatin1("<img src=\"data:image/png;base64,%1\" alt=\"%2\" title=\"%3\" "
                           "style=\"width: %4in; height: %5in; vertical-align: middle;\">")
       .arg(base64imgdata, latexattr, latexattr, w_in, h_in);
+
+    if (params.value("close_img_tag", false).toBool()) {
+      html += "</img>";
+    }
 
     return html.toUtf8();
   }
@@ -517,7 +701,7 @@ public:
   }
 
   virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& klfoutput,
-                             const QVariantMap& /*params*/ = QVariantMap())
+                             const QVariantMap& params = QVariantMap())
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     klfDbg("format="<<format) ;
@@ -537,26 +721,45 @@ public:
       p.addUserScriptConfig(klfconfig.UserScripts.userScriptConfig.value(pUserScript.userScriptPath()));
     }
 
-    QString infmt = pUserScript.inputDataType();
+    KLFExporterNameAndFormatList inexpfmts = pUserScript.inputExportersFormats();
+
+    QByteArray input_data;
+    KLFExporterNameAndFormat which_input_data_format;
+    KLFExporterManager * exMgr = getExporterManager();
+    if (exMgr == NULL) {
+      klfWarning("Can't get data for user script " << pUserScript.userScriptName()
+                 << ": exporter manager is NULL!") ;
+      input_data = QByteArray();
+    } else {
+      input_data = exMgr->getDataByExporterNamesAndFormats( inexpfmts, klfoutput, params, &which_input_data_format );
+    }
+    if (input_data.size() == 0 || which_input_data_format.exporterName.size() == 0) {
+      // can't get SVG data, fall back to only PNG
+      klfWarning("Can't get data for user script " << pUserScript.userScriptName()
+                 << ": no available input format found!") ;
+      return QByteArray();
+    }
 
     QString ver = KLF_VERSION_STRING;
     ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
     
     QString tempfnametmpl = klfoutput.settings.tempdir + "/klftmpexporter" + ver + "xXXXXXX";
 
-    QString ext = infmt.toLower();
+    KLFExporter * exporter = exMgr->exporterByName(which_input_data_format.exporterName) ;
+    QStringList extlist = exporter->fileNameExtensionsFor(which_input_data_format.format);
+    QString ext;
+    if (extlist.size()) {
+      ext = extlist[0];
+    } else {
+      ext = "tmp";
+    }
+
     QTemporaryFile f_in(tempfnametmpl + "." + ext);
     f_in.setAutoRemove(true);
     f_in.open();
   
     QString errstr;
-    // prepare the input data to the script--
-    KLFBackend::saveOutputToDevice(klfoutput, &f_in, infmt, &errstr);
-    if (!errstr.isEmpty()) {
-      klfWarning("Can't save klf output to format "<<infmt<<" [needed for input to "
-                 <<pUserScript.userScriptBaseName()<<"]: "<<errstr) ;
-      return QByteArray();
-    }
+    f_in.write(input_data);
     f_in.close();
 
     p.addArgv(QStringList() << f_in.fileName());
@@ -567,8 +770,11 @@ public:
            << QLatin1String("KLF_OUTPUT_HEIGHT_PT=") + QString::number(klfoutput.height_pt)
            << QLatin1String("KLF_OUTPUT_WIDTH_PX=") + QString::number(klfoutput.result.width())
            << QLatin1String("KLF_OUTPUT_HEIGHT_PX=") + QString::number(klfoutput.result.height())
+           << QLatin1String("KLF_INPUTDATA_EXPORTER_NAME=") + which_input_data_format.exporterName
+           << QLatin1String("KLF_INPUTDATA_FORMAT=") + which_input_data_format.format
            << klfInputToEnvironmentForUserScript(klfoutput.input)
-           << klfSettingsToEnvironmentForUserScript(klfoutput.settings);
+           << klfSettingsToEnvironmentForUserScript(klfoutput.settings)
+      ;      
 
     p.addExecEnviron(addenv);
 
@@ -817,6 +1023,10 @@ public:
       QString::fromLatin1("<img src=\"file://%1\" alt=\"%2\" title=\"%3\" "
                           "style=\"width: %4in; height: %5in; vertical-align: middle;\">")
       .arg(QFileInfo(tempfilename).absoluteFilePath(), latexattr, latexattr, w_in, h_in);
+
+    if (params.value("close_img_tag", false).toBool()) {
+      html += "</img>";
+    }
 
     return html.toUtf8();
   }

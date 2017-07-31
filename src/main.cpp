@@ -58,6 +58,7 @@
 #include "klflatexsymbols.h"
 #include "klfmain.h"
 #include "klfconfig.h"
+#include "klfexporter.h"
 #include "klfmainwin.h"
 #ifdef KLF_USE_DBUS
 #include "klfdbus.h"
@@ -456,6 +457,9 @@ void main_setup_app(QCoreApplication *a)
     /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
   qRegisterMetaType< KLFEnumType >();
   qRegisterMetaTypeStreamOperators< KLFEnumType >("KLFEnumType");
+
+  qRegisterMetaType<KLFExporterNameAndFormat>();
+  qRegisterMetaTypeStreamOperators< KLFExporterNameAndFormat >("KLFExporterNameAndFormat");
 
   // for inter-thread calls in klflatexsymbols_p.h/klflatexsymbols.cpp
   qRegisterMetaType< KLFLatexSymbol >("KLFLatexSymbol");

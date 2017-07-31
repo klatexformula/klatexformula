@@ -41,6 +41,8 @@
 #include <klfbackend.h>
 
 
+class KLFExporterManager;
+
 struct KLFExporterPrivate;
 
 /** \brief Abstract exporter of KLF output to some given format
@@ -91,7 +93,7 @@ public:
     return supportedFormats(klfoutput).contains(format);
   }
 
-  /** \brief A huaman-readable title for this exporter and format (e.g. "PDF Vector Graphic")
+  /** \brief A huaman-readable title for this exporter and format (e.g. "PDF Vector Graphics")
    */
   virtual QString titleFor(const QString & format) = 0;
 
@@ -118,6 +120,12 @@ public:
   //! Returns an error string describing the last error.
   QString errorString() const;
 
+
+  /** \brief Set the exporter manager where other exporters can be looked up
+   *
+   */
+  void setExporterManager(KLFExporterManager * exporterManager) ;
+
 protected:
 
   //! Subclasses should call this method at the beginning of getData()
@@ -125,10 +133,41 @@ protected:
   //! Subclasses should use this method in getData() to signify that an error occurred
   void setErrorString(const QString & errorString);
 
+  /** \brief Subclasses may access the exporter manager to look for other exporters
+   *
+   * Some exporters may rely on other exporters to generate intermediate formats.  Use the
+   * exporter manager to look up other exporters.
+   *
+   * \warning This function might return a \a NULL pointer if no exporter-manager was set
+   *          for this instance.
+   *
+   * \warning It is the exporter's responsibility to avoid cyclic dependencies, which
+   *          would result in infinite loops.
+   */
+  KLFExporterManager * getExporterManager() const;
+
 private:
   KLF_DECLARE_PRIVATE(KLFExporter) ;
 };
 
+
+
+struct KLFExporterNameAndFormat
+{
+  KLFExporterNameAndFormat(QString exporterName_ = QString(), QString format_ = QString())
+    : exporterName(exporterName_), format(format_)
+  { }
+
+  QString exporterName;
+  QString format;
+};
+
+Q_DECLARE_METATYPE(KLFExporterNameAndFormat) ;
+
+typedef QList<KLFExporterNameAndFormat> KLFExporterNameAndFormatList;
+
+QDataStream & operator<<(QDataStream & stream, const KLFExporterNameAndFormat & ef);
+QDataStream & operator>>(QDataStream & stream, KLFExporterNameAndFormat & ef);
 
 
 struct KLFExporterManagerPrivate;
@@ -143,9 +182,33 @@ public:
   void registerExporter(KLFExporter *exporter);
   void unregisterExporter(KLFExporter *exporter);
 
-  KLFExporter* exporterByName(const QString & exporterName);
+  KLFExporter* exporterByName(const QString & exporterName) const;
 
   QList<KLFExporter*> exporterList();
+
+  //! Whether the given exporter name and format is supported for the given output
+  bool supportsExporterNameAndFormat(const QString & exporterName, const QString & format,
+                                     const KLFBackend::klfOutput & output) const;
+
+  //! Whether one of the provided exporter name and format will be available for the given output
+  bool supportsOneOfExporterNamesAndFormats(const KLFExporterNameAndFormatList & exporterNamesAndFormats,
+                                            const KLFBackend::klfOutput & output,
+                                            KLFExporterNameAndFormat * whichExporterNameAndFormat = NULL) const;
+
+  //! Attempt to get data from the given exporter and given format, returns empty if not found
+  QByteArray getDataByExporterNameAndFormat(const QString & exporterName, const QString & format,
+                                            const KLFBackend::klfOutput & output,
+                                            const QVariantMap & params = QVariantMap()) ;
+
+  /**
+   * Provide a list of pairs of an exporter name and a format.
+   *
+   * Returns the first successfully retreived data.
+   */
+  QByteArray getDataByExporterNamesAndFormats(const KLFExporterNameAndFormatList & exporterNamesAndFormats,
+                                              const KLFBackend::klfOutput & output,
+                                              const QVariantMap & params,
+                                              KLFExporterNameAndFormat * whichExporterNameAndFormat = NULL) ;
 
 private:
   KLF_DECLARE_PRIVATE( KLFExporterManager ) ;
@@ -180,13 +243,15 @@ public:
 
   enum ExportTypeProperties {
     Formats = 0,
-    InputDataType,
+    InputExportersFormats,
     HasStdoutOutput,
     MimeExportProfilesXmlFile,
   };
 
   QStringList formats() const;
-  QString inputDataType() const;
+
+  KLFExporterNameAndFormatList inputExportersFormats() const;
+
   bool hasStdoutOutput() const;
   QString mimeExportProfilesXmlFile() const;
 

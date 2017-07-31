@@ -358,17 +358,8 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(ExportData.menuExportProfileAffectsDrag, true) ;
   KLFCONFIGPROP_INIT(ExportData.menuExportProfileAffectsCopy, true) ;
   KLFCONFIGPROP_INIT(ExportData.oooExportScale, 1.6) ;
-  KLFCONFIGPROP_INIT(ExportData.htmlExportDpi, 150);
-  // query display DPI
-  int dispdpi = 96;
-  /*  if (qApp->inherits("QApplication")) {
-      QDesktopWidget *w = QApplication::desktop();
-      if (w != NULL) {
-      // dispdpi = (w->physicalDpiX() + w->physicalDpiY()) / 2;
-      dispdpi = w->physicalDpiX();
-      }
-      } */
-  KLFCONFIGPROP_INIT(ExportData.htmlExportDisplayDpi, dispdpi);
+  KLFCONFIGPROP_INIT(ExportData.htmlExportDpi, 180);
+  KLFCONFIGPROP_INIT(ExportData.htmlExportDisplayDpi, 180);
 
   KLFCONFIGPROP_INIT(SyntaxHighlighter.enabled, true) ;
   KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightParensOnly, false) ;
