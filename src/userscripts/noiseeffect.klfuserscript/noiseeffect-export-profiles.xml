@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  Export Profile for Noise-Effect PNG
+
+  For full documentation about this XML format, see
+  https://klatexformula.sourceforge.io/doc/export-profiles#export-profiles-xml
+  -->
+<export-profile-list version="4.0">
+  <profile name="noiseeffect_png">
+    <description>Noisy Image (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:noiseeffect" format="png">
+      <mime-type>image/png</mime-type>
+      <win-format>PNG</win-format>
+      <mac-flavor>public.png</mac-flavor>
+    </export-type>
+  </profile>
+
+</export-profile-list>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>noiseeffect.py</exe-script>
+  <category>klf-export-type</category>
+  <name>Noise effect PNG</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.1</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>settings_form.ui</settings-form-ui>
+  <can-provide-default-settings>true</can-provide-default-settings>
+
+  <klf-export-type>
+    <input-data-type>PNG</input-data-type>
+    <has-stdout-output>false</has-stdout-output>
+    <mime-export-profiles-xml-file>noiseeffect-export-profiles.xml</mime-export-profiles-xml-file>
+
+    <format name="png">
+      <title>PNG (with noise)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>
