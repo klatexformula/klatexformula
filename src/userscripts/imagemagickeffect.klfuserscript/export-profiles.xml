@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  Export Profile for ImageMagick Effect User Script
+  -->
+<export-profile-list version="4.0">
+
+  <profile name="imagemagick_effect_outer_glow">
+    <description>Outer Glow Effect (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:imagemagickeffect" format="outer-glow">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile>
+
+  <profile name="imagemagick_effect_wave">
+    <description>Wave Effect (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:imagemagickeffect" format="wave">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile>
+
+  <profile name="imagemagick_effect_swirl">
+    <description>Swirl Effect (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:imagemagickeffect" format="swirl">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile>
+
+  <profile name="imagemagick_effect_plasma">
+    <description>Plasma Effect (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:imagemagickeffect" format="plasma">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile>
+
+  <!-- This is really slow, so don't propose it for copy/paste or drag/drop.
+       It's still possible to save the image.
+    -->
+  <!-- <profile name="imagemagick_effect_on_fire">
+    <description>On Fire Effect [slow] (PNG)</description>
+    <in-submenu>Effects</in-submenu>
+
+    <export-type exporter="UserScript:imagemagickeffect" format="on-fire">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile> -->
+
+</export-profile-list>

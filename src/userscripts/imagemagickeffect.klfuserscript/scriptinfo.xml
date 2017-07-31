@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>imagemagickeffect.py</exe-script>
+  <category>klf-export-type</category>
+  <name>ImageMagick Effect (PNG)</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.1</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>settings_form.ui</settings-form-ui>
+  <can-provide-default-settings>true</can-provide-default-settings>
+
+  <klf-export-type>
+    <input-data-type>PNG</input-data-type>
+    <has-stdout-output>false</has-stdout-output>
+    <mime-export-profiles-xml-file>export-profiles.xml</mime-export-profiles-xml-file>
+
+    <format name="outer-glow">
+      <title>Outer Glow Effect (PNG)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+    <format name="wave">
+      <title>Wave Effect (PNG)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+    <format name="swirl">
+      <title>Swirl Effect (PNG)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+    <format name="plasma">
+      <title>Plasma Effect (PNG)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+    <format name="on-fire">
+      <title>On Fire Effect (slow to run) (PNG)</title>
+      <file-name-extension>png</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>

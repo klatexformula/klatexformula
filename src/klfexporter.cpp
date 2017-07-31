@@ -218,7 +218,7 @@ QByteArray KLFExporterManager::getDataByExporterNamesAndFormats(const KLFExporte
   foreach (const KLFExporterNameAndFormat & ef, exporterNamesAndFormats) {
     QByteArray data = getDataByExporterNameAndFormat( ef.exporterName, ef.format, output, params );
     if (data.size() > 0) {
-      klfDbg("Got data from " << expName << " : " << expFmt) ;
+      klfDbg("Got data from " << ef.exporterName << " : " << ef.format) ;
       if (whichExporterNameAndFormat != NULL) {
         *whichExporterNameAndFormat = ef;
       }

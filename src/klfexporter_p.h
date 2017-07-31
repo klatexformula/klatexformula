@@ -29,6 +29,7 @@
 #include <QByteArray>
 #include <QBuffer>
 #include <QDomDocument>
+#include <QTimer>
 
 #include <klfdefs.h>
 #include <klfutil.h>
@@ -796,8 +797,23 @@ public:
       klfDbg("outfn = " << outfn) ;
     }
 
-    // now, run the user script
-    bool ok = p.run(QByteArray(), outdatamap);
+    p.setProcessAppEvents(true);
+
+    bool ok = false;
+    {
+      KLFPleaseWaitPopup waitPopup(tr("Please wait while user script ‘%1’ is being run ...")
+                                 .arg(pUserScript.userScriptBaseName()));
+      // only show the popup after a short delay
+      QTimer timer;
+      connect(&timer, SIGNAL(timeout()), &waitPopup, SLOT(showPleaseWait()));
+      timer.setSingleShot(true);
+      timer.start(1000);
+
+      // now, run the user script
+      ok = p.run(QByteArray(), outdatamap);
+
+      timer.stop();
+    }
 
     if (outfn.size() && QFile::exists(outfn)) {
       QFile::remove(outfn);
@@ -805,7 +821,7 @@ public:
 
     if (!ok) {
       // error
-      setErrorString(tr("Error running user script %1: %2").arg(pUserScript.userScriptName())
+      setErrorString(tr("Error running user script %1: %2").arg(pUserScript.userScriptBaseName())
                      .arg(p.resultErrorString()));
       klfWarning("Error: " << qPrintable(errorString())) ;
       return QByteArray();

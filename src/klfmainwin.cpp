@@ -3846,14 +3846,17 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 				       &selectedfilter);
 
   if (fname.isEmpty()) {
+    klfDbg("Aborted by user.") ;
     return;
   }
+
+  klfDbg("Selected filter = " << selectedfilter) ;
 
   QFileInfo fi(fname);
   // save this path as default to suggest next time
   klfconfig.UI.lastSaveDir = fi.absolutePath();
 
-  // first test if it's an extern-format
+  // selected filter should match to an exporter
   if ( exporterByFilterName.contains(selectedfilter) ) {
     // use an external output-saver
     QString formatname = formatsByFilterName[selectedfilter];
@@ -3863,6 +3866,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
       klfWarning("Internal error: exporter is NULL!");
       return;
     }
+
+    klfDbg( "Saving using exporter `" << exporter->exporterName() << "' with format `" << formatname << "'" ) ;
 
     QByteArray data = exporter->getData(formatname, d->output);
     if (data.isEmpty()) {
