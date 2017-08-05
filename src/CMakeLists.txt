@@ -120,6 +120,7 @@ if(KLF_BUILD_GUI)
   set(klatexformula_TSS
     i18n/klf_fr.ts
     i18n/klf_cs.ts
+    i18n/klf_uk.ts
     )
   # Resources
   set(klatexformula_QRCS
