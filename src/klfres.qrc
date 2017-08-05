@@ -21,6 +21,7 @@
     <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>
     <file>pics/helpdialogbg.png</file>
+    <file>pics/help_dialog_bg.svg</file>
     <file>pics/symbols.png</file>
     <file>pics/symbols.svg</file>
     <file>pics/actions.png</file>
@@ -33,6 +34,7 @@
     <file>pics/smallclose.png</file>
     <file>pics/delete.png</file>
     <file>pics/help.png</file>
+    <file>pics/help.svg</file>
     <file>pics/resetdefaults.png</file>
     <file>pics/ok.png</file>
     <file>pics/apply.png</file>
