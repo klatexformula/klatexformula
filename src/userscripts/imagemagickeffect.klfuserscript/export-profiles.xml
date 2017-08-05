@@ -40,16 +40,16 @@
     </export-type>
   </profile>
 
-  <!-- This is really slow, so don't propose it for copy/paste or drag/drop.
-       It's still possible to save the image.
+  <!-- This is really slow, so we could consider not proposing it for copy/paste or drag/drop.
+       In any case it's possible to save the image.
     -->
-  <!-- <profile name="imagemagick_effect_on_fire">
-    <description>On Fire Effect [slow] (PNG)</description>
+  <profile name="imagemagick_effect_on_fire">
+    <description>On Fire Effect [warning: slow to run!] (PNG)</description>
     <in-submenu>Effects</in-submenu>
 
     <export-type exporter="UserScript:imagemagickeffect" format="on-fire">
       <default-qt-formats type="image" />
     </export-type>
-  </profile> -->
+  </profile>
 
 </export-profile-list>
