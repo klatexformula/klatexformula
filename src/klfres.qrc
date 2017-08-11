@@ -97,4 +97,9 @@
     <file>data/about_cs.html</file>
     <file>data/whats-new-3.2_cs.html</file>
   </qresource>
+  <qresource>
+    <file>data/cmdl-help_uk.txt</file>
+    <file>data/about_uk.html</file>
+    <file>data/whats-new-4.0_uk.html</file>
+  </qresource>
 </RCC>
