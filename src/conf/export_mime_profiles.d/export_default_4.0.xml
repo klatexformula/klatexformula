@@ -145,7 +145,7 @@
     <description>AICB for Adobe InDesign</description>
     <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
     <export-type exporter="KLFBackendFormatsExporter" format="EPS">
-      <win-format>AICB????</win-format>
+      <win-format>AICB</win-format><!-- What's the correct name ?????? -->
       <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
     </export-type>
   </profile>
@@ -156,6 +156,15 @@
     <!-- HTML fragment for Thunderbird, GMail, ... -->
     <export-type exporter="KLFHtmlDataExporter" format="html-png">
       <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+  <!-- Source code for HTML fragment with PNG data: advertized as plain text -->
+  <profile name="html-png-fragment-text">
+    <in-submenu>More HTML fragments</in-submenu>
+    <description>HTML fragment (PNG), as text</description>
+    <export-type exporter="KLFHtmlDataExporter" format="html-png">
+      <default-qt-formats type="text" />
     </export-type>
   </profile>
 
