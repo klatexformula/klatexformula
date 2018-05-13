@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>runpdflatex.py</exe-script>
+  <can-provide-default-settings>true</can-provide-default-settings>
+  <category>klf-backend-engine</category>
+  <name>Run pdflatex directly</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.1</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>runpdflatex_config.ui</settings-form-ui>
+  <klf-backend-engine>
+    <spits-out>png pdf</spits-out>
+    <skip-formats selector="all-except">
+      png pdf
+    </skip-formats>
+    <disable-inputs selector="ALL EXCEPT">
+      FG_COLOR BG_COLOR MATHMODE PREAMBLE FONT FONTSIZE
+      DPI
+    </disable-inputs>
+    <input-form-ui>runpdflatex_params.ui</input-form-ui>
+  </klf-backend-engine>
+</klfuserscript-info>

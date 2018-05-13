@@ -73,6 +73,16 @@
   </font-def>
 
   <font-def>
+    <identifier>Erewhon</identifier>
+    <title>Erewhon</title>
+    <latexdefs>
+  \usepackage[proportional,scaled=1.064]{erewhon}
+\usepackage[erewhon,vvarbb,bigdelims]{newtxmath}
+\usepackage[T1]{fontenc}
+\renewcommand*\oldstylenums[1]{\textosf{#1}}</latexdefs>
+  </font-def>
+
+  <font-def>
     <identifier>Kerkis</identifier>
     <title>Kerkis</title>
     <latexdefs>\usepackage{kmath,kerkis}</latexdefs>

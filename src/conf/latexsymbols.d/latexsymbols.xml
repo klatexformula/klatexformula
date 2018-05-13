@@ -38,7 +38,7 @@
     <sym><latex>\cup</latex><keywords>set union</keywords></sym>
     <sym><latex>\bigtriangleup</latex></sym>
     <sym><latex>\ominus</latex></sym>
-    <sym><latex>\times</latex><keywords>multiplication product</keywords></sym>
+    <sym><latex>\times</latex><keywords>multiplication product cross cartesian</keywords></sym>
     <sym><latex>\uplus</latex></sym>
     <sym><latex>\bigtriangledown</latex></sym>
     <sym><latex>\otimes</latex><keywords>tensor product</keywords></sym>
@@ -509,7 +509,8 @@
     <sym><latex>\rangle</latex></sym>
     <sym><latex numargs="1">\overbrace</latex><preview-latex>\overbrace{xyz}</preview-latex></sym>
     <sym><latex numargs="1">\underbrace</latex><preview-latex>\underbrace{xyz}</preview-latex></sym>
-    <sym><latex numargs="1">\overline</latex><preview-latex>\overline{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\overline</latex><preview-latex>\overline{xyz}</preview-latex>
+         <keywords>line bar average mean complex conjugate</keywords></sym>
     <sym><latex numargs="1">\underline</latex><preview-latex>\underline{xyz}</preview-latex></sym>
     <sym><latex numargs="1">\overleftarrow</latex><preview-latex>\overleftarrow{xyz}</preview-latex></sym>
     <sym><latex numargs="1">\overrightarrow</latex><preview-latex>\overrightarrow{xyz}</preview-latex></sym>
