@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>applepagesexport.py</exe-script>
+  <category>klf-export-type</category>
+  <name>Copy for Apple/MacOS's “Pages” Application</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.1</version>
+  <license>GPL v2+</license>
+  <klf-export-type>
+    <input-data-type>PDF</input-data-type>
+    <has-stdout-output>true</has-stdout-output>
+    <mime-export-profiles-xml-file>applepagesexport-export-profiles.xml</mime-export-profiles-xml-file>
+    <format name="applepages-export">
+      <title>Copy to Apple Pages</title>
+      <file-name-extension>html</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- Export Profile for Copy to Apple Pages
+     $Id$
+  -->
+
+<!-- version: specifies klf compatibility version, currently "4.0" -->
+<export-profile-list version="4.0">
+
+  <!-- List profile definitions here.  A profile is a list of data export types,
+       associated to MIME types (x11), Mac OS X identifiers and MS Windows clipboard
+       format names.
+       
+       You may specify several MIME types, mac identifiers and Windows format names for
+       each data export type, in which case the data is exposed for all the given names.
+       
+       Note that QT already translates a certain number of standard types, so there is no
+       need to declare the mac identifiers for PNG or PDF, for example.  Experiment a
+       little.
+    -->
+
+  <profile name="copy_to_Apple_pages">
+    <description>Copy to Apple Pages Application</description>
+    <in-submenu>Specific Applications</in-submenu>
+
+    <export-type exporter="UserScript:applepagesexport" format="applepages-export">
+      <mime-type>text/html</mime-type>
+      <win-format>text/html</win-format>
+      <win-format>HTML</win-format>
+      <mac-flavor>public.html</mac-flavor>
+    </export-type>
+  </profile>
+
+</export-profile-list>

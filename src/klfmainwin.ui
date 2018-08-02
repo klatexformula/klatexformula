@@ -1248,8 +1248,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>281</width>
-                <height>123</height>
+                <width>110</width>
+                <height>170</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="lyt_wScrUserScriptInput">
@@ -1560,8 +1560,8 @@
      <y>110</y>
     </hint>
     <hint type="destinationlabel">
-     <x>735</x>
-     <y>151</y>
+     <x>764</x>
+     <y>144</y>
     </hint>
    </hints>
   </connection>
@@ -1572,12 +1572,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>583</x>
-     <y>95</y>
+     <x>561</x>
+     <y>68</y>
     </hint>
     <hint type="destinationlabel">
-     <x>676</x>
-     <y>98</y>
+     <x>561</x>
+     <y>68</y>
     </hint>
    </hints>
   </connection>
@@ -1588,12 +1588,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>606</x>
-     <y>174</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
     <hint type="destinationlabel">
-     <x>607</x>
-     <y>204</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>
@@ -1604,12 +1604,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>622</x>
-     <y>174</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
     <hint type="destinationlabel">
-     <x>623</x>
-     <y>237</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>
@@ -1620,12 +1620,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>638</x>
-     <y>175</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
     <hint type="destinationlabel">
-     <x>641</x>
-     <y>261</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>
@@ -1636,12 +1636,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>661</x>
-     <y>182</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
     <hint type="destinationlabel">
-     <x>660</x>
-     <y>290</y>
+     <x>561</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>
@@ -1674,6 +1674,22 @@
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSetExportProfile</sender>
+   <signal>clicked()</signal>
+   <receiver>btnSetExportProfile</receiver>
+   <slot>showMenu()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>415</x>
+     <y>307</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>314</y>
     </hint>
    </hints>
   </connection>
