@@ -21,6 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QAction>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QItemEditorFactory>
