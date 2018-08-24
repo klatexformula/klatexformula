@@ -148,7 +148,9 @@ if(KLF_BUILD_TOOLS)
       klfdefs_win.cpp
       )
   else()
-    # no platform-specific definitions
+    target_sources(klftools PRIVATE
+      klfdefs_otheros.cpp
+      )
   endif()
 
 
