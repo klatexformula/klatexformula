@@ -139,17 +139,6 @@
 
   </profile>
 
-  <!-- A special format for InDesign - AICB - allows to change color etc. inside InDesign -->
-  <profile name="for_adobe_indesign">
-    <in-submenu>Specific Applications</in-submenu>
-    <description>AICB for Adobe InDesign</description>
-    <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
-    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
-      <win-format>AICB</win-format><!-- What's the correct name ?????? -->
-      <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
-    </export-type>
-  </profile>
-
   <!-- An HTML fragment for pasting into gmail or thunderbird, with PNG data -->
   <profile name="html-png-fragment">
     <description>HTML fragment (PNG)</description>
@@ -206,6 +195,19 @@
       <mac-flavor>public.png</mac-flavor>
     </export-type>
   </profile>
+
+
+  <!-- A special format for InDesign - AICB - allows to change color etc. inside InDesign -->
+  <profile name="for_adobe_indesign">
+    <!--<in-submenu>Specific Applications</in-submenu>-->
+    <description>Copy to Adobe InDesign (AICB)</description>
+    <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
+    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
+      <win-format>AICB</win-format><!-- What's the correct name ?????? -->
+      <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
+    </export-type>
+  </profile>
+
 
 
   <!-- Temporary files -->

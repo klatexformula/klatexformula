@@ -21,7 +21,7 @@
 
   <profile name="copy_to_Apple_pages">
     <description>Copy to Apple Pages Application</description>
-    <in-submenu>Specific Applications</in-submenu>
+    <!--<in-submenu>Specific Applications</in-submenu>-->
 
     <export-type exporter="UserScript:applepagesexport" format="applepages-export">
       <mime-type>text/html</mime-type>
