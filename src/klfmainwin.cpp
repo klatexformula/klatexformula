@@ -732,10 +732,12 @@ void KLFMainWin::startupFinished()
 
   /// \todo autoupdate: Add a UI item to enable/disable auto-check for updates, check now, etc.
 
-  if (klfconfig.UI.enableRealTimePreview) {
-    d->pLatexPreviewThread->start();
-    d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
-  }
+  //if (klfconfig.UI.enableRealTimePreview) {
+  d->pLatexPreviewThread->start();
+  d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
+
+  d->pContLatexPreview->setEnabled( klfconfig.UI.enableRealTimePreview );
+  //}
 }
 
 
@@ -867,16 +869,7 @@ void KLFMainWin::saveSettings()
   u->btnSetExportProfile->setEnabled(klfconfig.ExportData.menuExportProfileAffectsDrag ||
 				     klfconfig.ExportData.menuExportProfileAffectsCopy);
   
-  if (klfconfig.UI.enableRealTimePreview) {
-    if ( ! d->pLatexPreviewThread->isRunning() ) {
-      d->pLatexPreviewThread->start();
-      d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
-    }
-  } else {
-    if ( d->pLatexPreviewThread->isRunning() ) {
-      d->pLatexPreviewThread->stop();
-    }
-  }
+  d->pContLatexPreview->setEnabled( klfconfig.UI.enableRealTimePreview );
 
   u->txtLatex->setWrapLines(klfconfig.UI.editorWrapLines);
   u->txtLatex->setTabChangesFocus(!klfconfig.UI.editorTabInsertsTab);
@@ -2842,16 +2835,15 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
       && KLFSysInfo::isLaptop()) {
     // update battery status
     bool onbattery = KLFSysInfo::isOnBatteryPower();
-    bool running = pLatexPreviewThread->isRunning();
-    if (running && onbattery) {
+    bool enabled = pContLatexPreview->enabled();
+    if (enabled && onbattery) {
       // we need to stop the preview thread
-      klfDbg("Stopping preview thread because we're on battery power") ;
-      pLatexPreviewThread->stop();
-    } else if (!running && !onbattery) {
+      klfDbg("Disabling continuous preview because we're on battery power") ;
+      pContLatexPreview->setEnabled(false);
+    } else if (!enabled && !onbattery) {
       // we can restart the preview thread, as we're back on power.
-      klfDbg("Restarting preview thread because we're no longer on battery power") ;
-      pLatexPreviewThread->start();
-      pLatexPreviewThread->setPriority(QThread::LowestPriority);
+      klfDbg("Re-enabling continuous preview because we're no longer on battery power") ;
+      pContLatexPreview->setEnabled(true);
     }
   }
 

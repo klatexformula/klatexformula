@@ -105,6 +105,10 @@ KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
  bool _klf_win_is_laptop();
  bool _klf_win_is_on_battery_power();
  KLFSysInfo::BatteryInfo _klf_win_battery_info();
+#else
+ bool _klf_otheros_is_laptop();
+ bool _klf_otheros_is_on_battery_power();
+ KLFSysInfo::BatteryInfo _klf_otheros_battery_info();
 #endif
 
 KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
@@ -115,8 +119,9 @@ KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
   return _klf_linux_battery_info();
 #elif defined(Q_OS_WIN32)
   return _klf_win_battery_info();
+#else
+  return _klf_otheros_battery_info();
 #endif
-  return BatteryInfo();
 }
 
 
@@ -133,7 +138,10 @@ KLF_EXPORT bool KLFSysInfo::isLaptop()
   _klf_cached_islaptop = (int) _klf_linux_is_laptop();
 #elif defined(Q_OS_WIN32)
   _klf_cached_islaptop = (int) _klf_win_is_laptop();
+#else
+  _klf_cached_islaptop = (int) _klf_otheros_is_laptop();
 #endif
+
   return (bool) _klf_cached_islaptop;
 }
 
@@ -145,8 +153,9 @@ KLF_EXPORT bool KLFSysInfo::isOnBatteryPower()
   return _klf_linux_is_on_battery_power();
 #elif defined(Q_OS_WIN32)
   return _klf_win_is_on_battery_power();
+#else
+  return _klf_otheros_is_on_battery_power();
 #endif
-  return false;
 }
 
 

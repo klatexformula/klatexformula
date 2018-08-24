@@ -153,21 +153,6 @@ signals:
 
 };
 
-/* not needed
-QDataStream& operator<<(QDataStream& str, KLFLatexPreviewThreadPrivate::Task& task)
-{
-  return str << task.input << task.settings << task.previewSize << task.largePreviewSize
-	     << (int)task.handler << task.isfresh << task.isrunning << task.taskid;
-}
-QDataStream& operator>>(QDataStream& str, KLFLatexPreviewThreadPrivate::Task& task)
-{
-  int ptrhandler;
-  str >> task.input >> task.settings >> task.previewSize >> task.largePreviewSize
-      >> ptrhandler >> task.isfresh >> task.isrunning >> task.taskid;
-  task.handler = (void*)ptrhandler;
-  return str;
-}
-*/
 
 
 
@@ -186,6 +171,8 @@ public:
   {
     thread = NULL;
 
+    enabled = true;
+
     curTask = -1;
 
     input = KLFBackend::klfInput();
@@ -196,6 +183,9 @@ public:
   virtual ~KLFContLatexPreviewPrivate()
   {
   }
+
+
+  bool enabled;
 
   KLFLatexPreviewThread * thread;
 
@@ -209,6 +199,11 @@ public:
   void refreshPreview()
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+    if (!enabled) {
+      klfDbg("Continuous latex preview object is disabled, not refreshing preview.") ;
+      return;
+    }
 
     KLF_ASSERT_NOT_NULL(thread, "Thread is NULL! Can't refresh preview!", return; ) ;
 

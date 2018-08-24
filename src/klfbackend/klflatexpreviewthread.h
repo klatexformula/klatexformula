@@ -134,71 +134,7 @@ private:
 };
 
 
-/*
-class KLF_EXPORT KLFLatexPreviewThread : public QThread
-{
-  Q_OBJECT
 
-  Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize) ;
-  Q_PROPERTY(QSize largePreviewSize READ largePreviewSize WRITE setLargePreviewSize) ;
-
-public:
-  KLFLatexPreviewThread(QObject *parent = NULL);
-  virtual ~KLFLatexPreviewThread();
-
-  struct QueuedTask
-  {
-    QueuedTask() : isrunning(false), isfinished(false) { }
-
-    inline int ref() { return refcount.ref(); }
-    inline int deref() { return refcount.deref(); }
-  private:
-    QAtomicInt refcount;
-
-    friend class KLFLatexPreviewThread;
-    friend class KLFLatexPreviewThreadPrivate;
-    bool isrunning;
-    bool isfinished;
-  };
-
-  QSize previewSize() const;
-  QSize largePreviewSize() const;
-
-  KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
-					  const KLFBackend::klfSettings& settings,
-					  KLFLatexPreviewHandler * outputhandler,
- 					  const QSize& previewSize, const QSize& largePreviewSize);
-  KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
-					  const KLFBackend::klfSettings& settings,
-					  KLFLatexPreviewHandler * outputhandler);
-  KLFRefPtr<QueuedTask> clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
-						  const KLFBackend::klfSettings& settings,
-						  KLFLatexPreviewHandler * outputhandler,
-						  const QSize& previewSize, const QSize& largePreviewSize);
-  KLFRefPtr<QueuedTask> clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
-						  const KLFBackend::klfSettings& settings,
-						  KLFLatexPreviewHandler * outputhandler);
-  bool cancelTask(KLFRefPtr<QueuedTask> task);
-  void clearPendingTasks();
-
-  bool taskIsNew(KLFRefPtr<QueuedTask> task);
-  bool taskIsRunning(KLFRefPtr<QueuedTask> task);
-  bool taskIsFinished(KLFRefPtr<QueuedTask> task);
-
-  void stop();
-
-  void setPreviewSize(const QSize& previewSize);
-  void setLargePreviewSize(const QSize& largePreviewSize);
-
-protected:
-  virtual void run();
-
-private:
-  KLF_DECLARE_PRIVATE(KLFLatexPreviewThread) ;
-
-  QMutex _mutex;
-};
-*/
 
 
 struct KLFContLatexPreviewPrivate;
@@ -223,6 +159,8 @@ class KLF_EXPORT KLFContLatexPreview : public QObject
 public:
   KLFContLatexPreview(KLFLatexPreviewThread * thread = NULL);
   virtual ~KLFContLatexPreview();
+
+  bool enabled() const;
 
   KLFBackend::klfInput intput() const;
   KLFBackend::klfSettings settings() const;
@@ -262,6 +200,9 @@ signals:
   void compiling(bool isCompiling);
 
 public slots:
+
+  void setEnabled(bool enabled);
+
   /** \returns TRUE if the input was set, FALSE if current input is already equal to \c input.
    * The thread will then take care to generate the corresponding preview and emit the previewAvailable() etc.
    * signals. */

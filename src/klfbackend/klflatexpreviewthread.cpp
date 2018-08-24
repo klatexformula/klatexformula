@@ -81,7 +81,7 @@ KLFLatexPreviewThread::KLFLatexPreviewThread(QObject * parent)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  KLF_INIT_PRIVATE(KLFLatexPreviewThread) ;
+  KLF_INIT_PRIVATE( KLFLatexPreviewThread ) ;
 
   // we need to register meta-type KLFBackend::klfOutput/klfInput/klfSettings for our
   // signal/meta-object call, so register it if not yet done
@@ -137,6 +137,7 @@ KLFLatexPreviewThread::~KLFLatexPreviewThread()
 
   KLF_DELETE_PRIVATE ;
 }
+
 
 QSize KLFLatexPreviewThread::previewSize() const
 { return d->previewSize; }
@@ -423,7 +424,7 @@ KLFContLatexPreview::KLFContLatexPreview(KLFLatexPreviewThread *thread)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  KLF_INIT_PRIVATE(KLFContLatexPreview) ;
+  KLF_INIT_PRIVATE( KLFContLatexPreview ) ;
 
   setThread(thread);
 }
@@ -436,6 +437,18 @@ KLFContLatexPreview::~KLFContLatexPreview()
 KLF_DEFINE_PROPERTY_GET(KLFContLatexPreview, QSize, previewSize) ;
 
 KLF_DEFINE_PROPERTY_GET(KLFContLatexPreview, QSize, largePreviewSize) ;
+
+
+
+bool KLFContLatexPreview::enabled() const
+{
+  return d->enabled;
+}
+
+void KLFContLatexPreview::setEnabled(bool enabled)
+{
+  d->enabled = enabled;
+}
 
 
 void KLFContLatexPreview::setThread(KLFLatexPreviewThread * thread)
