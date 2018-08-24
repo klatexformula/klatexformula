@@ -545,6 +545,8 @@ if(KLF_BUILD_GUI)
         )
     endif()
     if(KLF_INSTALL_ICON_THEME)
+      install(FILES klatexformula.svg
+        DESTINATION "${KLF_INSTALL_ICON_THEME}/scalable/apps/")
       install(FILES klatexformula-128.png
         DESTINATION "${KLF_INSTALL_ICON_THEME}/128x128/apps/" RENAME "klatexformula.png")
       install(FILES klatexformula-64.png
