@@ -15,7 +15,7 @@
     <mime-export-profiles-xml-file>noiseeffect-export-profiles.xml</mime-export-profiles-xml-file>
 
     <format name="png">
-      <title>PNG (with noise)</title>
+      <title>PNG, with noise effect</title>
       <file-name-extension>png</file-name-extension>
     </format>
   </klf-export-type>

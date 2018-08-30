@@ -15,23 +15,23 @@
     <mime-export-profiles-xml-file>export-profiles.xml</mime-export-profiles-xml-file>
 
     <format name="outer-glow">
-      <title>Outer Glow Effect (PNG)</title>
+      <title>Outer Glow Effect, PNG</title>
       <file-name-extension>png</file-name-extension>
     </format>
     <format name="wave">
-      <title>Wave Effect (PNG)</title>
+      <title>Wave Effect, PNG</title>
       <file-name-extension>png</file-name-extension>
     </format>
     <format name="swirl">
-      <title>Swirl Effect (PNG)</title>
+      <title>Swirl Effect, PNG</title>
       <file-name-extension>png</file-name-extension>
     </format>
     <format name="plasma">
-      <title>Plasma Effect (PNG)</title>
+      <title>Plasma Effect, PNG</title>
       <file-name-extension>png</file-name-extension>
     </format>
     <format name="on-fire">
-      <title>On Fire Effect (slow to run) (PNG)</title>
+      <title>On Fire Effect [NOTE slow to run], PNG</title>
       <file-name-extension>png</file-name-extension>
     </format>
   </klf-export-type>

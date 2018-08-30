@@ -13,7 +13,7 @@
     <has-stdout-output>false</has-stdout-output>
     <mime-export-profiles-xml-file>gif-convert-export-profiles.xml</mime-export-profiles-xml-file>
     <format name="gif">
-      <title>GIF (using ImageMagick's convert)</title>
+      <title>GIF, using ImageMagick's convert</title>
       <file-name-extension>gif</file-name-extension>
     </format>
   </klf-export-type>

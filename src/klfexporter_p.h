@@ -693,7 +693,8 @@ public:
 
   virtual QString titleFor(const QString & format)
   {
-    return pUserScript.getFormat(format).formatTitle();
+    return pUserScript.getFormat(format).formatTitle() ;
+    //      + QString::fromLatin1(" via %1 script").arg(pUserScript.userScriptBaseName()) ;
   }
 
   virtual QStringList fileNameExtensionsFor(const QString & format)
