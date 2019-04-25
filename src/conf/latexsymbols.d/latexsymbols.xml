@@ -147,6 +147,7 @@
     <sym><usepackage name="amssymb"/><latex>\barwedge</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\veebar</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\doublebarwedge</latex></sym>
+    <sym><usepackage name="amssymb"/><latex>\Box</latex><keywords>square, QED</keywords></sym>
     <sym><usepackage name="amssymb"/><latex>\boxminus</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\boxtimes</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\boxdot</latex></sym>

@@ -45,7 +45,7 @@
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <property name="resetTimeout">
+     <property name="resetTimeout" stdset="0">
       <number>-1</number>
      </property>
     </widget>
@@ -213,6 +213,9 @@
         <widget class="KLFLibBrowserTabWidget" name="tabResources">
          <property name="currentIndex">
           <number>0</number>
+         </property>
+         <property name="documentMode">
+          <bool>true</bool>
          </property>
          <widget class="QWidget" name="tabWelcome">
           <attribute name="icon">

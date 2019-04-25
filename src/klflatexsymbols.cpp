@@ -737,7 +737,13 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 #else
 	    parent /* 0 */
 #endif
-	    , /*Qt::Tool*/ Qt::Window /*0*/)
+	    ,
+#if defined(KLF_WS_MAC)
+            Qt::Tool /* to forbid windows from tabbing together */
+#else
+            /*Qt::Tool*/ Qt::Window /*0*/
+#endif
+      )
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   Q_UNUSED(parent) ;

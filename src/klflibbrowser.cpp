@@ -54,7 +54,13 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
 #else
 	    parent /* 0 */
 #endif
-	    , Qt::Window)
+	    ,
+#if defined(KLF_WS_MAC)
+            Qt::Dialog /* to forbid windows from tabbing together */
+#else
+            Qt::Window
+#endif
+      )
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   Q_UNUSED(parent) ;
