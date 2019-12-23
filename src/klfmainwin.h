@@ -155,7 +155,7 @@ public:
 
   bool eventFilter(QObject *obj, QEvent *event);
 
-  bool isExpandedMode() const;
+//  bool isExpandedMode() const;
 
   KLFStyle currentStyle() const;
 

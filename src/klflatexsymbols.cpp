@@ -529,14 +529,7 @@ KLFLatexSymbolsView::KLFLatexSymbolsView(const QString& category, QWidget *paren
 
   setWidgetResizable(true);
 
-  //  mFrame->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-  //  mFrame->setFrameShadow(QFrame::Sunken);
-  //  mFrame->setFrameShape(QFrame::Box);
   mFrame->setObjectName("frmSymbolList");
-  //   mFrame->setFrameShadow(QFrame::Plain);
-  //   mFrame->setFrameShape(QFrame::NoFrame);
-  //   mFrame->setMidLineWidth(0);
-  //   mFrame->setLineWidth(0);
 
   mLayout = 0;
   mSpacerItem = 0;
@@ -607,7 +600,7 @@ void KLFLatexSymbolsView::buildDisplay(KLFLatexSymbolsCache * cache)
 	_symbols[i].preamble.join("\n")+"</pre></b></p>";
     }
     if (_symbols[i].keywords.size()) {
-      tooltiptext += "<p>"+tr("Key Words:")+"<pre><b>" +
+      tooltiptext += "<p>"+tr("Keywords:")+"<pre><b>" +
 	_symbols[i].keywords.join("</b>, <b>")+"</b></pre></p>";
     }
     tooltiptext += "</body></html>";
@@ -731,19 +724,7 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch, const QString
 
 
 KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings& baseSettings)
-  : QWidget(
-#if defined(KLF_WS_WIN) || defined(KLF_WS_MAC)
-	    0 /* parent */
-#else
-	    parent /* 0 */
-#endif
-	    ,
-#if defined(KLF_WS_MAC)
-            Qt::Tool /* to forbid windows from tabbing together */
-#else
-            /*Qt::Tool*/ Qt::Window /*0*/
-#endif
-      )
+  : QWidget(parent, Qt::Popup)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   Q_UNUSED(parent) ;
@@ -754,7 +735,8 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   // set up UI
   u = new Ui::KLFLatexSymbols;
   u->setupUi(this);
-  setAttribute(Qt::WA_StyledBackground);
+  //setAttribute(Qt::WA_StyledBackground);
+  setAttribute(Qt::WA_TranslucentBackground);
 
   qreal device_pixel_ratio = devicePixelRatio();
   klfDbg("device pixel ratio = " << device_pixel_ratio) ;

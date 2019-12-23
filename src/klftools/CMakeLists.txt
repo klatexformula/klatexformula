@@ -37,6 +37,7 @@ if(KLF_BUILD_TOOLS)
     klfadvancedconfigeditor.cpp
     klfitemviewsearchtarget.cpp
     klfprogerr.cpp
+    klfmarginsselector.cpp
     )
   # Headers
   #  * with QObject classes (needs moc)
@@ -67,6 +68,8 @@ if(KLF_BUILD_TOOLS)
     klfitemviewsearchtarget.h
     klfitemviewsearchtarget_p.h
     klfprogerr.h
+    klfmarginsselector.h
+    klfmarginsselector_p.h
     )
   #  * all headers
   set(klftools_HEADERS
@@ -89,6 +92,7 @@ if(KLF_BUILD_TOOLS)
     klfsearchbar.ui
     klfadvancedconfigeditor.ui
     klfprogerr.ui
+    klfmarginseditor.ui
     )
   # Resources
   set(klftools_QRCS

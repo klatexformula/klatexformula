@@ -96,7 +96,7 @@ KLFMainWin::KLFMainWin()
   setProperty("defaultPalette", QVariant::fromValue<QPalette>(palette()));
 
   // try hiding the prompt label -- it takes up space and isn't useful
-  u->lblPromptMain->setVisible(false);
+  //u->lblPromptMain->setVisible(false);
 
   // load styless
   loadStyles();
@@ -194,7 +194,7 @@ KLFMainWin::KLFMainWin()
 
   d->mExportMsgLabel->hide();
 
-  connect(u->frmDetails, SIGNAL(sideWidgetShown(bool)), d, SLOT(slotDetailsSideWidgetShown(bool)));
+  //connect(u->frmDetails, SIGNAL(sideWidgetShown(bool)), d, SLOT(slotDetailsSideWidgetShown(bool)));
   klfDbg("setting up relative font...") ;
   KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
 #ifdef KLF_WS_MAC
@@ -205,8 +205,8 @@ KLFMainWin::KLFMainWin()
 #endif
 
   //  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
-  klfconfig.UI.detailsSideWidgetType.connectQObjectProperty(u->frmDetails, "sideWidgetManagerType");
-  u->frmDetails->showSideWidget(false);
+  //klfconfig.UI.detailsSideWidgetType.connectQObjectProperty(u->frmDetails, "sideWidgetManagerType");
+  //u->frmDetails->showSideWidget(false); // DEBUG --- show side widget at startup
 
   u->txtLatex->installEventFilter(this);
   u->txtLatex->setDropDataHandler(this);
@@ -582,7 +582,7 @@ void KLFMainWin::retranslateUi(bool alsoBaseUi)
     u->retranslateUi(this);
 
   // version information as tooltip on the welcome widget
-  u->lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(KLF_VERSION_STRING)));
+  //u->lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(KLF_VERSION_STRING)));
 
   d->refreshStylePopupMenus();
 }
@@ -2487,8 +2487,8 @@ void KLFMainWin::quit()
   }
   d->is_quitting = true;
 
-  u->frmDetails->showSideWidget(false);
-  u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
+  //u->frmDetails->showSideWidget(false);
+  //u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
 
   hide();
   /** \bug ### go through all top-level widgets given by QApplication::topLevelWidgets or so ? */
@@ -2897,14 +2897,14 @@ void KLFMainWin::setMacBrushedMetalLook(bool metallook)
   const char * pn = metallook ? "paletteMacBrushedMetalLook" : "paletteDefault";
   u->txtLatex->setPalette(u->txtLatex->property(pn).value<QPalette>());
   u->txtLatex->setStyleSheet(u->txtLatex->styleSheet());
-  if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
-    u->txtPreamble->setPalette(u->txtPreamble->property(pn).value<QPalette>());
-    u->txtPreamble->setStyleSheet(u->txtPreamble->styleSheet());
-    u->cbxMathMode->setPalette(u->txtPreamble->property(pn).value<QPalette>());
-    u->cbxMathMode->setStyleSheet(u->cbxMathMode->styleSheet());
-    u->cbxMathMode->lineEdit()->setPalette(u->txtPreamble->property(pn).value<QPalette>());
-    u->cbxMathMode->lineEdit()->setStyleSheet(u->cbxMathMode->lineEdit()->styleSheet());
-  }
+  // if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+  //   u->txtPreamble->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+  //   u->txtPreamble->setStyleSheet(u->txtPreamble->styleSheet());
+  //   u->cbxMathMode->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+  //   u->cbxMathMode->setStyleSheet(u->cbxMathMode->styleSheet());
+  //   u->cbxMathMode->lineEdit()->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+  //   u->cbxMathMode->lineEdit()->setStyleSheet(u->cbxMathMode->lineEdit()->styleSheet());
+  // }
 
 #else
   Q_UNUSED(metallook);
@@ -3222,20 +3222,24 @@ void KLFMainWin::slotToggleSymbols()
 void KLFMainWin::slotSymbols(bool showsymbs)
 {
   d->mLatexSymbols->setVisible(showsymbs);
+  if (showsymbs) {
+    d->mLatexSymbols->move(u->btnSymbols->mapToGlobal(QPoint(0,0)));
+  }
   d->slotSymbolsButtonRefreshState(showsymbs);
-  d->mLatexSymbols->activateWindow();
-  d->mLatexSymbols->raise();
+  //  d->mLatexSymbols->activateWindow();
+  //  d->mLatexSymbols->raise();
 }
 
 void KLFMainWin::slotExpandOrShrink()
 {
-  slotExpand(!isExpandedMode());
+  slotExpand(u->frmDetails->isVisible()); //!isExpandedMode());
 }
 
 void KLFMainWin::slotExpand(bool expanded)
 {
-  klfDbg("expanded="<<expanded<<"; sideWidgetVisible="<<u->frmDetails->sideWidgetVisible()) ;
-  u->frmDetails->showSideWidget(expanded);
+  //klfDbg("expanded="<<expanded<<"; sideWidgetVisible="<<u->frmDetails->sideWidgetVisible()) ;
+  //u->frmDetails->showSideWidget(expanded);
+  u->frmDetails->setVisible(expanded);
 }
 
 
@@ -3926,10 +3930,10 @@ void KLFMainWinPrivate::slotPresetDPISender()
 }
 
 
-bool KLFMainWin::isExpandedMode() const
-{
-  return u->frmDetails->sideWidgetVisible();
-}
+// bool KLFMainWin::isExpandedMode() const
+// {
+//   return u->frmDetails->sideWidgetVisible();
+// }
 
 KLFStyle KLFMainWin::currentStyle() const
 {
@@ -4132,23 +4136,23 @@ void KLFMainWinPrivate::slotLoadStyleAct()
 
 void KLFMainWinPrivate::slotDetailsSideWidgetShown(bool shown)
 {
-  if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
-    if (shown)
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.svg"));
-    else
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.svg"));
-  } else if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("Drawer")) {
-    if (shown)
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.svg"));
-    else
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.svg"));
-  } else {
-    // "Float", or any possible custom side widget type
-    if (shown)
-      K->u->btnExpand->setIcon(QIcon(":/pics/hidetoolwindow.png"));
-    else
-      K->u->btnExpand->setIcon(QIcon(":/pics/showtoolwindow.png"));
-  }
+  // if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+  //   if (shown)
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.svg"));
+  //   else
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.svg"));
+  // } else if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("Drawer")) {
+  //   if (shown)
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.svg"));
+  //   else
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.svg"));
+  // } else {
+  //   // "Float", or any possible custom side widget type
+  //   if (shown)
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/hidetoolwindow.png"));
+  //   else
+  //     K->u->btnExpand->setIcon(QIcon(":/pics/showtoolwindow.png"));
+  // }
 }
 
 void KLFMainWin::slotLoadStyle(const KLFStyle& style)
@@ -4347,8 +4351,8 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   // close side widget and wait for it
-  u->frmDetails->showSideWidget(false);
-  u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
+  //u->frmDetails->showSideWidget(false);
+  //u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
 
   if (d->ignore_close_event) {
     // simple hide, not close

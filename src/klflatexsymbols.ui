@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>501</width>
-    <height>501</height>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,98 +34,105 @@
    <property name="verticalSpacing">
     <number>4</number>
    </property>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="btnClose">
-     <property name="toolTip">
-      <string>Close this dialog</string>
+   <item row="0" column="0">
+    <widget class="QFrame" name="wFrame">
+     <property name="autoFillBackground">
+      <bool>true</bool>
      </property>
-     <property name="text">
-      <string>&amp;Close</string>
-     </property>
-     <property name="icon">
-      <iconset resource="klftoolsres.qrc">
-       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
-     </property>
-     <property name="shortcut">
-      <string>Alt+C</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QFrame" name="frmMain">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
-     <layout class="QGridLayout" name="lyt_frmMain">
-      <property name="leftMargin">
-       <number>2</number>
-      </property>
-      <property name="topMargin">
-       <number>2</number>
-      </property>
-      <property name="rightMargin">
-       <number>2</number>
-      </property>
-      <property name="bottomMargin">
-       <number>10</number>
-      </property>
-      <property name="horizontalSpacing">
-       <number>4</number>
-      </property>
-      <item row="0" column="0" colspan="3">
-       <widget class="QFrame" name="frmStackContainer">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="lineWidth">
-         <number>0</number>
-        </property>
-        <layout class="QGridLayout" name="lytStackContainer">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QWidget" name="wGenPreviews" native="true">
+        <layout class="QGridLayout" name="lytGenPreviews">
          <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
+          <number>6</number>
          </property>
          <property name="bottomMargin">
-          <number>0</number>
+          <number>6</number>
          </property>
-         <item row="0" column="0">
-          <widget class="QStackedWidget" name="stkViews">
-           <property name="currentIndex">
-            <number>-1</number>
+         <item row="5" column="0">
+          <spacer name="vspcGenPreviews2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="0">
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="0">
+          <spacer name="vspcGenPreviews">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="1">
+          <widget class="QPushButton" name="btnGenPreviewsSkip">
+           <property name="text">
+            <string>Skip</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="3" column="0" colspan="3">
+          <widget class="QProgressBar" name="prgGenPreviews">
+           <property name="value">
+            <number>24</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="3">
+          <widget class="QLabel" name="lblGenPreviews">
+           <property name="text">
+            <string>Symbol previews are being generated ...</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="KLFSearchBar" name="searchBar">
-        <property name="minimumSize">
-         <size>
-          <width>128</width>
-          <height>30</height>
-         </size>
-        </property>
+      <item row="1" column="0">
+       <widget class="QFrame" name="frmMain">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -135,165 +142,186 @@
         <property name="lineWidth">
          <number>0</number>
         </property>
-        <property name="autoHide">
-         <bool>true</bool>
-        </property>
-        <property name="focusOutText">
-         <string>Search for Symbols ...</string>
-        </property>
-        <property name="showSearchLabel">
-         <bool>false</bool>
-        </property>
+        <layout class="QGridLayout" name="lyt_frmMain">
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+         <property name="horizontalSpacing">
+          <number>4</number>
+         </property>
+         <item row="0" column="0" colspan="3">
+          <widget class="QFrame" name="frmStackContainer">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <layout class="QGridLayout" name="lytStackContainer">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QStackedWidget" name="stkViews">
+              <property name="currentIndex">
+               <number>-1</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="KLFSearchBar" name="searchBar">
+           <property name="minimumSize">
+            <size>
+             <width>128</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <property name="autoHide" stdset="0">
+            <bool>true</bool>
+           </property>
+           <property name="focusOutText" stdset="0">
+            <string>Search for Symbols ...</string>
+           </property>
+           <property name="showSearchLabel" stdset="0">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QComboBox" name="cbxCategory">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Choose symbol category</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QToolButton" name="btnInsertSearchCurrent">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;p style=&quot;white-space: pre&quot;&gt;Insert the current search result match  [&lt;strong&gt;Ctrl-Space&lt;/strong&gt;]&lt;/p&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/insertsymb.png</normaloff>:/pics/insertsymb.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>22</width>
+             <height>22</height>
+            </size>
+           </property>
+           <property name="shortcut">
+            <string>Ctrl+Space</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QToolButton" name="btnSearch">
+           <property name="toolTip">
+            <string>&lt;p style=&quot;white-space: pre&quot;&gt;Search for Symbols ...  [&lt;strong&gt;Ctrl-F&lt;/strong&gt;, &lt;strong&gt;Ctrl-S&lt;/strong&gt; or &lt;strong&gt;/&lt;/strong&gt;]</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>22</width>
+             <height>22</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QComboBox" name="cbxCategory">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="btnClose">
         <property name="toolTip">
-         <string>Choose symbol category</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QToolButton" name="btnInsertSearchCurrent">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>&lt;p style=&quot;white-space: pre&quot;&gt;Insert the current search result match  [&lt;strong&gt;Ctrl-Space&lt;/strong&gt;]&lt;/p&gt;</string>
+         <string>Close this dialog</string>
         </property>
         <property name="text">
-         <string/>
+         <string>&amp;Close</string>
         </property>
         <property name="icon">
-         <iconset resource="klfres.qrc">
-          <normaloff>:/pics/insertsymb.png</normaloff>:/pics/insertsymb.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>22</width>
-          <height>22</height>
-         </size>
+         <iconset resource="klftoolsres.qrc">
+          <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
         </property>
         <property name="shortcut">
-         <string>Ctrl+Space</string>
+         <string>Alt+C</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QToolButton" name="btnSearch">
-        <property name="toolTip">
-         <string>&lt;p style=&quot;white-space: pre&quot;&gt;Search for Symbols ...  [&lt;strong&gt;Ctrl-F&lt;/strong&gt;, &lt;strong&gt;Ctrl-S&lt;/strong&gt; or &lt;strong&gt;/&lt;/strong&gt;]</string>
+      <item row="2" column="0">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>GroupBox</string>
         </property>
-        <property name="icon">
-         <iconset resource="klfres.qrc">
-          <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>22</width>
-          <height>22</height>
-         </size>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QWidget" name="wGenPreviews" native="true">
-     <layout class="QGridLayout" name="lytGenPreviews">
-      <property name="topMargin">
-       <number>6</number>
-      </property>
-      <property name="bottomMargin">
-       <number>6</number>
-      </property>
-      <item row="5" column="0">
-       <spacer name="vspcGenPreviews2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="4" column="0">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="0">
-       <spacer name="vspcGenPreviews">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="btnGenPreviewsSkip">
-        <property name="text">
-         <string>Skip</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QProgressBar" name="prgGenPreviews">
-        <property name="value">
-         <number>24</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="QLabel" name="lblGenPreviews">
-        <property name="text">
-         <string>Symbol previews are being generated ...</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="KLFMarginsSelector" name="pushButton">
+           <property name="text">
+            <string>&lt;MARGINS&gt;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
@@ -315,95 +343,18 @@
     <slot>focus()</slot>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>KLFMarginsSelector</class>
+   <extends>QPushButton</extends>
+   <header>klfmarginsselector.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>cbxCategory</tabstop>
-  <tabstop>btnClose</tabstop>
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>
   <include location="klftoolsres.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>btnSearch</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>searchBar</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>494</x>
-     <y>425</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>460</x>
-     <y>461</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>searchBar</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>btnSearch</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>460</x>
-     <y>461</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>494</x>
-     <y>425</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnSearch</sender>
-   <signal>pressed()</signal>
-   <receiver>searchBar</receiver>
-   <slot>focus()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>494</x>
-     <y>425</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>459</x>
-     <y>458</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>searchBar</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>btnInsertSearchCurrent</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>434</x>
-     <y>437</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>473</x>
-     <y>439</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>searchBar</sender>
-   <signal>hasMatch(bool)</signal>
-   <receiver>btnInsertSearchCurrent</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>447</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>478</x>
-     <y>444</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

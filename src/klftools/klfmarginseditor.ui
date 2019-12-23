@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KLFMarginsEditor</class>
+ <widget class="QWidget" name="KLFMarginsEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>363</width>
+    <height>226</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Margins</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="verticalSpacing">
+    <number>5</number>
+   </property>
+   <item row="3" column="0">
+    <widget class="QLabel" name="lblRBorderOffset">
+     <property name="text">
+      <string>Right:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="KLFUnitSpinBox" name="spnTop">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-9999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>9999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="showUnitSuffix" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="lblBBorderOffset">
+     <property name="text">
+      <string>Bottom:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="KLFUnitSpinBox" name="spnRight">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-9999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>9999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="showUnitSuffix" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="KLFUnitSpinBox" name="spnBottom">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-9999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>9999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="showUnitSuffix" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="KLFUnitChooser" name="cbxUnits">
+     <property name="klfUnits" stdset="0">
+      <string>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="KLFUnitSpinBox" name="spnLeft">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-9999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>9999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="showUnitSuffix" stdset="0">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="lblTBorderOffset">
+     <property name="text">
+      <string>Top:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="lblLBorderOffset">
+     <property name="text">
+      <string>Left:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="2">
+    <widget class="QPushButton" name="btnDone">
+     <property name="text">
+      <string>Done</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../klfres.qrc">
+       <normaloff>:/pics/ok.png</normaloff>:/pics/ok.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="2">
+    <widget class="QCheckBox" name="chkUniform">
+     <property name="text">
+      <string>Uniform margins</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KLFUnitSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">klfunitinput.h</header>
+   <slots>
+    <slot>setUnit(double)</slot>
+    <slot>setUnitWithSuffix(double,QString)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>KLFUnitChooser</class>
+   <extends>QComboBox</extends>
+   <header location="global">klfunitinput.h</header>
+   <slots>
+    <signal>unitChanged(double,QString)</signal>
+    <signal>unitChanged(double)</signal>
+   </slots>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>spnTop</tabstop>
+  <tabstop>spnRight</tabstop>
+  <tabstop>spnBottom</tabstop>
+  <tabstop>spnLeft</tabstop>
+  <tabstop>cbxUnits</tabstop>
+  <tabstop>chkUniform</tabstop>
+  <tabstop>btnDone</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../klfres.qrc"/>
+ </resources>
+ <connections/>
+</ui>
