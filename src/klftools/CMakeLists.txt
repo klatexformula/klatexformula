@@ -38,6 +38,7 @@ if(KLF_BUILD_TOOLS)
     klfitemviewsearchtarget.cpp
     klfprogerr.cpp
     klfmarginsselector.cpp
+    klfpopupsheet.cpp
     )
   # Headers
   #  * with QObject classes (needs moc)
@@ -70,6 +71,8 @@ if(KLF_BUILD_TOOLS)
     klfprogerr.h
     klfmarginsselector.h
     klfmarginsselector_p.h
+    klfpopupsheet.h
+    klfpopupsheet_p.h
     )
   #  * all headers
   set(klftools_HEADERS

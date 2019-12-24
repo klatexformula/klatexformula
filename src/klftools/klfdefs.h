@@ -124,6 +124,7 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 
 
 
+
 // utility functions
 
 KLF_EXPORT bool klfIsValidVersion(const QString& v);

@@ -638,9 +638,6 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="sideWidgetManagerType" stdset="0">
-       <string notr="true">ShowHide</string>
-      </property>
       <layout class="QVBoxLayout" name="lyt_frmDetails">
        <property name="spacing">
         <number>4</number>
@@ -663,7 +660,7 @@
           <enum>QTabWidget::North</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tabLatexImage">
           <attribute name="title">
@@ -685,7 +682,7 @@
            <property name="verticalSpacing">
             <number>11</number>
            </property>
-           <item row="1" column="0">
+           <item row="0" column="0">
             <widget class="QGroupBox" name="gbxColors">
              <property name="title">
               <string>Colors</string>
@@ -779,7 +776,7 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="0" column="0">
             <widget class="QGroupBox" name="chkMathMode">
              <property name="title">
               <string>Use Math Mode</string>
@@ -837,124 +834,6 @@
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>LaTeX preamble</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <property name="leftMargin">
-               <number>4</number>
-              </property>
-              <property name="topMargin">
-               <number>8</number>
-              </property>
-              <property name="rightMargin">
-               <number>4</number>
-              </property>
-              <property name="bottomMargin">
-               <number>4</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="KLFLatexEdit" name="txtPreamble">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
-                </property>
-                <property name="acceptRichText">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QGroupBox" name="chkMathMode_2">
-             <property name="title">
-              <string>Font</string>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_4">
-              <property name="leftMargin">
-               <number>4</number>
-              </property>
-              <property name="topMargin">
-               <number>8</number>
-              </property>
-              <property name="rightMargin">
-               <number>4</number>
-              </property>
-              <property name="bottomMargin">
-               <number>4</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="QComboBox" name="cbxLatexFont">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spnLatexFontSize">
-                <property name="specialValueText">
-                 <string>(default)</string>
-                </property>
-                <property name="suffix">
-                 <string notr="true"> pt</string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>120</number>
-                </property>
-                <property name="value">
-                 <number>11</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="2">
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="0">
-            <widget class="KLFMarginsSelector" name="pushButton">
-             <property name="text">
-              <string>&lt;MARGINS&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
             <widget class="QFrame" name="wFrame">
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -1300,7 +1179,136 @@
              </layout>
             </widget>
            </item>
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="title">
+              <string>LaTeX preamble</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>8</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="KLFLatexEdit" name="txtPreamble">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+                <property name="acceptRichText">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QGroupBox" name="chkMathMode_2">
+             <property name="title">
+              <string>Font</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>8</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QComboBox" name="cbxLatexFont">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spnLatexFontSize">
+                <property name="specialValueText">
+                 <string>(default)</string>
+                </property>
+                <property name="suffix">
+                 <string notr="true"> pt</string>
+                </property>
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>120</number>
+                </property>
+                <property name="value">
+                 <number>11</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
+         </widget>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+          <widget class="KLFMarginsSelector" name="pushButton">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>40</y>
+             <width>306</width>
+             <height>32</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;MARGINS&gt;</string>
+           </property>
+          </widget>
          </widget>
          <widget class="QWidget" name="tabMargins">
           <attribute name="title">
@@ -1685,7 +1693,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>130</x>
-     <y>410</y>
+     <y>408</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1701,7 +1709,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>48</x>
-     <y>410</y>
+     <y>408</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1717,11 +1725,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>377</x>
-     <y>599</y>
+     <y>596</y>
     </hint>
     <hint type="destinationlabel">
      <x>377</x>
-     <y>599</y>
+     <y>596</y>
     </hint>
    </hints>
   </connection>

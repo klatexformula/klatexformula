@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfmarginsselector_p.h
+ *   file klfpopupsheet_p.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,59 +21,48 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFMARGINSSELECTOR_P_H
-#define KLFMARGINSSELECTOR_P_H
+/** \file
+ * This header contains (in principle private) auxiliary classes for
+ * library routines defined in ****.cpp */
+
+#ifndef KLFPOPUPSHEET_P_H
+#define KLFPOPUPSHEET_P_H
+
+#include <QObject>
+#include <QWidget>
+#include <QEvent>
+#include <QGridLayout>
 
 
 #include "klfpopupsheet.h"
-#include "klfmarginsselector.h"
-
-#include <ui_klfmarginseditor.h>
 
 
-class KLFMarginsEditor : public QWidget
+struct KLFPopupSheetPrivate : public QObject
 {
   Q_OBJECT
 public:
-  KLFMarginsEditor(KLFPopupSheet * parent);
-  ~KLFMarginsEditor();
+  KLF_PRIVATE_QOBJ_HEAD(KLFPopupSheet, QObject)
+  {
+    mLayout = NULL;
+    mAssociatedButton = NULL;
+  }
 
-  Ui::KLFMarginsEditor * u;
+  QGridLayout * mLayout;
+  QAbstractButton * mAssociatedButton;
 
-  //void setVisible(bool on);
+  bool eventFilter(QObject * object, QEvent * event);
 
 signals:
-  void editorUpdatedMargins();
-  void requestHide();
-
-private slots:
-  void emit_updated_margins();
-  void show_unit_changed(double, QString);
-  void maybe_update_uniform_checked();
-
-private:
-  bool ignore_valuechange_event;
-  bool use_dialog;
-};
-
-
-
-
-struct KLFMarginsSelectorPrivate : public QObject
-{
-  Q_OBJECT
-public:
-  KLF_PRIVATE_QOBJ_HEAD(KLFMarginsSelector, QObject) { }
-
-  KLFPopupSheet * mPopupSheet;
-  KLFMarginsEditor * mMarginsEditor;
+  void doDelayedEmitPopupVisible(bool);
 
 public slots:
-//   void editorButtonToggled(bool);
-//   void editorVisibilityChanged(bool);
-
-  void updateMarginsDisplay();
+  void slotAssociatedButtonToggled(bool);
+  void slotPopupVisible(bool);
 };
+
+
+
+
 
 
 #endif

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfmarginsselector_p.h
+ *   file klfpopupsheet.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,58 +21,42 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFMARGINSSELECTOR_P_H
-#define KLFMARGINSSELECTOR_P_H
+#ifndef KLFPOPUPSHEET_H
+#define KLFPOPUPSHEET_H
 
+#include <klfdefs.h>
 
-#include "klfpopupsheet.h"
-#include "klfmarginsselector.h"
+#include <QWidget>
 
-#include <ui_klfmarginseditor.h>
+class QAbstractButton;
+class QPaintEvent;
+struct KLFPopupSheetPrivate;
 
-
-class KLFMarginsEditor : public QWidget
+class KLFPopupSheet : public QWidget
 {
   Q_OBJECT
 public:
-  KLFMarginsEditor(KLFPopupSheet * parent);
-  ~KLFMarginsEditor();
+  KLFPopupSheet(QWidget * parent);
+  virtual ~KLFPopupSheet();
 
-  Ui::KLFMarginsEditor * u;
+  void associateWithButton(QAbstractButton * button);
 
-  //void setVisible(bool on);
+  void setCentralWidget(QWidget * w);
 
 signals:
-  void editorUpdatedMargins();
-  void requestHide();
-
-private slots:
-  void emit_updated_margins();
-  void show_unit_changed(double, QString);
-  void maybe_update_uniform_checked();
-
-private:
-  bool ignore_valuechange_event;
-  bool use_dialog;
-};
-
-
-
-
-struct KLFMarginsSelectorPrivate : public QObject
-{
-  Q_OBJECT
-public:
-  KLF_PRIVATE_QOBJ_HEAD(KLFMarginsSelector, QObject) { }
-
-  KLFPopupSheet * mPopupSheet;
-  KLFMarginsEditor * mMarginsEditor;
+  void popupVisible(bool on);
+  void popupShown();
+  void popupHidden();
 
 public slots:
-//   void editorButtonToggled(bool);
-//   void editorVisibilityChanged(bool);
+  void showPopup(const QPoint & pos);
+  void hidePopup();
 
-  void updateMarginsDisplay();
+protected:
+  virtual void paintEvent(QPaintEvent * event);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFPopupSheet) ;
 };
 
 

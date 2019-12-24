@@ -24,18 +24,18 @@
 #include <algorithm> // std::min
 
 #include "klfdefs.h"
+#include "klfpopupsheet.h"
 
 #include "klfmarginsselector.h"
 #include "klfmarginsselector_p.h"
 
 
 
-#define FLOAT_COMPARISON_EPSILON 1e-6
+const double float_comparison_epsilon = 1e-6;
 
 
-KLFMarginsEditor::KLFMarginsEditor(QWidget * parent, bool use_dialog_)
-  : QWidget(parent, use_dialog_ ? Qt::Dialog : Qt::Popup),
-    use_dialog(use_dialog_)
+KLFMarginsEditor::KLFMarginsEditor(KLFPopupSheet * parent)
+  : QWidget(parent)
 {
   u = new Ui::KLFMarginsEditor;
   u->setupUi(this);
@@ -52,7 +52,9 @@ KLFMarginsEditor::KLFMarginsEditor(QWidget * parent, bool use_dialog_)
   connect(u->cbxUnits, SIGNAL(unitChanged(double, QString)),
           this, SLOT(show_unit_changed(double, QString)));
 
-  connect(u->btnDone, SIGNAL(clicked()), this, SLOT(hide()));
+  connect(u->btnDone, SIGNAL(clicked()), this, SIGNAL(requestHide()));
+
+  connect(parent, SIGNAL(popupShown()), this, SLOT(maybe_update_uniform_checked()));
 
   ignore_valuechange_event = false;
 }
@@ -61,23 +63,16 @@ KLFMarginsEditor::~KLFMarginsEditor()
 {
 }
 
-void KLFMarginsEditor::setVisible(bool on)
+
+void KLFMarginsEditor::maybe_update_uniform_checked()
 {
-  if (on) {
-    move(parentWidget()->mapToGlobal(parentWidget()->geometry().bottomLeft()));
-  }
-  QWidget::setVisible(on);
-
-
   qreal t = u->spnTop->valueInRefUnit();
   qreal r = u->spnRight->valueInRefUnit();
   qreal b = u->spnBottom->valueInRefUnit();
   qreal l = u->spnLeft->valueInRefUnit();
   qreal minval = std::min(std::min(std::min(t, r), b), l);
   qreal maxval = std::max(std::max(std::max(t, r), b), l);
-  u->chkUniform->setChecked((maxval-minval) < FLOAT_COMPARISON_EPSILON);
-
-  emit visibilityChanged(on);
+  u->chkUniform->setChecked((maxval-minval) < float_comparison_epsilon);
 }
 
 void KLFMarginsEditor::emit_updated_margins()
@@ -87,16 +82,17 @@ void KLFMarginsEditor::emit_updated_margins()
   }
 
   if (u->chkUniform->isChecked()) {
+    bool tmp = ignore_valuechange_event;
     ignore_valuechange_event = true;
 
     KLFUnitSpinBox * spnsender = dynamic_cast<KLFUnitSpinBox*>( sender() );
     qreal value = spnsender->valueInRefUnit();
-    if (spnsender != u->spnTop) { u->spnTop->setValue(value); }
-    if (spnsender != u->spnRight) { u->spnRight->setValue(value); }
-    if (spnsender != u->spnBottom) { u->spnBottom->setValue(value); }
-    if (spnsender != u->spnLeft) { u->spnLeft->setValue(value); }
+    if (spnsender != u->spnTop) { u->spnTop->setValueInRefUnit(value); }
+    if (spnsender != u->spnRight) { u->spnRight->setValueInRefUnit(value); }
+    if (spnsender != u->spnBottom) { u->spnBottom->setValueInRefUnit(value); }
+    if (spnsender != u->spnLeft) { u->spnLeft->setValueInRefUnit(value); }
 
-    ignore_valuechange_event = false;
+    ignore_valuechange_event = tmp;
   }
 
   emit editorUpdatedMargins();
@@ -106,6 +102,7 @@ void KLFMarginsEditor::emit_updated_margins()
 
 void KLFMarginsEditor::show_unit_changed(double unitfactor, QString suffix)
 {
+  bool tmp = ignore_valuechange_event;
   ignore_valuechange_event = true;
 
   u->spnTop->setUnitWithSuffix(unitfactor, suffix);
@@ -113,7 +110,7 @@ void KLFMarginsEditor::show_unit_changed(double unitfactor, QString suffix)
   u->spnBottom->setUnitWithSuffix(unitfactor, suffix);
   u->spnLeft->setUnitWithSuffix(unitfactor, suffix);
   
-  ignore_valuechange_event = false;
+  ignore_valuechange_event = tmp;
 }
 
 
@@ -131,11 +128,14 @@ KLFMarginsSelector::KLFMarginsSelector(QWidget * parent)
   
   KLF_INIT_PRIVATE(KLFMarginsSelector) ;
 
-  d->mMarginsEditor = new KLFMarginsEditor(this);
+  d->mPopupSheet = new KLFPopupSheet(this);
+  d->mMarginsEditor = new KLFMarginsEditor(d->mPopupSheet);
+  d->mPopupSheet->setCentralWidget(d->mMarginsEditor);
 
-  connect(this, SIGNAL(toggled(bool)), d, SLOT(editorButtonToggled(bool)));
-  connect(d->mMarginsEditor, SIGNAL(visibilityChanged(bool)), d, SLOT(editorVisibilityChanged(bool)));
+  d->mPopupSheet->associateWithButton(this);
 
+  connect(d->mMarginsEditor, SIGNAL(requestHide()),
+          d->mPopupSheet, SLOT(hidePopup()));
   connect(d->mMarginsEditor, SIGNAL(editorUpdatedMargins()),
           d, SLOT(updateMarginsDisplay()));
 
@@ -169,30 +169,32 @@ void KLFMarginsSelector::setMargins(qreal t, qreal r, qreal b, qreal l)
   qreal minval = std::min(std::min(std::min(t, r), b), l);
   qreal maxval = std::max(std::max(std::max(t, r), b), l);
 
-  d->mMarginsEditor->blockSignals(true);
-  d->mMarginsEditor->u->spnTop->setValueInRefUnit(t);
-  d->mMarginsEditor->u->spnRight->setValueInRefUnit(r);
-  d->mMarginsEditor->u->spnBottom->setValueInRefUnit(b);
-  d->mMarginsEditor->u->spnLeft->setValueInRefUnit(l);
-  d->mMarginsEditor->u->chkUniform->setChecked( (maxval - minval) < FLOAT_COMPARISON_EPSILON );
-  d->mMarginsEditor->blockSignals(false);
+  {
+    QSignalBlocker blocker(d->mMarginsEditor);
+    d->mMarginsEditor->u->spnTop->setValueInRefUnit(t);
+    d->mMarginsEditor->u->spnRight->setValueInRefUnit(r);
+    d->mMarginsEditor->u->spnBottom->setValueInRefUnit(b);
+    d->mMarginsEditor->u->spnLeft->setValueInRefUnit(l);
+    d->mMarginsEditor->u->chkUniform->setChecked( (maxval - minval) < float_comparison_epsilon );
+  }
+
   d->updateMarginsDisplay();
 }
 
 
-void KLFMarginsSelectorPrivate::editorButtonToggled(bool toggled)
-{
-  if (toggled) {
-    mMarginsEditor->setVisible(true);
-  } else {
-    mMarginsEditor->setVisible(false);
-  }
-}
+// void KLFMarginsSelectorPrivate::editorButtonToggled(bool toggled)
+// {
+//   if (toggled) {
+//     mMarginsEditor->setVisible(true);
+//   } else {
+//     mMarginsEditor->setVisible(false);
+//   }
+// }
 
-void KLFMarginsSelectorPrivate::editorVisibilityChanged(bool on)
-{
-  K->setChecked(on);
-}
+// void KLFMarginsSelectorPrivate::editorVisibilityChanged(bool on)
+// {
+//   K->setChecked(on);
+// }
 
 void KLFMarginsSelectorPrivate::updateMarginsDisplay()
 {
@@ -204,7 +206,7 @@ void KLFMarginsSelectorPrivate::updateMarginsDisplay()
   qreal minval = std::min(std::min(std::min(t, r), b), l);
   qreal maxval = std::max(std::max(std::max(t, r), b), l);
 
-  if ((maxval - minval) < FLOAT_COMPARISON_EPSILON) {
+  if ((maxval - minval) < float_comparison_epsilon) {
     K->setText(QString::fromLatin1(klfFmt("Margins: %.2g pt", (double)minval)));
   } else {
     K->setText(QString::fromLatin1(klfFmt("top %.2gpt/right %.2gpt/bottom %.2gpt/left %.2gpt",
