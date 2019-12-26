@@ -51,7 +51,11 @@ KLFPopupSheet::KLFPopupSheet(QWidget * parent)
           d, SLOT(slotPopupVisible(bool)),
           Qt::QueuedConnection);
 
-  d->use_widget_mask = true; // DEBUG
+#ifdef KLF_WS_X11
+  d->use_widget_mask = true; // X11 doesn't always support translucent widgets
+#else
+  d->use_widget_mask = false;
+#endif
 }
 
 KLFPopupSheet::~KLFPopupSheet()
