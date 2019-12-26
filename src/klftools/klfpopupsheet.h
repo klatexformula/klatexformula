@@ -53,6 +53,7 @@ public slots:
   void hidePopup();
 
 protected:
+  virtual void resizeEvent(QResizeEvent * event);
   virtual void paintEvent(QPaintEvent * event);
 
 private:
