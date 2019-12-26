@@ -50,6 +50,8 @@ KLFPopupSheet::KLFPopupSheet(QWidget * parent)
   connect(d, SIGNAL(doDelayedEmitPopupVisible(bool)),
           d, SLOT(slotPopupVisible(bool)),
           Qt::QueuedConnection);
+
+  d->use_widget_mask = true; // DEBUG
 }
 
 KLFPopupSheet::~KLFPopupSheet()
@@ -108,29 +110,41 @@ void KLFPopupSheet::resizeEvent(QResizeEvent * event)
   //   return;
   // }
 
-  QBitmap bmp(width(), height());
-  bmp.clear();
-  QPainter painter(&bmp);
-  painter.translate(0,9); // top left corner of popup rounded rectangle (not
-                          // counting path offset)
-  QPainterPath path = get_popup_shape(width(), height()-9, 4,
-                                      30, 7, 9,
-                                      0);
-  painter.fillPath(path, Qt::color1);
+  if (d->use_widget_mask) {
 
-  setMask(bmp);
+    QBitmap bmp(width(), height());
+    bmp.clear();
+    QPainter painter(&bmp);
+    painter.translate(0,9); // top left corner of popup rounded rectangle (not
+    // counting path offset)
+    QPainterPath path = get_popup_shape(width(), height()-9, 4,
+                                        30, 7, 9,
+                                        0);
+    painter.fillPath(path, Qt::color1);
+
+    setMask(bmp);
+
+  }
 }
 
 void KLFPopupSheet::paintEvent(QPaintEvent * )
 {
   QPainter painter(this);
-  
+
+  painter.setRenderHint(QPainter::Antialiasing);
+
   QPalette pal = palette();
   //QColor outlineColor = pal.color(QPalette::WindowText);
   //QColor bgColor = pal.color(QPalette::Window);
   //painter.setPen(QPen(outlineColor, 1));
   //painter.setBrush(bgColor);
   //painter.drawRoundedRect(QRectF(1, 9, width()-2, height()-11), 3, 3);
+
+  if (d->use_widget_mask) {
+    // when using with mask -- clear full widget background
+    painter.fillRect(0,0,width(),height(), pal.color(QPalette::Window));
+  }
+
 
   painter.translate(0,9); // top left corner of popup rounded rectangle (not
                           // counting path offset)
@@ -158,9 +172,9 @@ void KLFPopupSheet::paintEvent(QPaintEvent * )
   painter.setBrush(pal.color(QPalette::Window));
   painter.drawPath(path);
 
-  QColor bcol = pal.color(QPalette::WindowText);
-  bcol.setAlpha(128);
-  painter.setPen(QPen(bcol, 1));
+  QColor bordercol = pal.color(QPalette::WindowText);
+  bordercol.setAlpha(128);
+  painter.setPen(QPen(bordercol, 1));
   painter.setBrush(QBrush());
   painter.drawPath(path);
 }

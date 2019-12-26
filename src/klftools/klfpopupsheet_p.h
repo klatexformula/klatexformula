@@ -50,6 +50,8 @@ public:
   QGridLayout * mLayout;
   QAbstractButton * mAssociatedButton;
 
+  bool use_widget_mask;
+
   bool eventFilter(QObject * object, QEvent * event);
 
 signals:
