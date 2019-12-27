@@ -973,14 +973,6 @@ public:
   bool is_quitting;
   bool qapp_quit_called;
 
-  //   /** "last" window status flags are used in eventFilter() to detect individual dialog
-  //    * geometries resetting */
-  //   QHash<QWidget*,bool> pLastWindowShownStatus;
-  //   QHash<QWidget*,QRect> pLastWindowGeometries;
-  //   /** "saved" window status flags are used in hideEvent() to save the individual dialog visible
-  //    * states, as the "last" status flags will be overridden by all the windows hiding. */
-  //   QHash<QWidget*,bool> pSavedWindowShownStatus;
-
   QString widgetstyle;
 
   void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,

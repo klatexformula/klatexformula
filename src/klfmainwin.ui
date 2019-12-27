@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>941</width>
-    <height>745</height>
+    <width>744</width>
+    <height>564</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -560,73 +560,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="title">
-          <string>junkyard</string>
-         </property>
-         <widget class="QPushButton" name="btnExpand">
-          <property name="geometry">
-           <rect>
-            <x>30</x>
-            <y>30</y>
-            <width>62</width>
-            <height>32</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
-          </property>
-          <property name="whatsThis">
-           <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/switchexpanded.svg</normaloff>:/pics/switchexpanded.svg</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F5</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="btnLoadStyle">
-          <property name="geometry">
-           <rect>
-            <x>90</x>
-            <y>30</y>
-            <width>169</width>
-            <height>32</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Load a previously saved style</string>
-          </property>
-          <property name="text">
-           <string>St&amp;yle</string>
-          </property>
-          <property name="shortcut">
-           <string>Alt+L</string>
-          </property>
-         </widget>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -660,7 +593,7 @@
           <enum>QTabWidget::North</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabLatexImage">
           <attribute name="title">
@@ -682,6 +615,59 @@
            <property name="verticalSpacing">
             <number>11</number>
            </property>
+           <item row="2" column="0">
+            <widget class="QGroupBox" name="chkMathMode_2">
+             <property name="title">
+              <string>Font</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>8</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QComboBox" name="cbxLatexFont">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spnLatexFontSize">
+                <property name="specialValueText">
+                 <string>(default)</string>
+                </property>
+                <property name="suffix">
+                 <string notr="true"> pt</string>
+                </property>
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>120</number>
+                </property>
+                <property name="value">
+                 <number>11</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="gbxColors">
              <property name="title">
@@ -776,7 +762,65 @@
              </layout>
             </widget>
            </item>
-           <item row="0" column="0">
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="title">
+              <string>LaTeX preamble</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>8</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="KLFLatexEdit" name="txtPreamble">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+                <property name="acceptRichText">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="0">
             <widget class="QGroupBox" name="chkMathMode">
              <property name="title">
               <string>Use Math Mode</string>
@@ -832,6 +876,124 @@
               </item>
              </layout>
             </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Page</string>
+          </attribute>
+          <widget class="KLFMarginsSelector" name="pushButton">
+           <property name="geometry">
+            <rect>
+             <x>90</x>
+             <y>40</y>
+             <width>306</width>
+             <height>32</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;MARGINS&gt;</string>
+           </property>
+          </widget>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="geometry">
+            <rect>
+             <x>100</x>
+             <y>460</y>
+             <width>377</width>
+             <height>100</height>
+            </rect>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>junkyard</string>
+           </property>
+           <widget class="QPushButton" name="btnExpand">
+            <property name="geometry">
+             <rect>
+              <x>30</x>
+              <y>30</y>
+              <width>62</width>
+              <height>32</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
+            </property>
+            <property name="whatsThis">
+             <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
+            </property>
+            <property name="icon">
+             <iconset resource="klfres.qrc">
+              <normaloff>:/pics/switchexpanded.svg</normaloff>:/pics/switchexpanded.svg</iconset>
+            </property>
+            <property name="shortcut">
+             <string>F5</string>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="btnLoadStyle">
+            <property name="geometry">
+             <rect>
+              <x>90</x>
+              <y>30</y>
+              <width>169</width>
+              <height>32</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Load a previously saved style</string>
+            </property>
+            <property name="text">
+             <string>St&amp;yle</string>
+            </property>
+            <property name="shortcut">
+             <string>Alt+L</string>
+            </property>
+           </widget>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="tabMargins">
+          <attribute name="title">
+           <string>Image</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>118</width>
+               <height>16</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item row="2" column="0">
             <widget class="QFrame" name="wFrame">
@@ -1179,171 +1341,6 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>LaTeX preamble</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <property name="leftMargin">
-               <number>4</number>
-              </property>
-              <property name="topMargin">
-               <number>8</number>
-              </property>
-              <property name="rightMargin">
-               <number>4</number>
-              </property>
-              <property name="bottomMargin">
-               <number>4</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="KLFLatexEdit" name="txtPreamble">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
-                </property>
-                <property name="acceptRichText">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QGroupBox" name="chkMathMode_2">
-             <property name="title">
-              <string>Font</string>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_4">
-              <property name="leftMargin">
-               <number>4</number>
-              </property>
-              <property name="topMargin">
-               <number>8</number>
-              </property>
-              <property name="rightMargin">
-               <number>4</number>
-              </property>
-              <property name="bottomMargin">
-               <number>4</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="QComboBox" name="cbxLatexFont">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spnLatexFontSize">
-                <property name="specialValueText">
-                 <string>(default)</string>
-                </property>
-                <property name="suffix">
-                 <string notr="true"> pt</string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>120</number>
-                </property>
-                <property name="value">
-                 <number>11</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="2">
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab">
-          <attribute name="title">
-           <string>Page</string>
-          </attribute>
-          <widget class="KLFMarginsSelector" name="pushButton">
-           <property name="geometry">
-            <rect>
-             <x>90</x>
-             <y>40</y>
-             <width>306</width>
-             <height>32</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>&lt;MARGINS&gt;</string>
-           </property>
-          </widget>
-         </widget>
-         <widget class="QWidget" name="tabMargins">
-          <attribute name="title">
-           <string>Image</string>
-          </attribute>
-          <layout class="QGridLayout" name="lyt_tabMargins">
-           <property name="leftMargin">
-            <number>10</number>
-           </property>
-           <property name="topMargin">
-            <number>6</number>
-           </property>
-           <property name="bottomMargin">
-            <number>6</number>
-           </property>
-           <item row="0" column="0" colspan="2">
-            <widget class="Line" name="line_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>118</width>
-               <height>16</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="tabUserScript">
@@ -1390,8 +1387,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>494</width>
-                <height>528</height>
+                <width>297</width>
+                <height>347</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="lyt_wScrUserScriptInput">

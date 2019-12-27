@@ -3907,8 +3907,9 @@ void KLFMainWin::slotActivateEditorSelectAll()
 
 void KLFMainWin::slotShowBigPreview()
 {
-  if ( ! u->btnShowBigPreview->isEnabled() )
+  if ( ! u->btnShowBigPreview->isEnabled() ) {
     return;
+  }
 
   QString text =
     tr("<p>%1</p><p align=\"right\" style=\"font-size: %2pt; font-style: italic;\">"
@@ -3916,7 +3917,8 @@ void KLFMainWin::slotShowBigPreview()
        "<strong>Esc</strong> to close.</p>")
     .arg(u->lblOutput->bigPreviewText())
     .arg(QFontInfo(qApp->font()).pointSize()-1);
-  QWhatsThis::showText(u->btnEvaluate->pos(), text, u->lblOutput);
+  QWhatsThis::showText(u->lblOutput->mapToGlobal(QPoint(u->lblOutput->width()/2,u->lblOutput->height()/2)),
+                       text, u->lblOutput);
 }
 
 
