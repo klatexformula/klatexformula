@@ -314,8 +314,22 @@ static void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThrea
 // ---------------------------------
 
 
-static QString klfbackend_generate_template(const KLFBackend::klfInput& in,
-                                            const KLFBackend::klfSettings& /*settings*/)
+KLFBackend::TemplateGenerator::TemplateGenerator()
+{
+}
+KLFBackend::TemplateGenerator::~TemplateGenerator()
+{
+}
+
+KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
+{
+}
+KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
+{
+}
+
+QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in,
+                                                               const klfSettings& /*settings*/)
 {
   QString latexin;
   QString s;
@@ -654,7 +668,16 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     }
     QTextStream stream(&file);
     if (!in.bypassTemplate) {
-      stream << klfbackend_generate_template(in, settings);
+      TemplateGenerator *t = NULL;
+      DefaultTemplateGenerator deft;
+      if (settings.templateGenerator != NULL) {
+	klfDbg("using custom template generator") ;
+	t = settings.templateGenerator;
+	KLF_ASSERT_NOT_NULL(t, "Template Generator is NULL! Using default!",  t = &deft; ) ;
+      } else {
+	t = &deft;
+      }
+      stream << t->generateTemplate(in, settings);
     } else {
       stream << in.latex;
     }
@@ -1613,7 +1636,8 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
     a.wantRaw == b.wantRaw &&
     a.wantPDF == b.wantPDF &&
     a.wantSVG == b.wantSVG &&
-    a.execenv == b.execenv ;
+    a.execenv == b.execenv &&
+    a.templateGenerator == b.templateGenerator ;
 }
 
 

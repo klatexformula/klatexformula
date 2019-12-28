@@ -417,7 +417,7 @@ if(KLF_BUILD_GUI)
     set(LDPATHDEFS "export LD_LIBRARY_PATH='${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}/klfbackend:${CMAKE_CURRENT_BINARY_DIR}/klftools':\"$LD_LIBRARY_PATH\" ")
     add_custom_command(OUTPUT "klatexformula.1"
       COMMAND
-      "sh" "-c" "${LDPATHDEFS}; ${HELP2MAN} -h --help='\"&1\"' -v --version='\"&1:klatexformula %k\"' -n 'GUI and CLI to generate images from LaTeX formulas' --no-info $<TARGET_FILE:klatexformula> -o '${CMAKE_CURRENT_BINARY_DIR}/klatexformula.1'"
+      "sh" "-c" "${LDPATHDEFS}; ${HELP2MAN} -h --help='\"&1\"' -v --version='\"&1:klatexformula %k\"' -n 'Generate images from LaTeX equations (GUI and CLI)' --no-info $<TARGET_FILE:klatexformula> -o '${CMAKE_CURRENT_BINARY_DIR}/klatexformula.1'"
       COMMENT "Generating man page for klatexformula"
       DEPENDS "${klatexformula}"
       VERBATIM
