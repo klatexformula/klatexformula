@@ -7,7 +7,7 @@
   <author>Philippe Faist, philippe.faist@bluewin.ch</author>
   <version>0.1</version>
   <license>GPL v2+</license>
-  <settings-form-ui>runpdflatex_config.ui</settings-form-ui>
+  <settings-form-ui></settings-form-ui>
   <klf-backend-engine>
     <spits-out>png pdf</spits-out>
     <skip-formats selector="all-except">
@@ -15,6 +15,6 @@
     </skip-formats>
     <disable-inputs selector="ALL">
     </disable-inputs>
-    <input-form-ui></input-form-ui>
+    <input-form-ui>runpdflatex_config.ui</input-form-ui>
   </klf-backend-engine>
 </klfuserscript-info>

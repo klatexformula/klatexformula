@@ -74,11 +74,13 @@
 \def\klfPreambleSetup{%
   %\klfSetPaperDims{.5in}{1in}
   \klfSetPaperDims{1pt}{1pt}
-  \RequirePackage{color}
-  \pagecolor{white}
+  %\RequirePackage{color}
+  %\pagecolor{white}
   \pagestyle{empty}
   \thispagestyle{empty}
 }
+
+\def\klfhookbeforedisplay{}
 
 \def\klfequation{%
   \begin{document}%
@@ -100,8 +102,12 @@
   %
   \klfSetPaperDims{\klf@eqnbox@w}{\klf@eqnbox@th}%
   %
+  \par
+  % 
+  \klfhookbeforedisplay%
+  %
   % Finally, display the box, raised appropriately by the given depth:
-  \par\raisebox{\klf@eqnbox@d}[\klf@eqnbox@th][0pt]{\box\klf@eqnbox}%
+  {\raisebox{\klf@eqnbox@d}[\klf@eqnbox@th][0pt]{\box\klf@eqnbox}}%
   %
   % Provide size/depth information to caller via messages on STDOUT
   \message{^^J%

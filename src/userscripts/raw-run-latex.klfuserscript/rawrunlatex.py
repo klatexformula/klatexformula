@@ -47,7 +47,7 @@ with open(latexfname, 'w') as f:
 gsexe = os.environ.get("KLF_GS")
 dvipsexe = os.environ.get("KLF_DVIPS")
 
-pdflatex = os.environ.get("KLF_USCONFIG_pdflatex")
+pdflatex = os.environ.get("KLF_ARG_pdflatex") # KLF_USCONFIG_pdflatex
 
 dpi_value = 300 #os.environ.get("KLF_INPUT_DPI", 180)
 
@@ -88,9 +88,17 @@ def run_cmd(do_cmd, ignore_fail=False, callargs=None, add_env=None):
 # run pdflatex
 # ------------
 
+TEXINPUTS = os.path.dirname(__file__)+":"+os.environ.get('TEXINPUTS','')
+
 output = run_cmd([pdflatex, os.path.basename(latexfname)],
-                 add_env={'TEXINPUTS': os.environ.get('TEXINPUTS','')+":"+os.path.dirname(__file__)})
+                 add_env={'TEXINPUTS': TEXINPUTS})
 print("{} output:\n{}".format(os.path.basename(pdflatex), output))
+
+
+# # run twice to get transparencies right (if using {trasparent} latex package)
+# output = run_cmd([pdflatex, os.path.basename(latexfname)],
+#                  add_env={'TEXINPUTS': TEXINPUTS})
+# print("{} output:\n{}".format(os.path.basename(pdflatex), output))
 
 
 
