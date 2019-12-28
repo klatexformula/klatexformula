@@ -314,22 +314,8 @@ static void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThrea
 // ---------------------------------
 
 
-// KLFBackend::TemplateGenerator::TemplateGenerator()
-// {
-// }
-// KLFBackend::TemplateGenerator::~TemplateGenerator()
-// {
-// }
-
-// KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
-// {
-// }
-// KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
-// {
-// }
-
-static QString klfbackend_generate_template(const klfInput& in,
-                                            const klfSettings& /*settings*/)
+static QString klfbackend_generate_template(const KLFBackend::klfInput& in,
+                                            const KLFBackend::klfSettings& /*settings*/)
 {
   QString latexin;
   QString s;
@@ -1627,8 +1613,7 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
     a.wantRaw == b.wantRaw &&
     a.wantPDF == b.wantPDF &&
     a.wantSVG == b.wantSVG &&
-    a.execenv == b.execenv &&
-    a.templateGenerator == b.templateGenerator ;
+    a.execenv == b.execenv ;
 }
 
 

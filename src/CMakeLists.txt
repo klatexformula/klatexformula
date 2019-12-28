@@ -395,7 +395,7 @@ if(KLF_BUILD_GUI)
   #
   file(GLOB_RECURSE klf_userscriptfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" userscripts/*)
   foreach(usfile ${klf_userscriptfiles})
-    if(usfile MATCHES "\\.(py|rb|sh|pl|bat|xml|ui)$")
+    if(usfile MATCHES "\\.(py|rb|sh|pl|bat|xml|ui|sty)$")
       # backup file -- ignore
       target_sources(klatexformula PRIVATE
         ${usfile}

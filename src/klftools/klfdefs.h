@@ -153,7 +153,7 @@ inline KLFResultErrorStatus<ResultType> klf_result_success(const ResultType & re
 template<class ResultType>
 inline KLFResultErrorStatus<ResultType> klf_result_failure(const QString & error_msg)
 {
-  return KLFResultErrorStatus<ResultType>(true, result);
+  return KLFResultErrorStatus<ResultType>(false, error_msg);
 }
 
 

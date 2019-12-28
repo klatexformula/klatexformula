@@ -600,19 +600,13 @@
  * a failure.
  */
 
-/** \fn KLF_EXPORT KLFErrorStatus::KLFErrorStatus()
- * \brief Initialize the KLFErrorStatus to indicate SUCCESS
+/** \fn KLF_EXPORT KLFErrorStatus::KLFErrorStatus(........)
+ * \brief Initialize the KLFErrorStatus to indicate SUCCESS / FAILURE
  *
- * The \a ok member is set to \a true and the \a error_msg field is set to a
- * null string.
+ * .......... TODO: DOC ...........
  */
 
-/** \fn KLF_EXPORT KLFErrorStatus::KLFErrorStatus(QString)
- * \brief Initialize the KLFErrorStatus to indicate FAILURE with corresponding error message
- *
- * The \a ok member is set to \a false and the \a error_msg is set to the given
- * value.
- */
+
 
 
 /* -- * ------- NOT PROVIDED. NOT NICE. -------------------
@@ -1170,19 +1164,8 @@ KLF_EXPORT QDebug __klf_warning_hdr(QDebug warndbg, const char * funcname, const
 // ----------------------------------------
 
 
-KLFErrorStatus::KLFErrorStatus()
-  : ok(true), error_msg()
-{
-}
-
-KLFErrorStatus::KLFErrorStatus(QString error_msg_)
-  : ok(false), error_msg(error_msg_)
-{
-}
 
 
-
-// ----------------------------------------
 
 
 QStringList klf_version_suffixes =
