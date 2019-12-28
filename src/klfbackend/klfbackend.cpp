@@ -314,22 +314,22 @@ static void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThrea
 // ---------------------------------
 
 
-KLFBackend::TemplateGenerator::TemplateGenerator()
-{
-}
-KLFBackend::TemplateGenerator::~TemplateGenerator()
-{
-}
+// KLFBackend::TemplateGenerator::TemplateGenerator()
+// {
+// }
+// KLFBackend::TemplateGenerator::~TemplateGenerator()
+// {
+// }
 
-KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
-{
-}
-KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
-{
-}
+// KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
+// {
+// }
+// KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
+// {
+// }
 
-QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in,
-                                                               const klfSettings& /*settings*/)
+static QString klfbackend_generate_template(const klfInput& in,
+                                            const klfSettings& /*settings*/)
 {
   QString latexin;
   QString s;
@@ -668,16 +668,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     }
     QTextStream stream(&file);
     if (!in.bypassTemplate) {
-      TemplateGenerator *t = NULL;
-      DefaultTemplateGenerator deft;
-      if (settings.templateGenerator != NULL) {
-	klfDbg("using custom template generator") ;
-	t = settings.templateGenerator;
-	KLF_ASSERT_NOT_NULL(t, "Template Generator is NULL! Using default!",  t = &deft; ) ;
-      } else {
-	t = &deft;
-      }
-      stream << t->generateTemplate(in, settings);
+      stream << klfbackend_generate_template(in, settings);
     } else {
       stream << in.latex;
     }

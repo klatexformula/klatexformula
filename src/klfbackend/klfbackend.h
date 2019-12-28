@@ -207,8 +207,6 @@ class KLF_EXPORT KLFBackend
 {
 public:
 
-  class TemplateGenerator;
-
   //! General settings for KLFBackend::getLatexFormula()
   /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify
    * some system settings, like a temp directory and some paths
@@ -220,8 +218,8 @@ public:
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
 		    calcEpsBoundingBox(true), outlineFonts(true),
-		    wantRaw(false), wantPDF(true), wantSVG(true), execenv(),
-		    templateGenerator(NULL) { }
+		    wantRaw(false), wantPDF(true), wantSVG(true), execenv()
+    { }
 
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
     QString tempdir;
@@ -288,10 +286,10 @@ public:
      * dvips, gs. */
     QStringList execenv;
 
-    /** The TemplateGenerator object that will be used to generate the base document template.
-     * Can be \c NULL, in which case the default generator is used, see
-     * \ref DefaultTemplateGenerator. */
-    TemplateGenerator *templateGenerator;
+    // /** The TemplateGenerator object that will be used to generate the base document template.
+    // * Can be \c NULL, in which case the default generator is used, see
+    // * \ref DefaultTemplateGenerator. */
+    // TemplateGenerator *templateGenerator;
 
     /** Path to interpreters to use for different script formats. The key is the filename
      *  extension of the script (e.g. "py"), and the value is the path to the
@@ -621,21 +619,21 @@ public:
   static QStringList userScriptSettingsToEnvironment(const QMap<QString,QString>& userScriptSettings);
 
 
-  class TemplateGenerator {
-  public:
-    TemplateGenerator();
-    virtual ~TemplateGenerator();
-
-    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings) = 0;
-  };
-
-  class DefaultTemplateGenerator : public TemplateGenerator {
-  public:
-    DefaultTemplateGenerator();
-    virtual ~DefaultTemplateGenerator();
-
-    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings);
-  };
+  // class TemplateGenerator {
+  // public:
+  //   TemplateGenerator();
+  //   virtual ~TemplateGenerator();
+  //
+  //   virtual QString generateTemplate(const klfInput& input, const klfSettings& settings) = 0;
+  // };
+  //
+  // class DefaultTemplateGenerator : public TemplateGenerator {
+  // public:
+  //   DefaultTemplateGenerator();
+  //   virtual ~DefaultTemplateGenerator();
+  //
+  //   virtual QString generateTemplate(const klfInput& input, const klfSettings& settings);
+  // };
 
 
 

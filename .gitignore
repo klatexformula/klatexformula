@@ -29,9 +29,6 @@ build-brew-qt-cmake-command.txt
 /apidoc/klfbackend
 /apidoc/klfsrc
 
-# /src/
-/src/
-
 # /src/i18n/
 /src/i18n/klf_el.qm
 /src/i18n/klf_el.ts

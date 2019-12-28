@@ -588,6 +588,33 @@
  */
 
 
+
+/** \class KLFErrorStatus
+ *
+ * Returned by functions that don't return a specific result but that might fail
+ * (e.g., a function \a saveToFile()).  Such a function can return
+ * KLFErrorStatus with its \a ok flag set to \a true or \a false depending on
+ * the task outcome, and a possible error message if \a ok is \a false.
+ *
+ * Use the corresponding constructor to indicate either a successful result or
+ * a failure.
+ */
+
+/** \fn KLF_EXPORT KLFErrorStatus::KLFErrorStatus()
+ * \brief Initialize the KLFErrorStatus to indicate SUCCESS
+ *
+ * The \a ok member is set to \a true and the \a error_msg field is set to a
+ * null string.
+ */
+
+/** \fn KLF_EXPORT KLFErrorStatus::KLFErrorStatus(QString)
+ * \brief Initialize the KLFErrorStatus to indicate FAILURE with corresponding error message
+ *
+ * The \a ok member is set to \a false and the \a error_msg is set to the given
+ * value.
+ */
+
+
 /* -- * ------- NOT PROVIDED. NOT NICE. -------------------
   \def KLF_PROPERTY_GET
   \hideinitializer
@@ -1143,6 +1170,19 @@ KLF_EXPORT QDebug __klf_warning_hdr(QDebug warndbg, const char * funcname, const
 // ----------------------------------------
 
 
+KLFErrorStatus::KLFErrorStatus()
+  : ok(true), error_msg()
+{
+}
+
+KLFErrorStatus::KLFErrorStatus(QString error_msg_)
+  : ok(false), error_msg(error_msg_)
+{
+}
+
+
+
+// ----------------------------------------
 
 
 QStringList klf_version_suffixes =

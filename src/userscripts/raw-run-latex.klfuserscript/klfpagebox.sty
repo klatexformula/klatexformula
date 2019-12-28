@@ -1,0 +1,115 @@
+\ProvidesPackage{klfpagebox}{}
+
+\def\klf@engine{}
+\def\klfSetEngine#1{\xdef\klf@engine{#1}}
+
+
+\def\klf@setpapersize@latex#1#2{% #1 = width, #2 = height
+  \paperwidth=#1\relax
+  \paperheight=#2\relax
+}
+
+\def\klf@setpapersize@pdflatex#1#2{% #1 = width, #2 = height
+  \paperwidth=#1\relax
+  \paperheight=#2\relax
+  \pdfpagewidth=#1\relax % pdflatex
+  \pdfpageheight=#2\relax % pdflatex
+}
+\def\klf@setpapersize@lualatex#1#2{% #1 = width, #2 = height
+  \paperwidth=#1\relax
+  \paperheight=#2\relax
+  \pagewidth=#1\relax % lualatex
+  \pageheight=#2\relax % lualatex
+}
+
+\def\klfSetAuxDims{%
+  \oddsidemargin=0pt\relax
+  \evensidemargin=0pt\relax
+  \topmargin=0pt\relax
+  \voffset=-1in\relax
+  \hoffset=-1in\relax
+  \headsep=0pt\relax
+  \headheight=0pt\relax
+  \marginparsep=0pt\relax
+  \footskip=0pt\relax
+  \parindent=0pt\relax
+  \parskip=0pt\relax
+}
+
+\def\klfSetPaperDims#1#2{% #1 = width, #2 = height
+  \textwidth=#1\relax
+  \textheight=#2\relax
+  \hsize=#1\relax
+  \vsize=#2\relax
+  \ifcsname klf@setpapersize@\klf@engine\endcsname
+    \csname klf@setpapersize@\klf@engine\endcsname{#1}{#2}%
+  \else
+    \PackageError{klfpagebox}{Engine unspecified or unknown engine. %
+      Please set a known LaTeX engine with \string\klfSetEngine}{}%
+  \fi
+  \klfSetAuxDims
+}
+
+\def\klfSetDisplaySkipLengths{%
+  \abovedisplayskip=0pt\relax
+  \belowdisplayskip=0pt\relax
+  \abovedisplayshortskip=0pt\relax
+  \belowdisplayshortskip=0pt\relax
+  \topskip=0pt\relax
+}
+
+
+% set all dimensions correctly
+\klfSetAuxDims
+\klfSetDisplaySkipLengths
+
+
+\newbox\klf@eqnbox
+\newdimen\klf@eqnbox@w
+\newdimen\klf@eqnbox@h
+\newdimen\klf@eqnbox@d
+\newdimen\klf@eqnbox@th
+
+
+\def\klfPreambleSetup{%
+  %\klfSetPaperDims{.5in}{1in}
+  \klfSetPaperDims{1pt}{1pt}
+  \RequirePackage{color}
+  \pagecolor{white}
+  \pagestyle{empty}
+  \thispagestyle{empty}
+}
+
+\def\klfequation{%
+  \begin{document}%
+  \setbox\klf@eqnbox\vbox\bgroup%
+    \klfSetDisplaySkipLengths%
+}
+\def\endklfequation{%
+  \egroup
+  \klf@eqnbox@w=\wd\klf@eqnbox\relax
+  \klf@eqnbox@h=\ht\klf@eqnbox\relax
+  \klf@eqnbox@d=\dp\klf@eqnbox\relax
+  \klf@eqnbox@th=\dimexpr\klf@eqnbox@h+\klf@eqnbox@d\relax
+  % W: \the\klf@eqnbox@w \\
+  % H: \the\ht\klf@eqnbox\\
+  % D: \the\dp\klf@eqnbox\\
+  % TH: \the\klf@eqnbox@th \\
+  % \rule{1pt}{1pt}\raisebox{\klf@eqnbox@d}[\klf@eqnbox@th][0pt]{%
+  %     \rule{1pt}{1pt}\box\klf@eqnbox}\rule{\klf@eqnbox@w}{\klf@eqnbox@th}
+  %
+  \klfSetPaperDims{\klf@eqnbox@w}{\klf@eqnbox@th}%
+  %
+  % Finally, display the box, raised appropriately by the given depth:
+  \par\raisebox{\klf@eqnbox@d}[\klf@eqnbox@th][0pt]{\box\klf@eqnbox}%
+  %
+  % Provide size/depth information to caller via messages on STDOUT
+  \message{^^J%
+***---*** KLF_META_INFO ***---***^^J%
+WIDTH={\the\klf@eqnbox@w}^^J%
+TOTAL_HEIGHT={\the\klf@eqnbox@th}^^J%
+BOX_HEIGHT={\the\klf@eqnbox@h}^^J%
+DEPTH={\the\klf@eqnbox@d}^^J%
+***---***}%
+  \end{document}%
+}

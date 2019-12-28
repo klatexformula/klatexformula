@@ -108,6 +108,53 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 
 
 
+struct klf_result_failure {
+  klf_result_failure(const QString & error_msg_) : error_msg(error_msg_) { }
+  QString error_msg;
+};
+
+struct KLFErrorStatus
+{
+  KLFErrorStatus(bool ok_ = true, QString error_msg_ = QString())
+    : ok(ok_), error_msg(error_msg_)
+  { }
+  KLFErrorStatus(const klf_result_failure& failure) : ok(false), error_msg(failure.error_msg) { }
+
+  bool ok;
+  QString error_msg;
+};
+
+template<class ResultType>
+struct KLFResultErrorStatus
+{
+  KLFResultErrorStatus(const ResultType & result_)
+    : ok(true), result(result_), error_msg()
+  { }
+  KLFResultErrorStatus(const klf_result_failure & failure)
+    : ok(false), result(), error_msg(failure.error_msg)
+  { }
+
+  KLFResultErrorStatus() : ok(false), result(), error_msg() { }
+  KLFResultErrorStatus(bool ok_, const ResultType & result_, const QString & error_msg_)
+    : ok(ok_), result(result_), error_msg(error_msg_)
+  { }
+
+  bool ok;
+  ResultType result;
+  QString error_msg;
+};
+
+
+template<class ResultType>
+inline KLFResultErrorStatus<ResultType> klf_result_success(const ResultType & result)
+{
+  return KLFResultErrorStatus<ResultType>(true, result);
+}
+template<class ResultType>
+inline KLFResultErrorStatus<ResultType> klf_result_failure(const QString & error_msg)
+{
+  return KLFResultErrorStatus<ResultType>(true, result);
+}
 
 
 #define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)	\
