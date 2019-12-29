@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfstdworkflow.cpp
+ *   file klfstdimplementation.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,7 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include "klfstdworkflow.h"
+#include "klfstdimplementation.h"
 
 
 
@@ -33,16 +33,16 @@
 
 // ---------------------------------------------------------
 
-struct KLFBackendDefaultWorkflowPrivate
+struct KLFBackendDefaultImplementationPrivate
 {
-  KLF_PRIVATE_HEAD(KLFBackendDefaultWorkflow)
+  KLF_PRIVATE_HEAD(KLFBackendDefaultImplementation)
   {
   }
 
 
 
   //
-  // New, cleaner compilation workflow as of KLF 5 with the following additional
+  // New, cleaner compilation implementation as of KLF 5 with the following additional
   // goals:
   //
   //  - get the baseline right, e.g. in HTML export formats
@@ -95,13 +95,13 @@ struct KLFBackendDefaultWorkflowPrivate
 };
 
 
-KLFBackendDefaultWorkflow::KLFBackendDefaultWorkflow(QObject * parent)
-  : KLFBackendWorkflow(parent)
+KLFBackendDefaultImplementation::KLFBackendDefaultImplementation(QObject * parent)
+  : KLFBackendImplementation(parent)
 {
-  KLF_INIT_PRIVATE(KLFBackendDefaultWorkflow) ;
+  KLF_INIT_PRIVATE(KLFBackendDefaultImplementation) ;
 }
 
-KLFBackendDefaultWorkflow::~KLFBackendDefaultWorkflow()
+KLFBackendDefaultImplementation::~KLFBackendDefaultImplementation()
 {
   KLF_DELETE_PRIVATE ;
 }
@@ -111,7 +111,7 @@ KLFBackendDefaultWorkflow::~KLFBackendDefaultWorkflow()
 
 
 KLFBackendCompilationTask *
-KLFBackendDefaultWorkflow::createCompilationTask(const KLFBackend::klfInput & input,
+KLFBackendDefaultImplementation::createCompilationTask(const KLFBackend::klfInput & input,
                                                  const QVariantMap & parameters)
 {
   return d->create_compilation_task(input, parameters);
@@ -136,7 +136,7 @@ struct KLFBackendDefaultCompilationTaskPrivate
 
 KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
     const KLFBackendInput & input, const KLFBackendSettings & settings,
-    KLFBackendDefaultWorkflow * workflow
+    KLFBackendDefaultImplementation * implementation
     )
 {
   KLF_INIT_PRIVATE(KLFBackendDefaultCompilationTask) ;

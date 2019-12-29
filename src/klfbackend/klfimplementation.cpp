@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfworkflow.cpp
+ *   file klfimplementation.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -22,7 +22,7 @@
 /* $Id$ */
 
 
-#include "klfworkflow.h"
+#include "klfimplementation.h"
 
 
 
@@ -66,9 +66,9 @@
 
 
 
-struct KLFBackendWorkflowPrivate
+struct KLFBackendImplementationPrivate
 {
-  KLF_PRIVATE_HEAD(KLFBackendWorkflow)
+  KLF_PRIVATE_HEAD(KLFBackendImplementation)
   {
   }
 
@@ -76,22 +76,22 @@ struct KLFBackendWorkflowPrivate
 };
 
 
-KLFBackendWorkflow::KLFBackendWorkflow(QObject * parent)
+KLFBackendImplementation::KLFBackendImplementation(QObject * parent)
   : QObject(parent)
 {
-  KLF_INIT_PRIVATE(KLFBackendWorkflow) ;
+  KLF_INIT_PRIVATE(KLFBackendImplementation) ;
 };
 
-KLFBackendWorkflow::~KLFBackendWorkflow()
+KLFBackendImplementation::~KLFBackendImplementation()
 {
   KLF_DELETE_PRIVATE ;
 }
 
-void KLFBackendWorkflow::setSettings(const KLFBackendSettings & settings)
+void KLFBackendImplementation::setSettings(const KLFBackendSettings & settings)
 {
   d->settings = settings;
 }
-KLFBackend::klfSettings KLFBackendWorkflow::settings() const
+KLFBackend::klfSettings KLFBackendImplementation::settings() const
 {
   return d->settings;
 }
@@ -103,10 +103,10 @@ struct KLFBackendCompilationTaskPrivate
 {
   KLF_PRIVATE_HEAD(KLFBackendCompilationTask)
   {
-    workflow = NULL;
+    implementation = NULL;
   }
 
-  KLFBackendWorkflow * workflow;
+  KLFBackendImplementation * implementation;
 
   KLFBackendInput input;
   KLFBackendSettings settings;
@@ -120,12 +120,12 @@ struct KLFBackendCompilationTaskPrivate
 
 KLFBackendCompilationTask::KLFBackendCompilationTask(
     const KLFBackendInput & input, const KLFBackendSettings & settings,
-    KLFBackendWorkflow * workflow
+    KLFBackendImplementation * implementation
     )
-  : QObject(workflow)
+  : QObject(implementation)
 {
   KLF_INIT_PRIVATE(KLFBackendCompilationTask) ;
-  d->workflow = workflow;
+  d->implementation = implementation;
   d->input = input;
   d->settings = settings;
 }
@@ -165,7 +165,7 @@ KLFBackendCompilationTask::getOutput(const QString & format_,
 }
 
 
-KLFErrorStatus KLFBackendWorkflow::saveToDevice(QIODevice * device,
+KLFErrorStatus KLFBackendImplementation::saveToDevice(QIODevice * device,
                                                 const QString & format_,
                                                 const QVariantMap & parameters)
 {
@@ -182,7 +182,7 @@ KLFErrorStatus KLFBackendWorkflow::saveToDevice(QIODevice * device,
   return true;
 }
 
-KLFErrorStatus KLFBackendWorkflow::saveToFile(const QString& filename,
+KLFErrorStatus KLFBackendImplementation::saveToFile(const QString& filename,
                                               const QString& format_,
                                               const QVariantMap & parameters)
 {

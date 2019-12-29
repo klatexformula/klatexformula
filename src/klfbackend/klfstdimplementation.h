@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfstdworkflow.h
+ *   file klfstdimplementation.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,30 +21,30 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFSTDWORKFLOW_H
-#define KLFSTDWORKFLOW_H
+#ifndef KLFSTDIMPLEMENTATION_H
+#define KLFSTDIMPLEMENTATION_H
 
 
 #include <klfdefs.h>
-#include <klfworkflow.h>
+#include <klfimplementation.h>
 
 
 class KLFBackendDefaultCompilationTask;
 
-struct KLFBackendDefaultWorkflowPrivate;
+struct KLFBackendDefaultImplementationPrivate;
 
-class KLFBackendDefaultWorkflow : public KLFBackendWorkflow
+class KLFBackendDefaultImplementation : public KLFBackendImplementation
 {
   Q_OBJECT
 public:
-  KLFBackendDefaultWorkflow(QObject * parent);
-  virtual ~KLFBackendDefaultWorkflow();
+  KLFBackendDefaultImplementation(QObject * parent);
+  virtual ~KLFBackendDefaultImplementation();
 
   KLFBackendCompilationTask *
   createCompilationTask(const KLFBackendInput & input, const QVariantMap & parameters);
 
 private:
-  KLF_DECLARE_PRIVATE(KLFBackendDefaultWorkflow) ;
+  KLF_DECLARE_PRIVATE(KLFBackendDefaultImplementation) ;
 };
 
 
@@ -55,7 +55,7 @@ class KLFBackendDefaultCompilationTask : public KLFBackendCompilationTask
   Q_OBJECT
 public:
   KLFBackendDefaultCompilationTask(const KLFBackendInput & input, const KLFBackendSettings & settings,
-                                   KLFBackendDefaultWorkflow * workflow);
+                                   KLFBackendDefaultImplementation * implementation);
   virtual ~KLFBackendDefaultCompilationTask();
 
   virtual QStringList availableFormats() const;

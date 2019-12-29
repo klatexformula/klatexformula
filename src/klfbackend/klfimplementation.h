@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfworkflow.h
+ *   file klfimplementation.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2019 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,8 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFWORKFLOW_H
-#define KLFWORKFLOW_H
+#ifndef KLFIMPLEMENTATION_H
+#define KLFIMPLEMENTATION_H
 
 
 #include <klfdefs.h>
@@ -35,9 +35,9 @@
  * procedure, ie. the LaTeX code, the mathmode to use, the dpi for rendering
  * png, colors etc.
  *
- * Here are the main, base settings.  Individual workflows may have additional
+ * Here are the main, base settings.  Individual implementations may have additional
  * arguments that are passed via the \a parameters argument to \ref
- * KLFBackendWorkflow::createCompilationTask().
+ * KLFBackendImplementation::createCompilationTask().
  */
 struct KLFBackendInput
 {
@@ -188,14 +188,14 @@ struct KLFBackendSettings
 
 
 class KLFBackendCompilationTask;
-struct KLFBackendWorkflowPrivate;
+struct KLFBackendImplementationPrivate;
 
-class KLFBackendWorkflow
+class KLFBackendImplementation
 {
   Q_OBJECT
 public:
-  KLFBackendWorkflow(QObject * parent);
-  virtual ~KLFBackendWorkflow();
+  KLFBackendImplementation(QObject * parent);
+  virtual ~KLFBackendImplementation();
 
   void setSettings(const KLFBackendSettings & settings);
   KLFBackendSettings settings() const;
@@ -210,8 +210,8 @@ public:
    *
    * Returned instances must be \a new-allocated.  As subclasses of \ref
    * KLFBackendCompilationTask, they are \ref QObject 's; they must be given the
-   * \a KLFBackendWorkflow given as parent. This way, non-deleted compilation
-   * tasks get deleted when the KLFBackendWorkflow instance gets destroyed.
+   * \a KLFBackendImplementation given as parent. This way, non-deleted compilation
+   * tasks get deleted when the KLFBackendImplementation instance gets destroyed.
    * Furthermore, in this way users have the guarantee that it is safe to \a
    * delete instances returned by this method.
    */
@@ -219,7 +219,7 @@ public:
                                                     const QVariantMap & parameters) = 0;
 
 private:
-  KLF_DECLARE_PRIVATE(KLFBackendWorkflow) ;
+  KLF_DECLARE_PRIVATE(KLFBackendImplementation) ;
 };
 
 
@@ -231,7 +231,7 @@ class KLFBackendCompilationTask
   Q_OBJECT
 public:
   KLFBackendCompilationTask(const KLFBackendInput & input, const KLFBackendSettings & settings,
-                            KLFBackendWorkflow * workflow);
+                            KLFBackendImplementation * implementation);
   virtual ~KLFBackendCompilationTask();
 
   /** \brief Obtain output in a given format (with specified parameters)
