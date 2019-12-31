@@ -24,6 +24,134 @@
 
 #include "klfimplementation.h"
 
+#include <QTemporaryDir>
+
+
+
+
+// some standard guess settings for system configurations
+
+#ifdef KLF_EXTRA_SEARCH_PATHS
+#  define EXTRA_PATHS KLF_EXTRA_SEARCH_PATHS
+#else
+#  define EXTRA_PATHS ""
+#endif
+
+
+struct klfbackend_exe_names {
+  QString prog_name;
+  QStringList exe_names;
+};
+
+#if defined(Q_OS_WIN)
+static klfbackend_exe_names search_latex_exe_names = {
+  "latex-engines",
+  QStringList()
+  // << "%1" << "%1.exe" // exe name itself (& corresponding "XXX.exe") is automatically searched for
+};
+static klfbackend_exe_names search_gs_exe_names = {
+  "gs", QStringList() << "gswin32c.exe" << "gswin64c.exe" << "mgs.exe"
+};
+static QStringList std_extra_paths =
+  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  << "C:\\Program Files*\\MiKTeX*\\miktex\\bin"
+  << "C:\\texlive\\*\\bin\\win*"
+  << "C:\\Program Files*\\gs*\\gs*\\bin"
+  ;
+#elif defined(Q_OS_MACOS)
+static klfbackend_exe_names search_latex_exe_names = {
+  "latex-engines",
+  QStringList() // exe name itself is automatically searched for
+};
+static klfbackend_exe_names search_gs_exe_names = {
+  "gs", QStringList() // exe name itself is automatically searched for
+};
+static QStringList std_extra_paths =
+  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  << "/usr/texbin"
+  << "/Library/TeX/texbin"
+  << "/usr/local/bin"
+  << "/opt/local/bin"
+  << "/sw/bin"
+  << "/sw/usr/bin"
+  ;
+#else
+static klfbackend_exe_names search_latex_exe_names = {
+  "latex-engines",
+  QStringList() // exe name itself is automatically searched for
+};
+static klfbackend_exe_names search_gs_exe_names = {
+  "gs", QStringList() // exe name itself is automatically searched for
+};
+static QStringList std_extra_paths =
+  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  ;
+#endif
+
+
+const QStringList & get_std_extra_paths()
+{
+  static QStringList res_std_extra_paths;
+  static bool initialized = false;
+
+  if (qApp == NULL) {
+    klfWarning("get_std_extra_paths called before qApp is initialized (qApp==NULL still)") ;
+    return std_extra_paths;
+  }
+
+  if (!initialized) {
+    res_std_extra_paths = std_extra_paths.replaceInStrings(
+        "@executable_path",
+        qApp->applicationDirPath()
+        );
+    initialized = true;
+  }
+  return res_std_extra_paths;
+}
+
+
+// static
+QString KLFBackendSettings::findLatexEngineExecutable(const QString & engine,
+                                                      const QStringList & extra_path)
+{
+  return findExecutable(engine, search_latex_exe_names.exe_names, extra_path);
+}
+
+// static
+QString KLFBackendSettings::findGsExecutable(const QStringList & extra_path)
+{
+  return findExecutable("gs", search_gs_exe_names.exe_names, extra_path);
+}
+
+// static
+QString KLFBackendSettings::findExecutable(const QString & exe_name,
+                                           const QStringList & exe_patterns_,
+                                           const QStringList & extra_path)
+{
+  const QStringList exe_patterns =
+    exe_patterns_.replaceInStrings("%1", exe_name)
+#ifdef Q_OS_WIN
+    << exe_name+".exe"
+#endif
+    << exe_name
+    ;
+  
+  QStringList std_paths;
+  if (extra_path) {
+    std_paths.append( extra_path );
+  }
+  std_paths.append( get_std_extra_paths() );
+  
+  KLFPathSearcher srch(exe_patterns, std_paths, true);
+
+  QString result = srch.findFirstMatch();
+
+  if (result.isEmpty()) {
+    klfWarning("Cannot find executable for latex engine: " << engine << "") ;
+  }
+
+  return result;
+}
 
 
 
@@ -101,15 +229,25 @@ KLFBackend::klfSettings KLFBackendImplementation::settings() const
 
 struct KLFBackendCompilationTaskPrivate
 {
-  KLF_PRIVATE_HEAD(KLFBackendCompilationTask)
+  KLFBackendCompilationTask * K;
+
+  KLFBackendCompilationTaskPrivate(
+      KLFBackendCompilationTask * K_,
+      const KLFBackendInput & input_, const QVariantMap & parameters_,
+      const KLFBackendSettings & settings_, KLFBackendImplementation * implementation_)
+    : K(_K), input(input_), parameters(parameters_),
+      settings(settings_), implementation(implementation_),
+      temp_dir_objs()
   {
-    implementation = NULL;
   }
 
   KLFBackendImplementation * implementation;
 
-  KLFBackendInput input;
-  KLFBackendSettings settings;
+  const KLFBackendInput input;
+  const KLFBackendSettings settings;
+  const QVariantMap parameters;
+
+  QList<QTemporaryDir*> temp_dir_objs;
 
   QMutex mutex;
   QMap<QPair<QString,QByteArray>, QByteArray> cached_output;
@@ -119,21 +257,83 @@ struct KLFBackendCompilationTaskPrivate
 
 
 KLFBackendCompilationTask::KLFBackendCompilationTask(
-    const KLFBackendInput & input, const KLFBackendSettings & settings,
-    KLFBackendImplementation * implementation
+    const KLFBackendInput & input, const QVariantMap & parameters,
+    const KLFBackendSettings & settings, KLFBackendImplementation * implementation
     )
   : QObject(implementation)
 {
-  KLF_INIT_PRIVATE(KLFBackendCompilationTask) ;
-  d->implementation = implementation;
-  d->input = input;
-  d->settings = settings;
+  d = new KLFBackendCompilationTaskPrivate(this, input, parameters, settings, implementation) ;
 }
 
 KLFBackendCompilationTask::~KLFBackendCompilationTask()
 {
-  KLF_DELETE_PRIVATE ;
+  if (d != NULL) {
+    Q_FOREACH(QTemporaryDir * td, d->temp_dir_objs) {
+      delete td;
+    }
+    d->temp_dir_objs.clear();
+  }
+
+  if (d != NULL) {
+    delete d;
+    d = NULL;
+  }
 }
+
+
+const KLFBackendInput & KLFBackendCompilationTask::input() const
+{
+  // validity of const reference should be good until current instance is deleted
+  return d->input;
+}
+const QVariantMap & KLFBackendCompilationTask::parameters() const
+{
+  // validity of const reference should be good until current instance is deleted
+  return d->parameters;
+}
+const KLFBackendSettings & KLFBackendCompilationTask::settings() const
+{
+  // validity of const reference should be good until current instance is deleted
+  return d->settings;
+}
+
+KLFBackendImplementation * KLFBackendCompilationTask::implementation() const
+{
+  return d->implementation;
+}
+
+
+
+KLFResultErrorStatus<QString> KLFBackendCompilationTask::createTemporaryDir()
+{
+  QString ver = KLF_VERSION_STRING;
+  ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
+  // the base name for all our temp files
+  QString temptemplate = d->settings.temp_dir + "/klftmp"+ver+"-XXXXXX";
+
+  // create the temporary directory
+  QTemporaryDir * tdir = new QTemporaryDir(temptemplate);
+
+  if (!tdir.isValid()) {
+    // failed to create temporary directory
+    delete tdir;
+    return klf_result_failure(tr("Failed to create temporary directory in '%1'")
+                              .arg(d->settings.temp_dir));
+  }
+
+  d->temp_dir_objs.append(tdir);
+
+  // TODO: allow to disable this when debugging, e.g. using an environment variable
+  tdir->setAutoRemove(true);
+
+  QString path = tdir.path();
+  if (!path.endsWith(QString(KLF_DIR_SEP))) {
+    // guarantee trailing slash in returned path
+    path += QString(KLF_DIR_SEP);
+  }
+  return path;
+}
+
 
 KLFResultErrorStatus<QByteArray>
 KLFBackendCompilationTask::getOutput(const QString & format_,
@@ -165,9 +365,9 @@ KLFBackendCompilationTask::getOutput(const QString & format_,
 }
 
 
-KLFErrorStatus KLFBackendImplementation::saveToDevice(QIODevice * device,
-                                                const QString & format_,
-                                                const QVariantMap & parameters)
+KLFErrorStatus KLFBackendCompilationTask::saveToDevice(QIODevice * device,
+                                                       const QString & format_,
+                                                       const QVariantMap & parameters)
 {
   QString format = format_.toUpper();
 
@@ -182,9 +382,9 @@ KLFErrorStatus KLFBackendImplementation::saveToDevice(QIODevice * device,
   return true;
 }
 
-KLFErrorStatus KLFBackendImplementation::saveToFile(const QString& filename,
-                                              const QString& format_,
-                                              const QVariantMap & parameters)
+KLFErrorStatus KLFBackendCompilationTask::saveToFile(const QString& filename,
+                                                     const QString& format_,
+                                                     const QVariantMap & parameters)
 {
   QString format = format_.toUpper();
 

@@ -112,6 +112,9 @@ struct klf_result_failure {
   klf_result_failure(const QString & error_msg_) : error_msg(error_msg_) { }
   QString error_msg;
 };
+struct klf_result_success {
+  klf_result_success() {}
+};
 
 struct KLFErrorStatus
 {
@@ -119,6 +122,7 @@ struct KLFErrorStatus
     : ok(ok_), error_msg(error_msg_)
   { }
   KLFErrorStatus(const klf_result_failure& failure) : ok(false), error_msg(failure.error_msg) { }
+  KLFErrorStatus(klf_result_success ) : ok(true), error_msg() { }
 
   bool ok;
   QString error_msg;

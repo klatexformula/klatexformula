@@ -185,30 +185,35 @@ KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVarian
 
 // ----------------------------------------------------
 
-
 // negative limit means "no limit"
-static QStringList __search_find_test(const QString& root, const QStringList& pathlist,
-				      int level, int limit)
+static QStringList _klf_search_find_test(const QString& root, const QStringList& pathlist,
+                                         int level, int limit,
+                                         KLFPathSearcher * searcher = NULL) // tests predicate if non-NULL
 {
-  if (limit == 0)
+  if (limit == 0) {
     return QStringList();
-
-  if (limit < 0)
+  }
+  if (limit < 0) {
     limit = -1; // normalize negative values to -1 (mostly cosmetic...)
+  }
 
-  klfDebugf(("root=`%s', pathlist=`%s', level=%d, limit=%d", qPrintable(root), qPrintable(pathlist.join("\t")),
+  klfDebugf(("root=`%s', pathlist=`%s', level=%d, limit=%d",
+             qPrintable(root), qPrintable(pathlist.join("\t")),
 	     level, limit));
 
   QStringList newpathlist = pathlist;
   // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
   QStringList levelpathlist;
   int k;
-  for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
+  for (k = 0; k < level; ++k) {
+    levelpathlist << newpathlist[k];
+  }
   // the dir/file at our level:
   QString flpath = root+levelpathlist.join("/");
   klfDebugf(("our path = `%s' ...", qPrintable(flpath)));
   QFileInfo flinfo(flpath);
-  if (flinfo.isDir() && level < pathlist.size()) { // is dir, and we still have path level to explore
+  if (flinfo.isDir() && level < pathlist.size()) {
+    // is dir, and we still have path level to explore
     klfDebugf(("... is dir.")) ;
     QDir d(flpath);
     QStringList entries;
@@ -219,15 +224,23 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     QStringList hitlist;
     for (k = 0; k < (int)entries.size(); ++k) {
       newpathlist[level] = entries[k];
-      hitlist += __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
-      if (limit >= 0 && (int)hitlist.size() >= limit) // reached limit
+      hitlist += _klf_search_find_test(root, newpathlist, level+1, limit - hitlist.size(),
+                                       searcher);
+      if (limit >= 0 && (int)hitlist.size() >= limit) {
+        // reached limit
 	break;
+      }
     }
     return hitlist;
   }
   if (flinfo.exists()) {
     klfDebugf(("... is existing file.")) ;
-    return QStringList() << QDir::toNativeSeparators(root+pathlist.join("/"));
+    QString result = root+pathlist.join("/");
+    if (searcher != NULL && !searcher->filter_predicate(root, pathlist, result)) {
+      // filtered out by searcher predicate
+      return QStringList();
+    }
+    return QStringList() << QDir::toNativeSeparators(result);
   }
   klfDebugf(("... is invalid.")) ;
   return QStringList();
@@ -238,9 +251,8 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
 
 
 
-
-
-KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
+static QStringList klf_search_find(const QString & wildcard_expression, int limit,
+                                   KLFPathSearcher * searcher = NULL) // callback for predicate
 {
   klfDbg("looking for "+wildcard_expression) ;
 
@@ -249,30 +261,40 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
   QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
   QString root = "/";
   // drive regular expression, or simply QResource :/path
-  static QRegExp driveregexp("^[A-Za-z]?:$");
-  if (driveregexp.exactMatch(pathlist[0])) {
+  static QRegularExpression drive_regexp("^[A-Za-z]?:$");
+  if (drive_regexp.match(pathlist[0]).hasMatch()) {
     // Windows System with X: drive letter
     root = pathlist[0]+"/";
     pathlist.pop_front();
   }
-  return __search_find_test(root, pathlist, 0, limit);
+  return _klf_search_find_test(root, pathlist, 0, limit);
+}
+
+KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
+{
+  return klf_search_find(wildcard_expression, limit);
 }
 
 KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  //
+  // ### We should be able to replace this by a simple call to KLFPathSearcher
+  //
+
   static const QString PATH = getenv("PATH");
   static const QString pathsep = QString("")+KLF_PATH_SEP;
 
   QFileInfo fi(programName);
-  if (fi.isAbsolute() && fi.exists() && fi.isExecutable())
+  if (fi.isAbsolute() && fi.exists() && fi.isExecutable()) {
     return programName;
-
+  }
 
   QString path = PATH;
-  if (!extra_path.isEmpty())
+  if (!extra_path.isEmpty()) {
     path = extra_path + pathsep + path;
+  }
 
   const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
   QString test;
@@ -288,7 +310,7 @@ KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extr
       }
     }
   }
-  return QString::null;
+  return QString();
 }
 
 KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& paths)
@@ -356,6 +378,98 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path_, const QString& ref_)
   klfDbg("result = " << result) ;
   return result;
 }
+
+
+struct KLFPathSearcherPrivate
+{
+  KLF_PATH_HEAD(KLFPathSearcher)
+  {
+    exe_mode = false;
+  }
+  
+  QStringList fname_patterns;
+  QStringList search_paths;
+  bool exe_mode;
+};
+
+KLFPathSearcher::KLFPathSearcher(const QString & fname,
+                                 const QStringList & search_paths,
+                                 bool exe_mode)
+{
+  KLF_INIT_PRIVATE(KLFPathSearcher) ;
+  d->fname_patterns = QStringList() << fname;
+  d->search_paths = search_paths;
+  d->exe_mode = exe_mode;
+}
+KLFPathSearcher::KLFPathSearcher(const QStringList & fname_patterns,
+                                 const QStringList & search_paths = QStringList(),
+                                 bool exe_mode = false)
+{
+  KLF_INIT_PRIVATE(KLFPathSearcher) ;
+  d->fname_patterns = fname_patterns;
+  d->search_paths = search_paths;
+  d->exe_mode = exe_mode;
+}
+virtual KLFPathSearcher::~KLFPathSearcher()
+{
+  KLF_DELETE_PRIVATE ;
+}
+
+QStringList KLFPathSearcher::fileNamePatterns() const { return d->fname_patterns; }
+void KLFPathSearcher::setFileNamePatterns(const QStringList & fname_patterns)
+{
+  d->fname_patterns = fname_patterns;
+}
+void KLFPathSearcher::addFileNamePatterns(const QStringList & more_fname_patterns)
+{
+  d->fname_patterns.append(more_fname_patterns);
+}
+
+QStringList KLFPathSearcher::searchPaths() const { return d->search_paths; }
+void setSearchPaths(const QStringList & search_paths)
+{
+  d->search_paths = search_paths;
+}
+void addSearchPaths(const QStringList & more_search_paths);
+{
+  d->search_paths.append(more_search_paths);
+}
+
+
+QStringList KLFPathSearcher::findMatches(int threshold_matches)
+{
+  QStringList results;
+
+  QStringList paths = d->search_paths;
+  if (d->exe_mode) {
+    // add $PATH environment
+    QString PATH = getenv("PATH");
+    paths.append(klfSplitEnvironmentPath(PATH));
+  }
+
+  foreach (QString search_path, paths) {
+    foreach (QString fname_pattern, d->fname_patterns) {
+      results += klf_search_find(search_path + "/" + fname_pattern,
+                                 threshold_matches - results.size(),
+                                 this);
+      if (results.size() > threshold_matches) {
+        return results;
+      }
+    }
+  }
+  return QStringList();
+}
+
+QString KLFPathSearcher::findFirstMatch()
+{
+  QStringList results = findMatches(1);
+  if (!results.size()) {
+    return QString();
+  }
+  return results[0];
+}
+
+
 
 
 // -----------------------------------------------------

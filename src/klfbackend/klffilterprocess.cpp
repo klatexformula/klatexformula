@@ -105,6 +105,8 @@ struct KLFFilterProcessPrivate {
   void init(const QString& pTitle, const KLFBackend::klfSettings *settings,
             const QString& rundir, bool inheritProcessEnvironment);
 
+  void setFromBackendSettings(const KLFBackendSettings & settings);
+
   QString progTitle;
   QString programCwd;
   QStringList execEnviron;
@@ -116,8 +118,8 @@ struct KLFFilterProcessPrivate {
   bool outputStdout;
   bool outputStderr;
 
-  QByteArray *collectStdout;
-  QByteArray *collectStderr;
+  QByteArray * collectStdout;
+  QByteArray * collectStderr;
 
   bool processAppEvents;
 
@@ -131,6 +133,12 @@ struct KLFFilterProcessPrivate {
 
 // ---------
 
+
+KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const QString& rundir)
+{
+  KLF_INIT_PRIVATE(KLFFilterProcess) ;
+  d->init(pTitle, NULL, rundir, false);
+}
 
 KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
                                    const QString& rundir)
@@ -165,7 +173,7 @@ void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfS
   if (settings != NULL) {
     if (!rundir.size()) {
       programCwd = settings->tempdir;
-      klfDbg("set programCwd to : "<<programCwd) ;
+      klfDbg("set programCwd to : " << programCwd) ;
     }
     QStringList curenv;
     if (inheritProcessEnvironment) {
@@ -179,7 +187,7 @@ void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfS
     interpreters = settings->userScriptInterpreters;
   }
 
-  processAppEvents = true;
+  processAppEvents = false;
 
   exitStatus = -1;
   exitCode = -1;
@@ -187,13 +195,37 @@ void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfS
   resErrorString = QString();
 }
 
+void KLFFilterProcessPrivate::setFromBackendSettings(const KLFBackendSettings & settings,
+                                                     bool inheritProcessEnvironment)
+{
+  if (!programCwd.size()) {
+    programCwd = settings->temp_dir;
+    klfDbg("set programCwd to : " << programCwd) ;
+  }
+  QStringList curenv;
+  if (inheritProcessEnvironment) {
+    curenv = klfCurrentEnvironment();
+  }
+  execEnviron = klfMergeEnvironment(curenv, settings->exec_env,
+                                    QStringList()<<"PATH"<<"TEXINPUTS"<<"BIBINPUTS"<<"PYTHONPATH",
+                                    KlfEnvPathPrepend|KlfEnvMergeExpandVars);
+  klfDbg("set execution environment to : "<<execEnviron) ;
+    
+  interpreters = settings->user_script_interpreters;
+}
+
+
 
 KLFFilterProcess::~KLFFilterProcess()
 {
   KLF_DELETE_PRIVATE ;
 }
 
-
+void KLFFilterProcess::setFromBackendSettings(const KLFBackendSettings & settings,
+                                              bool inheritProcessEnvironment)
+{
+  d->setFromBackendSettings(settings, inheritProcessEnvironment);
+}
 
 QString KLFFilterProcess::progTitle() const
 {
@@ -301,6 +333,47 @@ QString KLFFilterProcess::resultErrorString() const
 {
   return d->resErrorString;
 }
+
+
+bool KLFFilterProcess::run(const QString& outFileName, QByteArray *outdata)
+{
+  return run(QByteArray(), outFileName, outdata);
+}
+
+bool KLFFilterProcess::run(const QByteArray& indata, const QString& outFileName, QByteArray *outdata)
+{
+  QMap<QString,QByteArray*> fout; fout[outFileName] = outdata;
+  return do_run(indata, fout);
+}
+
+bool KLFFilterProcess::run(const QMap<QString, QByteArray*> outdata)
+{
+  return do_run(QByteArray(), outdata);
+}
+
+bool KLFFilterProcess::run(const QByteArray& indata)
+{
+  return do_run(indata, QMap<QString, QByteArray*>());
+}
+
+/**
+ *
+ * \note multiple output files possible. Each data is retreived into a pointer given by outdata map.
+ *
+ * \param indata a QByteArray to write into the program's standard input
+ * \param outdatalist a QMap with keys being files that are created by the program. These files are
+ *   read and their contents stored in the QByteArray's pointed by the corresponding pointer.
+ * \param resError the klfOutput object is initialized to the corresponding error if an error occurred.
+ *
+ * An empty file name in the list means to collect the standard output.
+ *
+ * \returns TRUE/FALSE for success/failure, respectively.
+ */
+bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
+{
+  return do_run(indata, outdatalist);
+}
+
 
 QMap<QString,QString> KLFFilterProcess::interpreters() const
 {

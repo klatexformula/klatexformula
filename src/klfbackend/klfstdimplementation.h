@@ -40,8 +40,10 @@ public:
   KLFBackendDefaultImplementation(QObject * parent);
   virtual ~KLFBackendDefaultImplementation();
 
-  KLFBackendCompilationTask *
+  KLFResultErrorStatus<KLFBackendCompilationTask *>
   createCompilationTask(const KLFBackendInput & input, const QVariantMap & parameters);
+
+  static QStringList knownLatexEngines();
 
 private:
   KLF_DECLARE_PRIVATE(KLFBackendDefaultImplementation) ;

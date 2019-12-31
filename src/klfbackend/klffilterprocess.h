@@ -47,12 +47,15 @@ class KLFFilterProcessBlockProcess;
 class KLF_EXPORT KLFFilterProcess
 {
 public:
-  KLFFilterProcess(const QString& pTitle = QString(), const KLFBackend::klfSettings *settings = NULL,
+  KLFFilterProcess(const QString& pTitle = QString(), const QString& rundir = QString(),
+                   bool inheritProcessEnvironment = false);
+  //! \deprecated.
+  KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
                    const QString& rundir = QString());
+  //! \deprecated.
   KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
                    const QString& rundir, bool inheritProcessEnvironment);
   virtual ~KLFFilterProcess();
-
 
   QString progTitle() const;
   void setProgTitle(const QString& title);
@@ -63,6 +66,9 @@ public:
   QStringList execEnviron() const;
   void setExecEnviron(const QStringList& env);
   void addExecEnviron(const QStringList& env);
+
+  void setFromBackendSettings(const KLFBackendSettings & settings,
+                              bool inheritProcessEnvironment = false);
 
   QStringList argv() const;
   void setArgv(const QStringList& argv);
@@ -102,26 +108,10 @@ public:
   virtual QString resultErrorString() const;
 
 
-  bool run(const QString& outFileName, QByteArray *outdata)
-  {
-    return run(QByteArray(), outFileName, outdata);
-  }
-
-  bool run(const QByteArray& indata, const QString& outFileName, QByteArray *outdata)
-  {
-    QMap<QString,QByteArray*> fout; fout[outFileName] = outdata;
-    return do_run(indata, fout);
-  }
-
-  bool run(const QMap<QString, QByteArray*> outdata)
-  {
-    return do_run(QByteArray(), outdata);
-  }
-
-  bool run(const QByteArray& indata = QByteArray())
-  {
-    return do_run(indata, QMap<QString, QByteArray*>());
-  }
+  bool run(const QString& outFileName, QByteArray *outdata);
+  bool run(const QByteArray& indata, const QString& outFileName, QByteArray *outdata);
+  bool run(const QMap<QString, QByteArray*> outdata);
+  bool run(const QByteArray& indata = QByteArray());
 
   /**
    *
@@ -136,10 +126,7 @@ public:
    *
    * \returns TRUE/FALSE for success/failure, respectively.
    */
-  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
-  {
-    return do_run(indata, outdatalist);
-  }
+  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist);
 
 protected:
 

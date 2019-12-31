@@ -245,7 +245,7 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
  * This function splits \c extra_path and \c PATH into a directory list, and then, for each directory
  * in that list, calls \ref klfSearchFind() with as argument the string
  * <tt><i>&quot;&lt;directory></i>/<i>&lt;programName></i>&quot;</tt>. This function then returns the
- * first result that is an executable file (this check is explicitely performed).
+ * first result that is an executable file.
  */
 KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
 
@@ -253,11 +253,42 @@ KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path 
  *
  * \todo doc......
  *
- * very much like klfSearchPath(const QString&, const QString&), except that it is not explicitely
+ * very much like klfSearchPath(const QString&, const QString&), except that it is not explicitly
  * targeted at searching for executables. Just look for a file named 'fname' in the given path
  * list. Both 'path' and 'fname' may contain klfSearchFind()-compatible wildcards.
+ *
  */
 KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& path);
+
+
+struct KLFPathSearcherPrivate;
+
+KLF_EXPORT class KLFPathSearcher {
+  KLFPathSearcher(const QString & fname,
+                  const QStringList & search_paths = QStringList(),
+                  bool exe_mode = false);
+  KLFPathSearcher(const QStringList & fname_patterns,
+                  const QStringList & search_paths = QStringList(),
+                  bool exe_mode = false);
+  virtual ~KLFPathSearcher();
+
+  QStringList fileNamePatterns() const;
+  void setFileNamePatterns(const QStringList & fname_patterns);
+  void addFileNamePatterns(const QStringList & more_fname_patterns);
+
+  QStringList searchPaths();
+  void setSearchPaths(const QStringList & search_paths);
+  void addSearchPaths(const QStringList & more_search_paths);
+
+  QString findFirstMatch();
+  QStringList findMatches(int threshold_matches = -1);
+
+protected:
+  virtual bool filter_predicate(const QString & result);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFPathSearcher);
+};
 
 
 
