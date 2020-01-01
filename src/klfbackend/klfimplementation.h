@@ -305,10 +305,40 @@ public:
   virtual KLFResultErrorStatus<QByteArray>
   getOutput(const QString & format, const QVariantMap & parameters = QVariantMap());
 
+  /** \brief Obtain output as a QImage
+   *
+   * This function basically calls \ref getOutput() with a suitable format like
+   * "PNG" and with an empty \a parameters QVariantMap, and uses the resulting
+   * data to construct the QImage.
+   *
+   * The exact choice of format that we query \ref getOutput() for depends on
+   * \ref availableFormats() in the following way.  The list of formats returned
+   * by \ref avilableFormats() is examined in sequence until a format is found
+   * that can be used to construct a QImage (see
+   * QImageReader::supportedImageFormats()).  If there are features (such as
+   * transparency) that the QImage should have, make sure that an image format
+   * that supports transparency (e.g. PNG) is provided \i before other supported
+   * image formats in the list returned by \ref availableFormats().
+   */
+  virtual KLFResultErrorStatus<QImage> getImage();
+
   /** \brief List of available formats
    *
    * Return a list of format strings that are valid arguments to \ref
    * getOutput().
+   *
+   * The order of the returned list should roughly reflect how difficult it is
+   * to generate the given format.  For instance, when using \c pdflatex, the
+   * "PDF" format should be specified towards the beginning of the list because
+   * it is readily available.
+   *
+   * Also, the returned order is relevant for \ref getImage().  The first format
+   * in the returned list that is a recognized image format (see \ref
+   * QImageReader::supportedImageFormats()) will be used when \ref getImage() is
+   * called.  The rationale is the following: If \ref availableFormats() returns
+   * "JPEG" before "PNG", it is assumed that "JPEG" is cheaper to produce than
+   * "PNG", and the QImage's returned by getImage() should use the "JPEG" format
+   * instead of "PNG" even if this means giving up on transparency.
    */
   virtual QStringList availableFormats() const = 0;
 
