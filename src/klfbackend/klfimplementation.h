@@ -52,7 +52,7 @@ struct KLFBackendInput
   KLFBackendInput()
     : latex(), math_delimiters(), preamble(), font_size(-1),
       fg_color(qRgb(0,0,0)), bg_color(qRgba(255,255,255,0)),
-      margins(0,0,0,0), dpi(600), vector_scale(1.0),
+      margins(0,0,0,0), dpi(600), vector_scale(1.0), engine("pdflatex"),
       outline_fonts(true)
   { }
 
@@ -123,6 +123,18 @@ struct KLFBackendInput
    * Illustrator.
    */
   bool outline_fonts;
+
+  //! Return the current object's field values as a QVariantMap.
+  /** The keys are the \i CamelCased version of the fields defined in this
+   * class.
+   */
+  QVariantMap asVariantMap() const;
+
+  //! Load this object from the given field values saved as a QVariantMap
+  /** The keys may be camel-cased versions of the keys in this class or the
+   * legacy keys set in meta-info saved by KLatexFormula versions <= 4.
+   */
+  bool loadFromVariantMap(const QVariantMap & values);
 };
 
 
@@ -327,10 +339,12 @@ public:
    * Return a list of format strings that are valid arguments to \ref
    * getOutput().
    *
-   * The order of the returned list should roughly reflect how difficult it is
-   * to generate the given format.  For instance, when using \c pdflatex, the
-   * "PDF" format should be specified towards the beginning of the list because
-   * it is readily available.
+   * The order of the returned list should roughly reflect which formats should
+   * be preferred for applications and/or how difficult it is to generate these
+   * formats.  I.e., for various applications, the first available relevant
+   * format will be used.  For instance, when using \c pdflatex, the "PDF"
+   * format should probably be specified towards the beginning of the list
+   * because it is readily available.
    *
    * Also, the returned order is relevant for \ref getImage().  The first format
    * in the returned list that is a recognized image format (see \ref
@@ -339,6 +353,11 @@ public:
    * "JPEG" before "PNG", it is assumed that "JPEG" is cheaper to produce than
    * "PNG", and the QImage's returned by getImage() should use the "JPEG" format
    * instead of "PNG" even if this means giving up on transparency.
+   *
+   * A list such as ["PDF", "PNG", "SVG", "JPEG", "BMP"] will for instance
+   * ensure that getImage() uses "PNG" (with transparency) and that applications
+   * that need a vector format will probably go for "PDF" and only query "SVG"
+   * if they don't want "PDF".
    */
   virtual QStringList availableFormats() const = 0;
 
@@ -412,6 +431,10 @@ protected:
 private:
   KLF_DECLARE_PRIVATE(KLFBackendCompilationTask) ;
 };
+
+
+
+
 
 
 

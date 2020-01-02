@@ -21,6 +21,9 @@
  ***************************************************************************/
 /* $Id$ */
 
+
+#include <QtMath> // qFabs()
+
 #include <klfutil.h>
 
 #include "klfstdimplementation.h"
@@ -81,6 +84,12 @@ QStringList KLFBackendDefaultImplementation::knownLatexEngines()
 // -----------------------------------------------------------------------------
 
 
+static QByteArray fmt_len(qreal length)
+{
+  return QString::number(length, 'f', 5).toLatin1();
+}
+
+
 KLFBackendDefaultCompilationTaskBase::KLFBackendDefaultCompilationTaskBase(
     KLFBackendDefaultCompilationTask *task_,
     const KLFBackendInput & input_,
@@ -100,6 +109,9 @@ KLFBackendDefaultCompilationTaskBase::KLFBackendDefaultCompilationTaskBase(
 
   // don't automatically size the page to the equation contents, rather, use
   // this fixed size (in latex points "pt")
+  //
+  // We can also set a page width (e.g., to wrap text) and leave page height to
+  // -1 for it to be determined automatically
   fixed_page_size = QSizeF(-1,-1);
 
   // which color package to use (\usepackage{xcolor} or
@@ -160,9 +172,8 @@ QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(
 QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(const QSizeF & page_size) const
 {
   return 
-    ( QString::fromLatin1("\\klfXXXppw=%1pt\\relax\\klfXXXpph=%2pt\\relax")
-      .arg(page_size.width(), 0, 'f', 5)
-      .arg(page_size.height(), 0, 'f', 5) ).toUtf8()
+    "\\klfXXXppw=" + fmt_len(page_size.width()) + "pt\\relax"
+    "\\klfXXXpph=" + fmt_len(page_size.height()) + "pt\\relax"
     + set_pagesize_latex("\\klfXXXppw","\\klfXXXpph")
     ;
 }
@@ -179,7 +190,8 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   }
   s += "{" + document_class.toUtf8() + "}\n";
 
-  bool has_fixed_page_size = (fixed_page_size.width() > 0 && fixed_page_size.height() > 0);
+  bool has_fixed_page_width = (fixed_page_size.width() > 0);
+  bool has_fixed_page_height = (fixed_page_size.height() > 0);
 
   bool has_fg_color = (in.fg_color != QColor(0,0,0));
   bool has_fg_transparency = has_fg_color && (qAlpha(in.fg_color) != 255);
@@ -231,14 +243,36 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   // If the engine is latex (i.e. to dvi), we need to set the page size here;
   // it will be a dummy size, but we add a comment marker so that this line is
   // changed in a second run of latex.
-  if (has_fixed_page_size) {
-    s += set_pagesize_latex(fixed_page_size);
+  if (has_fixed_page_width && has_fixed_page_height) {
+    s += begin_page_size_marker
+      + set_pagesize_latex(fixed_page_size)
+      + end_page_size_marker
+      ;
   } else if (engine == "latex") {
+    // dummy size, will be set on second run
     s += begin_page_size_marker
       + "\\makeatletter\n"
-      + set_pagesize_latex("\\p@","\\p@") // dummy size, will be set on second run
-      + "\\makeatother\n";
-    + end_page_size_marker
+      + set_pagesize_latex("\\p@","\\p@")
+      + "\\makeatother\n"
+      + end_page_size_marker
+      ;
+  } else if (has_fixed_page_width) {
+    // dummy height will be fixed after \begin{document}
+    s += begin_page_size_marker
+      + "\\makeatletter\n"
+      "\\klfXXXppw=" + fmt_len(fixed_page_size.width()) + "pt\\relax"
+      + set_pagesize_latex("\\klfXXXppw","\\p@")
+      + "\\makeatother\n"
+      + end_page_size_marker
+      ;
+  } else {
+    // also for pdflatex, we need a tiny size to remove left/right margins in
+    // display equations
+    s += begin_page_size_marker
+      + "\\makeatletter\n"
+      + set_pagesize_latex("\\p@","\\p@")
+      + "\\makeatother\n"
+      + end_page_size_marker
       ;
   }
     
@@ -286,24 +320,47 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
     "\\klfXXXw=\\wd\\klfXXXeqnbox\\relax"
     "\\klfXXXh=\\ht\\klfXXXeqnbox\\relax"
     "\\klfXXXd=\\dp\\klfXXXeqnbox\\relax"
-    "\\klfXXXppw=\\klfXXXw\\relax"
-    "\\klfXXXpph=\\klfXXXh\\relax"
-    "\\advance\\klfXXXpph \\klfXXXd\\relax"
-    "%\n"
     ;
+  if (!has_fixed_paper_width) {
+    s += "\\klfXXXppw=\\klfXXXw\\relax";
+  }
+  if (!has_fixed_paper_height) {
+    s += "\\klfXXXpph=\\klfXXXh\\relax"
+      "\\advance\\klfXXXpph \\klfXXXd\\relax"
+      ;
+  }
+  s += "%\n";
 
-  if (!in.margins.isNull()) {
-    // we have set some margins
-    s += ( QString::fromLatin1(
-               "\\advance\\klfXXXppw %1pt\\relax"
-               "\\advance\\klfXXXpph %2pt\\relax"
-               "\\advance\\hoffset %3pt\\relax"
-               "\\advance\\voffset %4pt\\relax"
-               "%\n")
-           .arg(in.margins.left() + in.margins.right(), 0, 'f', 5)
-           .arg(in.margins.top() + in.margins.bottom(), 0, 'f', 5)
-           .arg(in.margins.left(), 0, 'f', 5)
-           .arg(in.margins.top(), 0, 'f', 5) ).toUtf8()
+  if (has_fixed_paper_width) {
+    // if a fixed paper width is given, then the left & right margin values
+    // represent the proportion of space to allocate on each side.
+    const qreal pleft =
+      (qFabs(margins.left() + margins.right()) <= 1e-6)
+      ? 0.5
+      : margins.left()/(margins.left()+margins.right())
+      ;
+    const QString ps = QString::number(pleft, 'g', 6);
+    s += "\\hoffset=\\dimexpr-1in+"+ps+"\\klfXXXppw-"+ps+"\\klfXXXw\\relax"
+  } else if (margins.left() != 0 || margins.right() != 0) {
+    s +=
+      "\\advance\\klfXXXppw " + fmt_len(in.margins.left() + in.margins.right()) + "pt\\relax"
+      "\\advance\\hoffset " + fmt_len(in.margins.left()) + "pt\\relax"
+      ;
+  }
+  if (has_fixed_paper_height) {
+    // if a fixed paper height is given, then the left & right margin values
+    // represent the proportion of space to allocate on each side.
+    const qreal ptop =
+      (qFabs(margins.top() + margins.bottom()) <= 1e-6)
+      ? 0.5
+      : margins.top()/(margins.top()+margins.bottom())
+      ;
+    const QString ps = QString::number(ptop, 'g', 6);
+    s += "\\voffset=\\dimexpr-1in+"+ps+"\\klfXXXpph-"+ps+"\\klfXXXh-"+ps+"\\klfXXXd\\relax"
+  } else if (margins.top() != 0 || margins.top() != 0) {
+    s +=
+      "\\advance\\klfXXXpph " + fmt_len(in.margins.top() + in.margins.bottom()) + "pt\\relax"
+      "\\advance\\voffset " + fmt_len(in.margins.top()) + "pt\\relax"
       ;
   }
 
@@ -366,6 +423,13 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::init_compilation()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  KLFResultErrorStatus<QString> rs;
+  rs = K->createTemporaryDir(); // guaranteed trailing slash
+  if (!rs.ok) {
+    return klf_result_failure(rs.error_msg);
+  }
+  tmp_klfeqn_dir = rs.result;
+
   compil_tmp_basefn = tmp_klfeqn_dir + "klfeqn";
   klfDbg("Temp location file base name is " << compil_tmp_basefn) ;
 
@@ -418,7 +482,7 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::run_latex(const QString & fn_out)
 
   do {
 
-    KLFFilterProcess p(input.engine, tempdir.path());
+    KLFFilterProcess p(input.engine, tmp_klfeqn_dir);
     p.setFromBackendSettings(settings);
 
     p.setArgv(QStringList() << latex_exec << QDir::toNativeSeparators(fn_tex));
@@ -563,6 +627,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
     QRegularExpressionMatch m = rx_rerun.match(latex_output);
     if (m.hasMatch()) {
       // need to re-run latex for some feature to work
+      klfDbg("latex needs to be rerun (detected from " << input.engine << " stdout).") ;
       *requires_latex_rerun = true;
       return klf_result_success();
     }
@@ -574,19 +639,55 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
 }
 
 
-KLFErrorStatus KLFBackendDefaultCompilerBase::process_ghostscript_to_pdf(
-    const QString & fn_input,
-    const QString & fn_output
+QByteArray klf_generate_pdfmarks(const QMap<QString,QString> & map);
+
+KLFErrorStatus KLFBackendDefaultCompilerBase::ghostscript_process_pdf(
+    const QString & fn_input
     )
 {
   // use ghostscript to process the produced PS or PDF to:
   //   - outline fonts
   //   - add pdfmarks meta-information
   // --> generates our final PDF
-  
+
+  QString fn_final_pdf = compil_tmp_basefn + "_final.pdf";
+  QString fn_pdfmarks = compil_tmp_basefn + ".pdfmarks";
+
+  KLFErrorStatus r;
+
+  // prepare PDFMarks
+  { QMap<QString,QString> map = get_metainfo_string_map();
+    map["Title"] = in.latex;
+    map["Keywords"] = "KLatexFormula KLF LaTeX equation formula";
+    map["Creator"] = "KLatexFormula " KLF_VERSION_STRING;
+
+    QByteArray pdfmarkstr = klf_generate_pdfmarks(const QMap<QString,QString> & map)
+
+    r = write_file_contents(fn_pdfmarks, pdfmarkstr);
+    if (!r.ok) {
+      return r;
+    }
+    // pdfmarks file is ready.
+  }
+
+  // run "gs"
+  KLFFilterProcess p("gs", tmp_klfeqn_dir);
+
+  QStringList gsoptions;
+  if (input.outline_fonts) {
+    gsoptions << "-dNoOutputFonts";
+  }
+
+  p.addArgv(settings.gs_exec);
+  p.addArgv(QStringList()
+            << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite" << gsoptions
+            << "-sOutputFile="+QDir::toNativeSeparators(fn_final_pdf)
+            << "-q" << "-dBATCH" << fn_input << fn_pdfmarks);
+
+  QByteArray stdout_data;
+  bool ok = p.run(QByteArray(), fn_final_pdf, &stdout_data);
   ................;
 }
-
 
 KLFErrorStatus KLFBackendDefaultCompilerBase::postprocess_latex_output(const QString & fn_out)
 {
@@ -595,11 +696,67 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::postprocess_latex_output(const QSt
   // if "latex" engine, run dvips.
   ...........;
 
-  // regardless of engine, run process_ghostscript_to_pdf() to process PS|PDF
+  // regardless of engine, run ghostscript_process_pdf() to process PS|PDF
   // output appropriately to generate PDF with meta-information
   ...............;
 }
 
+
+
+
+QVariantMap KLFBackendDefaultCompilerBase::get_metainfo_variant() const
+{
+  QVariantMap vmap;
+  vmap["AppVersion"] = QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING);
+  vmap["Application"] =
+    QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
+    .arg(KLF_VERSION_STRING);
+  vmap["Software"] = QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING);
+
+  vmap["Implementation"] = "klf5-default";
+
+  const QVariantMap vmapinput = input.asVariantMap();
+  for (QVariantMap::const_iterator it = vmapinput.begin(); it != vmapinput.end(); ++it) {
+    vmap["Input" + it.key()] = it.value();
+  }
+
+  // important legacy keys
+  //InputLatex
+  vmap["InputMathMode"] = input.math_delimiters.first + " ... " + input.math_delimiters.second;
+  //InputPreamble
+  //InputFontSize
+  //InputFgColor
+  //InputBgColor
+  vmap["InputDPI"] = vmap["InputDpi"];
+  //InputVectorScale
+
+  return vmap;
+}
+QMap<QString,QString> KLFBackendDefaultCompilerBase::get_metainfo_string_map() const
+{
+  const QVariantMap vmap = get_metainfo_variant();
+  QMap<QString,QString> map;
+
+  for (QVariantMap::const_iterator it = vmap.begin(); it != vmap.end(); ++it) {
+    const QVariant value = it.value();
+    if (value.type() == QMetaType::QColor) {
+      // use format rgba(R,G,B,A) instead of (R G B A) -- don't worry this will
+      // still be happily parsed by klfLoadVariantFromText() even in earlier
+      // versions of KLF
+      QColor c = value.value<QColor>();
+      if (c.alpha() < 255) {
+        map[it.key()] = QString::fromLatin1("rgba(%1, %2, %3, %4)")
+          .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+      } else {
+        map[it.key()] = QString::fromLatin1("rgb(%1, %2, %3)")
+          .arg(c.red()).arg(c.green()).arg(c.blue());
+      }
+    } else {
+      map[it.key()] = QString::fromLocal8Bit(klfSaveVariantToText(value));
+    }
+  }
+  return map;
+}
 
 
 KLFErrorStatus KLFBackendDefaultCompilationTaskBase::write_file_contents(
@@ -681,3 +838,117 @@ QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & for
 }
 
 
+
+
+
+
+
+// -----------------------------------------------------------------------------
+
+// saving meta-info
+
+
+KLF_EXPORT QByteArray klf_escape_ps_string(const QString& v)
+{
+  // write escape codes
+  int i;
+  // if v is just ascii, no need to encode it in unicode
+  bool isascii = true;
+  for (i = 0; i < v.length(); ++i) {
+    if (v[i] < 0 || v[i] > 126) { // \r, \n, \t, etc. will be escaped in a minute, don't worry
+      isascii = false;
+      break;
+    }
+  }
+  QByteArray vdata;
+  if (isascii) {
+    vdata = v.toLatin1();
+    
+    QByteArray escaped;
+    for (i = 0; i < vdata.size(); ++i) {
+      char c = vdata[i];
+      klfDbg("Char: "<<c);
+      if (QChar(vdata[i]).isLetterOrNumber() || c == ' ' || c == '.' || c == ',' || c == '/') {
+	escaped += c;
+      } else if (c == '\n') {
+	escaped += "\\n";
+      } else if (c == '\r') {
+	escaped += "\\r";
+      } else if (c == '\t') {
+	escaped += "\\t";
+      } else if (c == '\\') {
+	escaped += "\\\\";
+      } else if (c == '(') {
+	escaped += "\\(";
+      } else if (c == ')') {
+	escaped += "\\)";
+      } else {
+	klfDbg("escaping char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="
+               <<klfFmtCC("%03o", (uint)c));
+	escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
+      }
+    }
+    
+    return "("+escaped+")";
+  }
+
+  // otherwise, do unicode encoding
+  
+  QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
+  vdata = codec->fromUnicode(v);
+  klfDbg("vdata is "<<klfDataToEscaped(vdata));
+  
+  QByteArray hex;
+  for (i = 0; i < (vdata.size()-1); i += 2) {
+    hex += klfFmt("%02x%02x ",
+                  (unsigned int)(unsigned char)vdata[i],
+                  (unsigned int)(unsigned char)vdata[i+1]);
+  }
+  return "<" + hex + ">";
+}
+
+
+
+KLF_EXPORT QByteArray klf_generate_pdfmarks(const QMap<QString,QString> & map)
+{
+  // See the following for more info:
+  // https://stackoverflow.com/q/3010015/1694896
+  // http://www.justskins.com/forums/adding-metadata-to-pdf-68647.html
+  
+  QByteArray s;
+  s.append(
+      // ensure pdfmark symbol defined in postscript
+      "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
+      "/pdfmark /cleartomark load put } ifelse\n"
+      // now the proper PDFmarks DOCINFO dictionary
+      "[ "
+      );
+
+  QRegularExpression rx_invalid_name_char("[^A-Za-z0-9_-.:@]");
+
+  for (QVariantMap::const_iterator it = map.begin(); it != map.end(); ++it) {
+    QString key = it.key();
+    QByteArray datavalue = klf_escape_ps_string(it.value());
+
+    // make sure k is a valid literal name.  We use a strict sense of valid
+    // name; the PostScript reference is incredibly vague and open about what
+    // characters are valid in a name.  "All characters except delimiters and
+    // white space can appear in names, including characters ordinarily
+    // considered to be punctuation. The following are examples of valid names:
+    // abc Offset $$ 23A 13-456 a.b $MyDict @pattern . Use care when choosing
+    // names that begin with digits.  For example, while 23A is a valid name,
+    // 23E1 is a real number, and 23#1 is a radix number token that represents
+    // an integer. A '/' (slash—not backslash) introduces a literal name. [...]"
+    int j = 0;
+    QRegularExpressionMatch m;
+    while ( (m = rx_invalid_name_char.match(key, j)).hasMatch() ) {
+      j = m.capturedStart(0);
+      key.replace(j, 1, "?");
+      j += 1;
+    }
+    
+    s.append( "  /" + key.toLatin1() +" " + datavalue + "\n");
+  }
+
+  s.append("  /DOCINFO pdfmark\n");
+}

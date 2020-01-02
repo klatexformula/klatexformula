@@ -156,6 +156,40 @@ QString KLFBackendSettings::findExecutable(const QString & exe_name,
 
 
 
+QVariantMap KLFBackendInput::asVariantMap() const
+{
+  QVariantMap m;
+
+  m["Latex"] = latex;
+  m["MathDelimiters"] = QStringList() << math_delimiters.first << math_delimiters.second;
+  m["Preamble"] = preamble;
+  m["FontSize"] = font_size;
+  m["FgColor"] = QColor::fromRgba(fg_color);
+  m["BgColor"] = QColor::fromRgba(bg_color);
+  m["Margins"] =
+    QList<qreal>() << margins.top() << margins.right() << margins.bottom() << margins.left();
+  m["Dpi"] = dpi;
+  m["VectorScale"] = vector_scale;
+  m["Engine"] = engine;
+  m["OutlineFonts"] = outline_fonts;
+
+  return m;
+}
+
+
+void KLFBackendInput::loadFromVariantMap(const QVariantMap & map)
+{
+  latex = vmap.value("Latex", QString());
+}
+
+
+
+
+
+
+
+
+
 // namespace klf_backend_detail {
 
 // struct GsInfo

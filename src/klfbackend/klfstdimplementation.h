@@ -69,6 +69,7 @@ private:
 class KLFBackendDefaultCompilerBase
 {
 protected:
+
   const KLFBackendInput & input;
   const QVariantMap & parameters;
   const KLFBackendSettings & settings;

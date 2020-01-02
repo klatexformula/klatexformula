@@ -187,63 +187,6 @@ QString KLFImageLatexMetaInfo::loadField(const QString &k) {
 }
 
 
-KLF_EXPORT QByteArray klf_escape_ps_string(const QString& v)
-{
-  // write escape codes
-  int i;
-  // if v is just ascii, no need to encode it in unicode
-  bool isascii = true;
-  for (i = 0; i < v.length(); ++i) {
-    if (v[i] < 0 || v[i] > 126) {
-      isascii = false;
-      break;
-    }
-  }
-  QByteArray vdata;
-  if (isascii) {
-    vdata = v.toLatin1();
-    
-    QByteArray escaped;
-    for (i = 0; i < vdata.size(); ++i) {
-      char c = vdata[i];
-      klfDbg("Char: "<<c);
-      if (QChar(vdata[i]).isLetterOrNumber() || c == ' ' || c == '.' || c == ',' || c == '/')
-	escaped += c;
-      else if (c == '\n')
-	escaped += "\\n";
-      else if (c == '\r')
-	escaped += "\\r";
-      else if (c == '\t')
-	escaped += "\\t";
-      else if (c == '\\')
-	escaped += "\\\\";
-      else if (c == '(')
-	escaped += "\\(";
-      else if (c == ')')
-	escaped += "\\)";
-      else {
-	klfDbg("escaping char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="<<klfFmtCC("%03o", (uint)c));
-	escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
-      }
-    }
-    
-    return "("+escaped+")";
-  }
-
-  // otherwise, do unicode encoding
-  
-  QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
-  vdata = codec->fromUnicode(v);
-  klfDbg("vdata is "<<klfDataToEscaped(vdata));
-  
-  QByteArray hex;
-  for (i = 0; i < (vdata.size()-1); i += 2) {
-    hex += klfFmt("%02x%02x ", (unsigned int)(unsigned char)vdata[i], (unsigned int)(unsigned char)vdata[i+1]);
-  }
-  return "<" + hex + ">";
-}
-
-
 
 KLFPdfmarksWriteLatexMetaInfo::KLFPdfmarksWriteLatexMetaInfo(QByteArray * string)
   : _s(string)
