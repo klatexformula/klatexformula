@@ -217,6 +217,9 @@ void KLFPdfmarksWriteLatexMetaInfo::finish()
 }
 void KLFPdfmarksWriteLatexMetaInfo::savePDFField(const QString& k, const QString& v)
 {
+  // in klfstdimplementation.cpp
+  QByteArray klf_escape_ps_string(const QString& v);
+
   QByteArray datavalue = klf_escape_ps_string(v);
   
   _s->append( "  /"+k+" " + datavalue + "\n");
@@ -257,22 +260,22 @@ static void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThrea
 // ---------------------------------
 
 
-KLFBackend::TemplateGenerator::TemplateGenerator()
+KLFBackend4_TemplateGenerator::KLFBackend4_TemplateGenerator()
 {
 }
-KLFBackend::TemplateGenerator::~TemplateGenerator()
-{
-}
-
-KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
-{
-}
-KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
+KLFBackend4_TemplateGenerator::~KLFBackend4_TemplateGenerator()
 {
 }
 
-QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in,
-                                                               const klfSettings& /*settings*/)
+KLFBackend4_DefaultTemplateGenerator::KLFBackend4_DefaultTemplateGenerator()
+{
+}
+KLFBackend4_DefaultTemplateGenerator::~KLFBackend4_DefaultTemplateGenerator()
+{
+}
+
+QString KLFBackend4_DefaultTemplateGenerator::generateTemplate(const KLFBackend4_klfInput& in,
+                                                               const KLFBackend4_klfSettings& /*settings*/)
 {
   QString latexin;
   QString s;

@@ -28,7 +28,9 @@
 
 #include <klfdefs.h>
 #include <klfblockprocess.h>
-#include <klfbackend.h>
+
+//#include <klfbackend.h>
+#include <klfbackendinput.h>
 
 
 #define KLFFP_NOERR 0
@@ -40,6 +42,7 @@
 #define KLFFP_PAST_LAST_VALUE 6
 
 
+struct KLFBackend4_klfSettings;
 
 struct KLFFilterProcessPrivate;
 class KLFFilterProcessBlockProcess;
@@ -50,10 +53,10 @@ public:
   KLFFilterProcess(const QString& pTitle = QString(), const QString& rundir = QString(),
                    bool inheritProcessEnvironment = false);
   //! \deprecated.
-  KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
+  KLFFilterProcess(const QString& pTitle, const KLFBackend4_klfSettings *settings,
                    const QString& rundir = QString());
   //! \deprecated.
-  KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
+  KLFFilterProcess(const QString& pTitle, const KLFBackend4_klfSettings *settings,
                    const QString& rundir, bool inheritProcessEnvironment);
   virtual ~KLFFilterProcess();
 

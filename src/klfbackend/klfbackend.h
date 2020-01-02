@@ -194,6 +194,195 @@
 // last error defined: 8
 
 
+
+
+
+
+class KLFBackend4_TemplateGenerator;
+
+
+
+
+//! General settings for KLFBackend::getLatexFormula()
+/** Some global settings to pass on when calling getLatexFormula(). In this struct you specify
+ * some system settings, like a temp directory and some paths
+ *
+ * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
+ * */
+struct KLFBackend4_klfSettings
+{
+  /** A default constructor assigning default (empty) values to all fields */
+  KLFBackend4_klfSettings()
+    : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
+      calcEpsBoundingBox(true), outlineFonts(true),
+      wantRaw(false), wantPDF(true), wantSVG(true), execenv(),
+      templateGenerator(NULL) { }
+
+  /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
+  QString tempdir;
+  /** the latex executable, path incl. if not in $PATH */
+  QString latexexec;
+  /** the dvips executable, path incl. if not in $PATH */
+  QString dvipsexec;
+  /** the gs executable, path incl. if not in $PATH */
+  QString gsexec;
+  /** \deprecated
+   * <b>This setting is DEPRECATED and no longer used as of version 3.3.</b> PDF is generated
+   * by calling ghostscript directly. This value will be ignored!
+   *
+   * the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
+   * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
+   * generate PDF. If, though, you do specify an epstopdf executable here, epstopdf errors will
+   * be reported as real errors.
+   */
+  QString epstopdfexec;
+
+  /** The number of postscript points to add to top side of the resulting EPS boundingbox.
+   * \note Currently this value is rounded off to the nearest integer. The type \c double is
+   *   just an anticipation of hi-resolution bounding box adjustment. */
+  double tborderoffset;
+  /** The number of postscript points to add to right side of the resulting EPS boundingbox
+   * \note Currently this value is rounded off to the nearest integer. The type \c double is
+   *   just an anticipation of hi-resolution bounding box adjustment. */
+  double rborderoffset;
+  /** The number of postscript points to add to bottom side of the resulting EPS boundingbox
+   * \note Currently this value is rounded off to the nearest integer. The type \c double is
+   *   just an anticipation of hi-resolution bounding box adjustment. */
+  double bborderoffset;
+  /** The number of postscript points to add to left side of the resulting EPS boundingbox
+   * \note Currently this value is rounded off to the nearest integer. The type \c double is
+   *   just an anticipation of hi-resolution bounding box adjustment. */
+  double lborderoffset;
+
+  /** Call GS to recalculate EPS bounding box instead of assuming dvips' one. This setting
+   * is ignored with a non-white or non-transparent background color. */
+  bool calcEpsBoundingBox;
+
+  /** Strip away fonts in favor of vectorially outlining them with gs.
+   *
+   * Use this option to produce output that doens't embed fonts, eg. for Adobe Illustrator.
+   *
+   * \note This option is ignored when generating SVG with ghostscript and fonts are always
+   *   outlined. <i>Reason: otherwise, \c gs just rasterizes the fonts very uglyly (!!).</i>
+   */
+  bool outlineFonts;
+
+  /** If set to false, then klfOutput::pngdata_raw and klfOutput::epsdata_raw will not be
+   * initialized. This is the default, to save resources. */
+  bool wantRaw;
+
+  /** If set to false, PDF will not be generated. This is useful if you don't want to waste
+   * resources generating a PDF file that you will not need. */
+  bool wantPDF;
+
+  /** If set to false, SVG will not be generated. This is useful if you don't want to waste
+   * resources generating an SVG file that you will not need. */
+  bool wantSVG;
+
+  /** Extra environment variables to set (list of <tt>"NAME=value"</tt>) when executing latex,
+   * dvips, gs. */
+  QStringList execenv;
+
+  /** The TemplateGenerator object that will be used to generate the base document template.
+   * Can be \c NULL, in which case the default generator is used, see
+   * \ref DefaultTemplateGenerator. */
+  KLFBackend4_TemplateGenerator *templateGenerator;
+
+  /** Path to interpreters to use for different script formats. The key is the filename
+   *  extension of the script (e.g. "py"), and the value is the path to the
+   *  corresponding interpreter (e.g. "/usr/bin/python")
+   */
+  QMap<QString,QString> userScriptInterpreters;
+};
+
+//! Specific input to KLFBackend::getLatexFormula()
+/** This struct descibes the input of getLatexFormula(), ie. the LaTeX code, the mathmode to use,
+ * the dpi for rendering png, colors etc. */
+struct KLFBackend4_klfInput
+{
+  /** A default constructor assigning default values to all fields. */
+  KLFBackend4_klfInput()
+    : fontsize(-1), fg_color(0x00), bg_color(0xffffffff), dpi(600), vectorscale(1.0),
+      bypassTemplate(false) { }
+
+  /** The latex code to render */
+  QString latex;
+  /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
+   * by the latex code. Examples are:
+   * \li <tt>\\[ ... \\]</tt>
+   * \li <tt>\$ ... \$</tt>
+   */
+  QString mathmode;
+  /** The LaTeX preample, ie the code that appears after '\\documentclass{...}' and
+   * before '\\begin{document}' */
+  QString preamble;
+  /** The foreground color to use, in format given by <tt>qRgb(r, g, b)</tt>.
+   * You may not specify an alpha value here, it will be ignored. */
+
+  /** The wanted font size in latex points. If negative, leaves the default font size. */
+  double fontsize;
+
+  unsigned long fg_color;
+  /** The background color to use, in format given by <tt>qRgba(r, g, b, alpha)</tt>.
+   * \warning background alpha value can only be 0 or 255, not any arbitrary value. Any non-zero
+   *   value will be considered as 255.
+   * \warning (E)PS and PDF formats can't handle transparency.
+   */
+  unsigned long bg_color;
+  /** The dots per inch resolution of the resulting image. This is directly passed to the
+   * <tt>-r</tt> option of the \c gs program. */
+  int dpi;
+
+  /** Scale factor for vector formats. This is size ratio, not in percent (i.e. original size is 1.0). */
+  double vectorscale;
+
+  /** If TRUE, indicates that \c latex contains the whole of the latex code, it should not be included into
+   * a default document template.
+   *
+   * In particular, if TRUE, then \c mathmode and \c preamble are have no effect.
+   *
+   * This property is FALSE by default. */
+  bool bypassTemplate;
+
+  /** \brief A Path to a user script that acts as wrapper around LaTeX
+   *
+   * In short, we will call this script instead of latex. This script should understand
+   * some command-line arguments and environment vars, TO BE DOCUMENTED.
+   * \bug ......... DOC ........... & IMPLEMENT ................
+   */
+  QString userScript;
+
+  /** \brief Arbitrary parameters to pass to user script
+   *
+   * Only relevant if a \c userScript is set.
+   *
+   * These parameters will be set as environment variables of the form \c "KLF_ARG_<map-key>".
+   */
+  QMap<QString,QString> userScriptParam;
+};
+
+
+class KLFBackend4_TemplateGenerator {
+public:
+  KLFBackend4_TemplateGenerator();
+  virtual ~KLFBackend4_TemplateGenerator();
+
+  virtual QString generateTemplate(const KLFBackend4_klfInput& input,
+                                   const KLFBackend4_klfSettings& settings) = 0;
+};
+
+class KLFBackend4_DefaultTemplateGenerator : public KLFBackend4_TemplateGenerator {
+public:
+  KLFBackend4_DefaultTemplateGenerator();
+  virtual ~KLFBackend4_DefaultTemplateGenerator();
+
+  virtual QString generateTemplate(const KLFBackend4_klfInput& input,
+                                   const KLFBackend4_klfSettings& settings);
+};
+
+
+
+
 //! The main engine for KLatexFormula
 /** The main engine for KLatexFormula, providing core functionality
  * of transforming LaTeX code into graphics.
@@ -207,162 +396,10 @@ class KLF_EXPORT KLFBackend
 {
 public:
 
-  class TemplateGenerator;
-
-  //! General settings for KLFBackend::getLatexFormula()
-  /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify
-   * some system settings, like a temp directory and some paths
-   *
-   * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
-   * */
-  struct klfSettings
-  {
-    /** A default constructor assigning default (empty) values to all fields */
-    klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
-		    calcEpsBoundingBox(true), outlineFonts(true),
-		    wantRaw(false), wantPDF(true), wantSVG(true), execenv(),
-		    templateGenerator(NULL) { }
-
-    /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
-    QString tempdir;
-    /** the latex executable, path incl. if not in $PATH */
-    QString latexexec;
-    /** the dvips executable, path incl. if not in $PATH */
-    QString dvipsexec;
-    /** the gs executable, path incl. if not in $PATH */
-    QString gsexec;
-    /** \deprecated
-     * <b>This setting is DEPRECATED and no longer used as of version 3.3.</b> PDF is generated
-     * by calling ghostscript directly. This value will be ignored!
-     *
-     * the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
-     * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
-     * generate PDF. If, though, you do specify an epstopdf executable here, epstopdf errors will
-     * be reported as real errors.
-     */
-    QString epstopdfexec;
-
-    /** The number of postscript points to add to top side of the resulting EPS boundingbox.
-     * \note Currently this value is rounded off to the nearest integer. The type \c double is
-     *   just an anticipation of hi-resolution bounding box adjustment. */
-    double tborderoffset;
-    /** The number of postscript points to add to right side of the resulting EPS boundingbox
-     * \note Currently this value is rounded off to the nearest integer. The type \c double is
-     *   just an anticipation of hi-resolution bounding box adjustment. */
-    double rborderoffset;
-    /** The number of postscript points to add to bottom side of the resulting EPS boundingbox
-     * \note Currently this value is rounded off to the nearest integer. The type \c double is
-     *   just an anticipation of hi-resolution bounding box adjustment. */
-    double bborderoffset;
-    /** The number of postscript points to add to left side of the resulting EPS boundingbox
-     * \note Currently this value is rounded off to the nearest integer. The type \c double is
-     *   just an anticipation of hi-resolution bounding box adjustment. */
-    double lborderoffset;
-
-    /** Call GS to recalculate EPS bounding box instead of assuming dvips' one. This setting
-     * is ignored with a non-white or non-transparent background color. */
-    bool calcEpsBoundingBox;
-
-    /** Strip away fonts in favor of vectorially outlining them with gs.
-     *
-     * Use this option to produce output that doens't embed fonts, eg. for Adobe Illustrator.
-     *
-     * \note This option is ignored when generating SVG with ghostscript and fonts are always
-     *   outlined. <i>Reason: otherwise, \c gs just rasterizes the fonts very uglyly (!!).</i>
-     */
-    bool outlineFonts;
-
-    /** If set to false, then klfOutput::pngdata_raw and klfOutput::epsdata_raw will not be
-     * initialized. This is the default, to save resources. */
-    bool wantRaw;
-
-    /** If set to false, PDF will not be generated. This is useful if you don't want to waste
-     * resources generating a PDF file that you will not need. */
-    bool wantPDF;
-
-    /** If set to false, SVG will not be generated. This is useful if you don't want to waste
-     * resources generating an SVG file that you will not need. */
-    bool wantSVG;
-
-    /** Extra environment variables to set (list of <tt>"NAME=value"</tt>) when executing latex,
-     * dvips, gs. */
-    QStringList execenv;
-
-    /** The TemplateGenerator object that will be used to generate the base document template.
-     * Can be \c NULL, in which case the default generator is used, see
-     * \ref DefaultTemplateGenerator. */
-    TemplateGenerator *templateGenerator;
-
-    /** Path to interpreters to use for different script formats. The key is the filename
-     *  extension of the script (e.g. "py"), and the value is the path to the
-     *  corresponding interpreter (e.g. "/usr/bin/python")
-     */
-    QMap<QString,QString> userScriptInterpreters;
-  };
-
-  //! Specific input to KLFBackend::getLatexFormula()
-  /** This struct descibes the input of getLatexFormula(), ie. the LaTeX code, the mathmode to use,
-   * the dpi for rendering png, colors etc. */
-  struct klfInput
-  {
-    /** A default constructor assigning default values to all fields. */
-    klfInput() : fontsize(-1), fg_color(0x00), bg_color(0xffffffff), dpi(600), vectorscale(1.0),
-		 bypassTemplate(false) { }
-    /** The latex code to render */
-    QString latex;
-    /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
-     * by the latex code. Examples are:
-     * \li <tt>\\[ ... \\]</tt>
-     * \li <tt>\$ ... \$</tt>
-     */
-    QString mathmode;
-    /** The LaTeX preample, ie the code that appears after '\\documentclass{...}' and
-     * before '\\begin{document}' */
-    QString preamble;
-    /** The foreground color to use, in format given by <tt>qRgb(r, g, b)</tt>.
-     * You may not specify an alpha value here, it will be ignored. */
-
-    /** The wanted font size in latex points. If negative, leaves the default font size. */
-    double fontsize;
-
-    unsigned long fg_color;
-    /** The background color to use, in format given by <tt>qRgba(r, g, b, alpha)</tt>.
-     * \warning background alpha value can only be 0 or 255, not any arbitrary value. Any non-zero
-     *   value will be considered as 255.
-     * \warning (E)PS and PDF formats can't handle transparency.
-     */
-    unsigned long bg_color;
-    /** The dots per inch resolution of the resulting image. This is directly passed to the
-     * <tt>-r</tt> option of the \c gs program. */
-    int dpi;
-
-    /** Scale factor for vector formats. This is size ratio, not in percent (i.e. original size is 1.0). */
-    double vectorscale;
-
-    /** If TRUE, indicates that \c latex contains the whole of the latex code, it should not be included into
-     * a default document template.
-     *
-     * In particular, if TRUE, then \c mathmode and \c preamble are have no effect.
-     *
-     * This property is FALSE by default. */
-    bool bypassTemplate;
-
-    /** \brief A Path to a user script that acts as wrapper around LaTeX
-     *
-     * In short, we will call this script instead of latex. This script should understand
-     * some command-line arguments and environment vars, TO BE DOCUMENTED.
-     * \bug ......... DOC ........... & IMPLEMENT ................
-     */
-    QString userScript;
-
-    /** \brief Arbitrary parameters to pass to user script
-     *
-     * Only relevant if a \c userScript is set.
-     *
-     * These parameters will be set as environment variables of the form \c "KLF_ARG_<map-key>".
-     */
-    QMap<QString,QString> userScriptParam;
-  };
+  typedef KLFBackend4_klfSettings klfSettings;
+  typedef KLFBackend4_klfInput klfInput;
+  typedef KLFBackend4_TemplateGenerator TemplateGenerator;
+  typedef KLFBackend4_DefaultTemplateGenerator DefaultTemplateGenerator;
 
   //! KLFBackend::getLatexFormula() result
   /** This struct contains data that is returned from getLatexFormula(). This includes error handling
@@ -619,23 +656,6 @@ public:
 
   /** \bug ........documentation ........ */
   static QStringList userScriptSettingsToEnvironment(const QMap<QString,QString>& userScriptSettings);
-
-
-  class TemplateGenerator {
-  public:
-    TemplateGenerator();
-    virtual ~TemplateGenerator();
-
-    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings) = 0;
-  };
-
-  class DefaultTemplateGenerator : public TemplateGenerator {
-  public:
-    DefaultTemplateGenerator();
-    virtual ~DefaultTemplateGenerator();
-
-    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings);
-  };
 
 
 

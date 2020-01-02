@@ -25,12 +25,16 @@ set(klfbackend_SRCS
   klffilterprocess.cpp
   klflatexpreviewthread.cpp
   klfuserscript.cpp
+  klfimplementation.cpp
+  klfstdimplementation.cpp
   )
 set(klfbackend_MOCHEADERS
   klfblockprocess.h
   klflatexpreviewthread.h
   klflatexpreviewthread_p.h
   klffilterprocess_p.h
+  klfimplementation.h
+  klfstdimplementation.h
   )
 set(klfbackend_HEADERS
   klfbackend.h
@@ -118,7 +122,7 @@ if (KLF_BUILD_BACKEND_AUTO)
 
   target_include_directories(klfbackend_auto PRIVATE "." "../klftools")
 
-  # No need for public headers -- this library is meant to be distributed along another binary
+  # No public headers -- this library is meant to be distributed along with another binary
   #  KLFInstHeaders(klfbackend_auto_INSTHEADERS "${klfbackend_HEADERS};${klfbackend_auto_ADDHEADERS}")
   #  set_target_properties(klfbackend_auto PROPERTIES
   #    PUBLIC_HEADER ""

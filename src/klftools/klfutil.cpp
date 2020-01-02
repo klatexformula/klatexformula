@@ -33,6 +33,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QProcess>
+#include <QRegularExpression>
 
 #include "klfutil.h"
 #include "klfsysinfo.h"
@@ -267,7 +268,7 @@ static QStringList klf_search_find(const QString & wildcard_expression, int limi
     root = pathlist[0]+"/";
     pathlist.pop_front();
   }
-  return _klf_search_find_test(root, pathlist, 0, limit);
+  return _klf_search_find_test(root, pathlist, 0, limit, searcher);
 }
 
 KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
@@ -382,7 +383,7 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path_, const QString& ref_)
 
 struct KLFPathSearcherPrivate
 {
-  KLF_PATH_HEAD(KLFPathSearcher)
+  KLF_PRIVATE_HEAD(KLFPathSearcher)
   {
     exe_mode = false;
   }
@@ -402,15 +403,15 @@ KLFPathSearcher::KLFPathSearcher(const QString & fname,
   d->exe_mode = exe_mode;
 }
 KLFPathSearcher::KLFPathSearcher(const QStringList & fname_patterns,
-                                 const QStringList & search_paths = QStringList(),
-                                 bool exe_mode = false)
+                                 const QStringList & search_paths,
+                                 bool exe_mode)
 {
   KLF_INIT_PRIVATE(KLFPathSearcher) ;
   d->fname_patterns = fname_patterns;
   d->search_paths = search_paths;
   d->exe_mode = exe_mode;
 }
-virtual KLFPathSearcher::~KLFPathSearcher()
+KLFPathSearcher::~KLFPathSearcher()
 {
   KLF_DELETE_PRIVATE ;
 }
@@ -426,11 +427,11 @@ void KLFPathSearcher::addFileNamePatterns(const QStringList & more_fname_pattern
 }
 
 QStringList KLFPathSearcher::searchPaths() const { return d->search_paths; }
-void setSearchPaths(const QStringList & search_paths)
+void KLFPathSearcher::setSearchPaths(const QStringList & search_paths)
 {
   d->search_paths = search_paths;
 }
-void addSearchPaths(const QStringList & more_search_paths);
+void KLFPathSearcher::addSearchPaths(const QStringList & more_search_paths)
 {
   d->search_paths.append(more_search_paths);
 }
@@ -469,6 +470,16 @@ QString KLFPathSearcher::findFirstMatch()
   return results[0];
 }
 
+bool KLFPathSearcher::filter_predicate(const QString & /*root*/, const QStringList & /*pathlist*/,
+                                       const QString & result)
+{
+  if (d->exe_mode) {
+    if ( ! QFileInfo(result).isExecutable() ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 
 

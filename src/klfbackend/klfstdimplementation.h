@@ -64,6 +64,10 @@ private:
 
 
 
+
+struct KLBackendDefaultCompilationTaskPrivate;
+
+
 //
 // New, cleaner compilation implementation as of KLF 5 with the following
 // additional goals:
@@ -72,13 +76,21 @@ private:
 //
 //  - native support for pdflatex and {xe|lua}latex
 //
-class KLFBackendDefaultCompilerBase
+class KLFBackendDefaultCompilationTask : public KLFBackendCompilationTask
 {
-protected:
+  Q_OBJECT
+public:
+  KLFBackendDefaultCompilationTask(const KLFBackendInput & input, const KLFBackendSettings & settings,
+                                   KLFBackendDefaultImplementation * implementation);
+  virtual ~KLFBackendDefaultCompilationTask();
 
-  const KLFBackendInput & input;
-  const QVariantMap & parameters;
-  const KLFBackendSettings & settings;
+  virtual QStringList availableFormats() const;
+
+protected:
+  virtual KLFResultErrorStatus<QByteArray>
+  compileToFormat(const QString & format, const QVariantMap & parameters);
+
+  virtual QVariantMap canonicalFormatParameters(const QString & format, const QVariantMap & parameters);
 
   const QString tmp_klfeqn_dir; // with trailing slash guaranteed
 
@@ -98,7 +110,6 @@ protected:
   int max_latex_runs;
 
   // compilation data
-  bool compilation_initialized;
   QString compil_tmp_basefn;
   QString compil_fn_tex;
 
@@ -110,16 +121,13 @@ protected:
   QByteArray data_raw_pdf; // only if engine is pdf-based
   QByteArray data_final_pdf;
 
-
   friend class KLFBackendDefaultImplementation;
-
 
   // markers
   static const QByteArray begin_page_size_marker;
   static const QByteArray end_page_size_marker;
   static const QByteArray begin_output_meta_info_marker;
   static const QByteArray end_output_meta_info_marker;
-
 
   //! Build latex code for setting page size
   /** Return necessary LaTeX code to fix page size, depending on \a input.engine
@@ -142,50 +150,18 @@ protected:
   virtual QByteArray set_pagesize_latex(const QSizeF & page_size) const;
 
 
+  virtual KLFErrorStatus init_compilation();
+
   //! Generate default LaTeX template using the saved input, parameters and settings
   virtual QByteArray generate_template() const;
 
-  virtual KLFErrorStatus init_compilation();
+  virtual KLFErrorStatus run_latex();
 
-  virtual KLFErrorStatus run_latex(const QString & fn_out);
+  virtual KLFErrorStatus postprocess_latex_output();
 
   //! Utility to write the given contents to the given file
   virtual KLFErrorStatus write_file_contents(const QString & fn, const QByteArray & contents);
 
-public:
-  KLFBackendDefaultCompilationTaskBase(KLFBackendDefaultCompilationTask *task_,
-                                       const KLFBackendInput & input_,
-                                       const QVariantMap & parameters_,
-                                       const KLFBackendSettings & settings_);
-
-
-  KLFErrorStatus compile()
-  {..............
-  }
-
-};
-
-
-
-
-
-struct KLBackendDefaultCompilationTaskPrivate;
-
-class KLFBackendDefaultCompilationTask : public KLFBackendCompilationTask
-{
-  Q_OBJECT
-public:
-  KLFBackendDefaultCompilationTask(const KLFBackendInput & input, const KLFBackendSettings & settings,
-                                   KLFBackendDefaultImplementation * implementation);
-  virtual ~KLFBackendDefaultCompilationTask();
-
-  virtual QStringList availableFormats() const;
-
-protected:
-  virtual KLFResultErrorStatus<QByteArray>
-  compileToFormat(const QString & format, const QVariantMap & parameters);
-
-  virtual QVariantMap canonicalParameters(const QString & format, const QVariantMap & parameters);
 
 private:
   KLF_DECLARE_PRIVATE(KLFBackendDefaultCompilationTask) ;

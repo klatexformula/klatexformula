@@ -263,7 +263,9 @@ KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& path);
 
 struct KLFPathSearcherPrivate;
 
-KLF_EXPORT class KLFPathSearcher {
+class KLF_EXPORT KLFPathSearcher
+{
+public:
   KLFPathSearcher(const QString & fname,
                   const QStringList & search_paths = QStringList(),
                   bool exe_mode = false);
@@ -276,15 +278,16 @@ KLF_EXPORT class KLFPathSearcher {
   void setFileNamePatterns(const QStringList & fname_patterns);
   void addFileNamePatterns(const QStringList & more_fname_patterns);
 
-  QStringList searchPaths();
+  QStringList searchPaths() const;
   void setSearchPaths(const QStringList & search_paths);
   void addSearchPaths(const QStringList & more_search_paths);
 
   QString findFirstMatch();
   QStringList findMatches(int threshold_matches = -1);
 
-protected:
-  virtual bool filter_predicate(const QString & result);
+  //! Rule to filter matches (e.g., find executable file)
+  virtual bool filter_predicate(const QString & root, const QStringList & pathlist,
+                                const QString & result);
 
 private:
   KLF_DECLARE_PRIVATE(KLFPathSearcher);
@@ -536,6 +539,8 @@ inline QMap<QString, Value> klfMakeMap(KLFMapInitData<Value> x[])
   }
   return map;
 }
+
+
 
 
 class KLFTargeter;

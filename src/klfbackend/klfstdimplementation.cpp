@@ -23,12 +23,11 @@
 
 
 #include <QtMath> // qFabs()
+#include <QDateTime>
 
 #include <klfutil.h>
 
 #include "klfstdimplementation.h"
-
-
 
 
 
@@ -450,38 +449,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   return s;
 }
 
-KLFErrorStatus KLFBackendDefaultCompilerBase::init_compilation()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  KLFResultErrorStatus<QString> rs;
-  rs = K->createTemporaryDir(); // guaranteed trailing slash
-  if (!rs.ok) {
-    return klf_result_failure(rs.error_msg);
-  }
-  tmp_klfeqn_dir = rs.result;
-
-  compil_tmp_basefn = tmp_klfeqn_dir + "klfeqn";
-  klfDbg("Temp location file base name is " << compil_tmp_basefn) ;
-
-  compil_fn_tex = compil_tmp_basefn + ".tex";
-
-  compil_ltx_templatedata = generate_template(input.latex, parameters, input.engine);
-
-  KLFErrorStatus r;
-
-  // write template file
-  r = write_file_contents(compil_fn_tex, compil_ltx_templatedata);
-  if (!r.ok) {
-    return r;
-  }
-
-  compilation_initialized = true;
-
-  return klf_result_success();
-}
-
-KLFErrorStatus KLFBackendDefaultCompilerBase::run_latex()
+KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
 {
   // run latex a first time.
   klfDbg("preparing to launch latex.") ;
@@ -513,10 +481,13 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::run_latex()
 
   QString fn_out;
   QByteArray * data_raw_ptr = NULL;
+  QString format;
   if (input.engine == "latex") {
+    format = "DVI";
     data_raw_ptr = &data_raw_dvi;
     fn_out = compil_tmp_basefn + ".dvi";
   } else {
+    format = "PDF";
     data_raw_ptr = &data_raw_pdf;
     fn_out = compil_tmp_basefn + ".pdf";
   }
@@ -553,6 +524,9 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::run_latex()
     }
 
   } while (check_for_rerun && requires_latex_rerun) ;
+
+  QVariantMap praw; praw["raw"] = true;
+  storeDataToCache(format, praw, *data_raw_ptr);
 
   return klf_result_success();
 }
@@ -681,7 +655,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
 
 QByteArray klf_generate_pdfmarks(const QMap<QString,QString> & map);
 
-KLFErrorStatus KLFBackendDefaultCompilerBase::ghostscript_process_pdf(const QString & fn_input)
+KLFErrorStatus KLFBackendDefaultCompilationTask::ghostscript_process_pdf(const QString & fn_input)
 {
   // use ghostscript to process the produced PS or PDF to:
   //   - outline fonts
@@ -698,6 +672,7 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::ghostscript_process_pdf(const QStr
     map["Title"] = in.latex;
     map["Keywords"] = "KLatexFormula KLF LaTeX equation formula";
     map["Creator"] = "KLatexFormula " KLF_VERSION_STRING;
+    map["Creation Time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
 
     const QByteArray pdfmarkstr = klf_generate_pdfmarks(map);
 
@@ -722,17 +697,18 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::ghostscript_process_pdf(const QStr
               << "-sOutputFile="+QDir::toNativeSeparators(fn_final_pdf)
               << "-q" << "-dBATCH" << fn_input << fn_pdfmarks);
 
-    QByteArray data_final_pdf;
     bool ok = p.run(fn_final_pdf, &data_final_pdf);
     if (!ok) {
       return klf_result_failure(p.errorString());
     }
   }
 
+  storeDataToCache("PDF", QVariantMap(), data_final_pdf);
+
   return klf_result_success();
 }
 
-KLFErrorStatus KLFBackendDefaultCompilerBase::postprocess_latex_output()
+KLFErrorStatus KLFBackendDefaultCompilationTask::postprocess_latex_output()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -771,6 +747,9 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::postprocess_latex_output()
 
     fn_gs_input = fn_ps;
 
+    QVariantMap praw; praw["raw"] = true;
+    storeDataToCache("PS", praw, data_raw_ps);
+
   } else {
 
     fn_gs_input = compil_tmp_basefn + ".pdf";
@@ -786,7 +765,7 @@ KLFErrorStatus KLFBackendDefaultCompilerBase::postprocess_latex_output()
 
 
 
-QVariantMap KLFBackendDefaultCompilerBase::get_metainfo_variant() const
+QVariantMap KLFBackendDefaultCompilationTask::get_metainfo_variant() const
 {
   QVariantMap vmap;
   vmap["AppVersion"] = QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING);
@@ -814,7 +793,7 @@ QVariantMap KLFBackendDefaultCompilerBase::get_metainfo_variant() const
 
   return vmap;
 }
-QMap<QString,QString> KLFBackendDefaultCompilerBase::get_metainfo_string_map() const
+QMap<QString,QString> KLFBackendDefaultCompilationTask::get_metainfo_string_map() const
 {
   const QVariantMap vmap = get_metainfo_variant();
   QMap<QString,QString> map;
@@ -850,13 +829,13 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::write_file_contents(
 
 
 // static
-const QByteArray KLFBackendDefaultCompilationTaskPrivate::begin_page_size_marker =
+const QByteArray KLFBackendDefaultCompilationTask::begin_page_size_marker =
   "%%%-KLF-FIXED-PAGE-SIZE-BEGIN\n";
-const QByteArray KLFBackendDefaultCompilationTaskPrivate::end_page_size_marker =
+const QByteArray KLFBackendDefaultCompilationTask::end_page_size_marker =
   "%%%-KLF-FIXED-PAGE-SIZE-END\n";
-const QByteArray KLFBackendDefaultCompilationTaskPrivate::begin_output_meta_info_marker =
+const QByteArray KLFBackendDefaultCompilationTask::begin_output_meta_info_marker =
   "\n***-KLF-META-INFO-BEGIN-***\n";
-const QByteArray KLFBackendDefaultCompilationTaskPrivate::end_output_meta_info_marker =
+const QByteArray KLFBackendDefaultCompilationTask::end_output_meta_info_marker =
   "\n***-KLF-META-INFO-END-***\n";
 
 
@@ -870,22 +849,21 @@ KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
 {
   KLF_INIT_PRIVATE(KLFBackendDefaultCompilationTask) ;
 
-  if (parameters.contains("engine")) {
-    d->engine = parameters["engine"].toString();
-  }
   if (parameters.contains("document_class")) {
-    d->document_class = parameters["document_class"].toString();
+    document_class = parameters["document_class"].toString();
   }
   if (parameters.contains("document_class_options")) {
-    d->document_class_options = parameters["document_class_options"].toString();
+    document_class_options = parameters["document_class_options"].toString();
   }
   if (parameters.contains("fixed_page_size")) {
-    d->fixed_page_size = parameters["fixed_page_size"].toSizeF();
+    fixed_page_size = parameters["fixed_page_size"].toSizeF();
   }
   if (parameters.contains("usepackage_color")) {
-    d->usepackage_color = parameters["usepackage_color"].toSizeF();
+    usepackage_color = parameters["usepackage_color"].toSizeF();
   }
-
+  if (parameters.contains("baseline_valign")) {
+    baseline_valign = parameters["baseline_valign"].toSizeF();
+  }
 }
 
 KLFBackendDefaultCompilationTask::~KLFBackendDefaultCompilationTask()
@@ -896,7 +874,6 @@ KLFBackendDefaultCompilationTask::~KLFBackendDefaultCompilationTask()
 void setLatexExec(const QString & latex_engine_exec, const QString & dvips_exec = QString())
 {
   d->latex_engine_exec = latex_engine_exec;
-  }
   if (d->engine == "latex") {
     d->dvips_exec = dvips_exec;;
   }
@@ -904,16 +881,202 @@ void setLatexExec(const QString & latex_engine_exec, const QString & dvips_exec 
 
 KLFErrorStatus KLFBackendDefaultCompilationTask::compile()
 {
-  return d->compile();
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFErrorStatus r;
+  KLFResultErrorStatus<QString> rs;
+
+  rs = K->createTemporaryDir(); // guaranteed trailing slash
+  if (!rs.ok) {
+    return klf_result_failure(rs.error_msg);
+  }
+  tmp_klfeqn_dir = rs.result;
+
+  compil_tmp_basefn = tmp_klfeqn_dir + "klfeqn";
+  klfDbg("Temp location file base name is " << compil_tmp_basefn) ;
+
+  compil_fn_tex = compil_tmp_basefn + ".tex";
+
+  compil_ltx_templatedata = generate_template(input.latex, parameters, input.engine);
+
+  // write template file
+  r = write_file_contents(compil_fn_tex, compil_ltx_templatedata);
+  if (!r.ok) {
+    return r;
+  }
+
+  // Run latex (including re-runs etc.). Calls after_latex_run().
+  r = run_latex();
+  if (!r.ok) {
+    return r;
+  }
+
+  // Process latex output (dvi or pdf) -> pdf with font outlines & pdfmarks.
+  // Calls ghostscript_process_pdf().
+  r = postprocess_latex_output();
+  if (!r.ok) {
+    return r;
+  }
+
+  // done! PNG will be generated later upon request.
+  return klf_result_success();
 }
+
 
 // protected
 QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & format,
                                                              const QVariantMap & parameters)
 {
+  // These are already stored in the cache.
+  //
+  // if (format == "PDF") {
+  //   return data_final_pdf;
+  // }
+  // if (input.engine == "latex") {
+  //   if (format == "DVI") {
+  //     return data_raw_dvi;
+  //   }
+  //   if (format == "PS" && parameters.value("raw", false).toBool() == true) {
+  //     return data_raw_ps;
+  //   }
+  // }
+
+  // if format == "PNG"
+  if (format == "PNG") {
+    // generate PNG data via ghostscript from PDF
+    KLFFilterProcess p("gs (for PNG)", tmp_klfeqn_dir);
+
+    QString fn_png = compil_tmp_basefn + ".png";
+
+    QByteArray gsdev;
+    if (qAlpha(input.bg_color) == 255) { // opaque background color
+      gsdev = "png16m";
+    } else {
+      gsdev = "pngalpha";
+    }
+
+    p.addArgv(settings.gs_exec);
+    p.addArgv(QStringList()
+              << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE="+gsdev
+              << "-sOutputFile="+QDir::toNativeSeparators(fn_png)
+              << "-q" << "-dBATCH" << fn_final_pdf);
+
+    QByteArray rawpngdata;
+    bool ok = p.run(fn_png, &rawpngdata);
+    if (!ok) {
+      return klf_result_failure(p.errorString());
+    }
+
+    if (parameters.value("raw", false).toBool()) {
+      // provide "raw" PNG w/o meta-info (e.g. for quick preview)
+      return rawpngdata;
+    } else {
+      // meta-info required.
+
+      // Store the raw PNG data in any case (since we have it)
+      QVariantMap praw; praw["raw"] = true;
+      storeDataToCache("PNG", praw, rawpngdata);
+
+      QImage img;
+      img.loadFromData(rawpngdata, "PNG");
+
+      // save meta-information
+      QMap<QString,QString> map = get_metainfo_string_map();
+      map["Title"] = in.latex;
+      map["Keywords"] = "KLatexFormula KLF LaTeX equation formula";
+      map["Creator"] = "KLatexFormula " KLF_VERSION_STRING;
+      map["Creation Time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+      for (QMap<QString,QString>::const_iterator it = map.constBegin(); it != map.constEnd(); ++it) {
+        img.setText(it.key(), it.value());
+      }
+
+      QByteArray pngdata;
+      { // create "final" PNG data
+        QBuffer buf(&pngdata);
+        buf.open(QIODevice::WriteOnly);
+        bool r = img.save(&buf, "PNG");
+        if (!r) {
+          return klf_result_failure("Can't save final PNG data with metadata.") ;
+        }
+      }
+      
+      return pngdata;
+    }
+  }
+
+  if (format == "EPS") {
+    QString fn_eps = compil_tmp_basefn + ".eps";
+
+    p.addArgv(settings.gs_exec);
+    p.addArgv(QStringList()
+              << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=eps2write"
+              << "-sOutputFile="+QDir::toNativeSeparators(fn_eps)
+              << "-q" << "-dBATCH" << fn_final_pdf);
+
+    QByteArray epsdata;
+    bool ok = p.run(fn_eps, &epsdata);
+    if (!ok) {
+      return klf_result_failure(p.errorString());
+    }
+
+    return epsdata;
+  }
+
+  if (format == "PS") { // non-raw PS (raw is already stored in the cache, if available)
+    QString fn_ps = compil_tmp_basefn + ".ps";
+
+    p.addArgv(settings.gs_exec);
+    p.addArgv(QStringList()
+              << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=ps2write"
+              << "-sOutputFile="+QDir::toNativeSeparators(fn_ps)
+              << "-q" << "-dBATCH" << fn_final_pdf);
+
+    QByteArray psdata;
+    bool ok = p.run(fn_ps, &psdata);
+    if (!ok) {
+      return klf_result_failure(p.errorString());
+    }
+
+    return psdata;
+  }
+
+  if (format == "SVG") {
+    // use dvisvgm ..........; // ..................
+    // for pdflatex engine, use dvisvgm --eps or dvisvgm --pdf (option --pdf since dvisvm >= 2.4)
+    return klf_result_failure("NOT YET IMPLEMENTED") ;
+  }
+
+  
+  return klf_result_failure("Unknown data format/parameters: " << format << ", " << parameters) ;
 }
 
 
+QVariantMap KLFBackendCompilationTask::canonicalFormatParameters(
+    const QString & format, const QVariantMap & parameters
+    )
+{
+  QVariantMap p;
+
+  for (QVariantMap::const_iterator it = parameters.constBegin(); it != parameters.constEnd(); ++it) {
+    const QString key = it.key();
+
+    // "raw" option parameter
+    if (key == "raw" &&
+        (format == "PNG" || format == "PDF" || format == "DVI" || format == "PS")) {
+      if (it.value().toBool()) {
+        p["raw"] = true;
+      } else {
+        klfWarning("Invalid parameter raw=" << it.value() << " for format " << format) ;
+      }
+      continue;
+    }
+    
+    // no other parameters are recognized 
+  }
+
+  return p;
+}
 
 
 
