@@ -508,9 +508,11 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     { QColor c = value.value<QColor>();
       klfDbg("Saving color "<<c<<": alpha="<<c.alpha()) ;
       if (c.alpha() == 255)
-	data = QString("(%1 %2 %3)").arg(c.red()).arg(c.green()).arg(c.blue()).toLatin1();
+	data = QString("rgb(%1, %2, %3)")
+          .arg(c.red()).arg(c.green()).arg(c.blue()).toLatin1();
       else
-	data = QString("(%1 %2 %3 %4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toLatin1();
+	data = QString("rgba(%1, %2, %3, %4)")
+          .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toLatin1();
       break;
     }
   case QMetaType::QFont:

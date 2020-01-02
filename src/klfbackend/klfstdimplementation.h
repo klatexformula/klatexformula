@@ -45,6 +45,12 @@ public:
 
   static QStringList knownLatexEngines();
 
+
+  // these do not need to be set explicitly except if the programs are weirdly
+  // named or in very unconventional locations
+  void setLatexEngineExecPath(const QString & engine, const QString & latex_exec);
+  void setDvipsPath(const QString & dvips_exec);
+
 private:
   KLF_DECLARE_PRIVATE(KLFBackendDefaultImplementation) ;
 };
@@ -77,6 +83,7 @@ protected:
   const QString tmp_klfeqn_dir; // with trailing slash guaranteed
 
   QString latex_engine_exec;
+  QString dvips_exec; // only needed if engine == "latex"
 
   QString document_class;
   QString document_class_options;
@@ -85,6 +92,8 @@ protected:
   QSizeF fixed_page_size;
 
   QString usepackage_color;
+
+  QString baseline_valign;
 
   int max_latex_runs;
 
@@ -95,6 +104,11 @@ protected:
 
   QByteArray compil_ltx_templatedata;
   QByteArray compil_ltx_output_data;
+
+  QByteArray data_raw_dvi; // only if engine == "latex"
+  QByteArray data_raw_ps; // only if engine == "latex"
+  QByteArray data_raw_pdf; // only if engine is pdf-based
+  QByteArray data_final_pdf;
 
 
   friend class KLFBackendDefaultImplementation;
