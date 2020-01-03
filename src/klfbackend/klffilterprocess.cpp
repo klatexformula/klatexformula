@@ -28,6 +28,7 @@
 #include <klfdefs.h>
 
 #include "klfbackend.h"
+#include "klfbackendinput.h"
 #include "klfblockprocess.h"
 #include "klffilterprocess.h"
 
@@ -195,23 +196,23 @@ void KLFFilterProcessPrivate::init(const QString& pTitle, const KLFBackend::klfS
   resErrorString = QString();
 }
 
-void KLFFilterProcessPrivate::setFromBackendSettings(const KLFBackendSettings & settings,
-                                                     bool inheritProcessEnvironment)
+void KLFFilterProcess::setFromBackendSettings(const KLFBackendSettings & settings,
+                                              bool inheritProcessEnvironment)
 {
-  if (!programCwd.size()) {
-    programCwd = settings->temp_dir;
-    klfDbg("set programCwd to : " << programCwd) ;
+  if (!d->programCwd.size()) {
+    d->programCwd = settings.temp_dir;
+    klfDbg("set programCwd to : " << d->programCwd) ;
   }
   QStringList curenv;
   if (inheritProcessEnvironment) {
     curenv = klfCurrentEnvironment();
   }
-  execEnviron = klfMergeEnvironment(curenv, settings->exec_env,
-                                    QStringList()<<"PATH"<<"TEXINPUTS"<<"BIBINPUTS"<<"PYTHONPATH",
-                                    KlfEnvPathPrepend|KlfEnvMergeExpandVars);
-  klfDbg("set execution environment to : "<<execEnviron) ;
+  d->execEnviron = klfMergeEnvironment(curenv, settings.exec_env,
+                                       QStringList()<<"PATH"<<"TEXINPUTS"<<"BIBINPUTS"<<"PYTHONPATH",
+                                       KlfEnvPathPrepend|KlfEnvMergeExpandVars);
+  klfDbg("set execution environment to : "<<d->execEnviron) ;
     
-  interpreters = settings->user_script_interpreters;
+  d->interpreters = settings.user_script_interpreters;
 }
 
 
@@ -221,11 +222,6 @@ KLFFilterProcess::~KLFFilterProcess()
   KLF_DELETE_PRIVATE ;
 }
 
-void KLFFilterProcess::setFromBackendSettings(const KLFBackendSettings & settings,
-                                              bool inheritProcessEnvironment)
-{
-  d->setFromBackendSettings(settings, inheritProcessEnvironment);
-}
 
 QString KLFFilterProcess::progTitle() const
 {
@@ -369,7 +365,7 @@ bool KLFFilterProcess::run(const QByteArray& indata)
  *
  * \returns TRUE/FALSE for success/failure, respectively.
  */
-bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
+bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
 {
   return do_run(indata, outdatalist);
 }

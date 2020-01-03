@@ -22,9 +22,22 @@
 /* $Id$ */
 
 
+#include <klfdefs.h>
+#include <klfsysinfo.h>
+#include <klfutil.h>
+#include <klfdatautil.h>
+
+#include "klfbackendinput.h"
 #include "klfimplementation.h"
 
+#include <QObject>
+#include <QString>
+#include <QImage>
+#include <QImageReader>
 #include <QTemporaryDir>
+#include <QVariant>
+#include <QVariantMap>
+
 
 
 
@@ -53,8 +66,9 @@ void KLFBackendImplementation::setSettings(const KLFBackendSettings & settings)
 {
   d->settings = settings;
 }
-KLFBackend::klfSettings KLFBackendImplementation::settings() const
+const KLFBackendSettings & KLFBackendImplementation::settings() const
 {
+  // const reference is valid as long as the present object instance exists
   return d->settings;
 }
 
@@ -63,30 +77,16 @@ KLFBackend::klfSettings KLFBackendImplementation::settings() const
 
 struct KLFBackendCompilationTaskPrivate
 {
-  KLFBackendCompilationTask * K;
-
-  KLFBackendCompilationTaskPrivate(
-      KLFBackendCompilationTask * K_,
-      const KLFBackendInput & input_, const QVariantMap & parameters_,
-      const KLFBackendSettings & settings_, KLFBackendImplementation * implementation_)
-    : K(_K), input(input_), parameters(parameters_),
-      settings(settings_), implementation(implementation_),
-      temp_dir_objs()
+  KLF_PRIVATE_HEAD(KLFBackendCompilationTask)
   {
   }
-
-  KLFBackendImplementation * implementation;
-
-  const KLFBackendInput input;
-  const KLFBackendSettings settings;
-  const QVariantMap parameters;
 
   QList<QTemporaryDir*> temp_dir_objs;
 
   QMutex mutex;
   QMap<QPair<QString,QByteArray>, QByteArray> cached_output;
   QImage cached_image;
-}
+};
 
 
 
@@ -95,9 +95,10 @@ KLFBackendCompilationTask::KLFBackendCompilationTask(
     const KLFBackendInput & input, const QVariantMap & parameters,
     const KLFBackendSettings & settings, KLFBackendImplementation * implementation
     )
-  : QObject(implementation)
+  : QObject(implementation),
+    _input(input), _parameters(parameters), _settings(settings), _implementation(implementation)
 {
-  d = new KLFBackendCompilationTaskPrivate(this, input, parameters, settings, implementation) ;
+  KLF_INIT_PRIVATE( KLFBackendCompilationTask ) ;
 }
 
 KLFBackendCompilationTask::~KLFBackendCompilationTask()
@@ -119,22 +120,22 @@ KLFBackendCompilationTask::~KLFBackendCompilationTask()
 const KLFBackendInput & KLFBackendCompilationTask::input() const
 {
   // validity of const reference should be good until current instance is deleted
-  return d->input;
+  return _input;
 }
 const QVariantMap & KLFBackendCompilationTask::parameters() const
 {
   // validity of const reference should be good until current instance is deleted
-  return d->parameters;
+  return _parameters;
 }
 const KLFBackendSettings & KLFBackendCompilationTask::settings() const
 {
   // validity of const reference should be good until current instance is deleted
-  return d->settings;
+  return _settings;
 }
 
 KLFBackendImplementation * KLFBackendCompilationTask::implementation() const
 {
-  return d->implementation;
+  return _implementation;
 }
 
 
@@ -144,16 +145,16 @@ KLFResultErrorStatus<QString> KLFBackendCompilationTask::createTemporaryDir()
   QString ver = KLF_VERSION_STRING;
   ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
   // the base name for all our temp files
-  QString temptemplate = d->settings.temp_dir + "/klftmp"+ver+"-XXXXXX";
+  QString temptemplate = _settings.temp_dir + "/klftmp"+ver+"-XXXXXX";
 
   // create the temporary directory
   QTemporaryDir * tdir = new QTemporaryDir(temptemplate);
 
-  if (!tdir.isValid()) {
+  if (!tdir->isValid()) {
     // failed to create temporary directory
     delete tdir;
     return klf_result_failure(tr("Failed to create temporary directory in '%1'")
-                              .arg(d->settings.temp_dir));
+                              .arg(_settings.temp_dir));
   }
 
   d->temp_dir_objs.append(tdir);
@@ -161,7 +162,7 @@ KLFResultErrorStatus<QString> KLFBackendCompilationTask::createTemporaryDir()
   // TODO: allow to disable this when debugging, e.g. using an environment variable
   tdir->setAutoRemove(true);
 
-  QString path = tdir.path();
+  QString path = tdir->path();
   if (!path.endsWith(QString(KLF_DIR_SEP))) {
     // guarantee trailing slash in returned path
     path += QString(KLF_DIR_SEP);
@@ -175,7 +176,7 @@ static inline QPair<QString,QByteArray> get_cache_key(const QString & format,
 {
   return QPair<QString,QByteArray>(
       format,
-      QString::fromLatin1(klfSaveVariantToText(parameters, true))
+      klfSaveVariantToText(parameters, true)
       );
 }
 
@@ -199,6 +200,21 @@ void KLFBackendCompilationTask::storeDataToCache(const QString & format_,
   d->cached_output[cache_key] = data;
 }
 
+QStringList KLFBackendCompilationTask::availableFormats(bool also_formats_via_qimage) const
+{
+  QStringList fl = availableCompileToFormats();
+
+  if (also_formats_via_qimage) {
+    const QList<QByteArray> qimage_fmts = QImageReader::supportedImageFormats();
+    for (QList<QByteArray>::const_iterator it = qimage_fmts.constBegin();
+         it != qimage_fmts.constEnd(); ++it) {
+      fl << QString::fromLatin1(*it);
+    }
+  }
+
+  return fl;
+}
+
 KLFResultErrorStatus<QByteArray>
 KLFBackendCompilationTask::getOutput(const QString & format_,
                                      const QVariantMap & parameters_)
@@ -218,7 +234,7 @@ KLFBackendCompilationTask::getOutput(const QString & format_,
       return res;
     }
     if (!res.result.isEmpty()) {
-      d->cached_output[cache_key] = output;
+      d->cached_output[cache_key] = res.result;
     }
   }
 
@@ -236,16 +252,46 @@ KLFResultErrorStatus<QImage> KLFBackendCompilationTask::getImage()
   if (!d->cached_image.isNull()) {
     return d->cached_image;
   }
-  QImage img = compileToImage();
-  if (!img.isNull()) {
-    d->cached_image = img;
+  KLFResultErrorStatus<QImage> res = compileToImage();
+  if (!res.ok) {
+    return res;
+  }
+  if (!res.result.isNull()) {
+    d->cached_image = res.result;
   }
   return d->cached_image;
 }
 
 KLFResultErrorStatus<QImage> KLFBackendCompilationTask::compileToImage()
 {
-  ............;
+  const QSet<QByteArray> ok_formats =
+    QSet<QByteArray>::fromList(QImageReader::supportedImageFormats());
+  const QStringList avail_fmts = availableFormats();
+
+  QString use_format;
+
+  int j;
+  for (j = 0; j < avail_fmts.size(); ++j) {
+    if (ok_formats.contains(avail_fmts[j].toUtf8())) {
+      use_format = avail_fmts[j];
+      break;
+    }
+  }
+  
+  if (use_format.isEmpty()) {
+    return klf_result_failure("No image format is available for constructing a QImage");
+  }
+
+  KLFResultErrorStatus<QByteArray> data_result = getOutput(use_format);
+
+  if (!data_result.ok) {
+    return klf_result_failure(data_result.error_msg);
+  }
+
+  QImage img;
+  img.loadFromData(data_result.result, use_format.toUtf8().constData());
+
+  return img;
 }
 
 void KLFBackendCompilationTask::setImage(const QImage & image)
@@ -261,13 +307,13 @@ KLFErrorStatus KLFBackendCompilationTask::saveToDevice(QIODevice * device,
 {
   QString format = format_.toUpper();
 
-  KLFResultErrorStatus result = getOutput(format, parameters);
+  KLFResultErrorStatus<QByteArray> result = getOutput(format, parameters);
 
   if (!result.ok) {
     return klf_result_failure(result.error_msg);
   }
 
-  device->write(data);  
+  device->write(result.result);  
 
   return true;
 }
@@ -299,9 +345,9 @@ KLFErrorStatus KLFBackendCompilationTask::saveToFile(const QString& filename,
       return klf_result_failure(error);
     }
   } else {
-    fout.setFileName(fileName);
+    fout.setFileName(filename);
     if ( ! fout.open(QIODevice::WriteOnly) ) {
-      QString error = tr("Cannot write to file '%1': %2").arg(fileName).arg(fout.error());
+      QString error = tr("Cannot write to file '%1': %2").arg(filename).arg(fout.error());
       klfWarning(error);
       return klf_result_failure(error);
     }

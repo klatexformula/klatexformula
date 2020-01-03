@@ -149,16 +149,16 @@ struct KLFResultErrorStatus
 };
 
 
-template<class ResultType>
-inline KLFResultErrorStatus<ResultType> klf_result_success(const ResultType & result)
-{
-  return KLFResultErrorStatus<ResultType>(true, result);
-}
-template<class ResultType>
-inline KLFResultErrorStatus<ResultType> klf_result_failure(const QString & error_msg)
-{
-  return KLFResultErrorStatus<ResultType>(false, error_msg);
-}
+// template<class ResultType>
+// inline KLFResultErrorStatus<ResultType> klf_result_success(const ResultType & result)
+// {
+//   return KLFResultErrorStatus<ResultType>(true, result);
+// }
+// template<class ResultType>
+// inline KLFResultErrorStatus<ResultType> klf_result_failure(const QString & error_msg)
+// {
+//   return KLFResultErrorStatus<ResultType>(false, error_msg);
+// }
 
 
 #define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)	\

@@ -50,7 +50,11 @@ public:
   virtual ~KLFBackendImplementation();
 
   void setSettings(const KLFBackendSettings & settings);
-  KLFBackendSettings settings() const;
+  /**
+   * \note The returned const reference is valid as long as the present object
+   *       instance exists.
+   */
+  const KLFBackendSettings & settings() const;
 
   /** \brief Instantiate a compilation task for the given input
    *
@@ -67,8 +71,9 @@ public:
    * Furthermore, in this way users have the guarantee that it is safe to \a
    * delete instances returned by this method.
    */
-  KLFBackendCompilationTask * createCompilationTask(const KLFBackendInput & input,
-                                                    const QVariantMap & parameters) = 0;
+  virtual KLFResultErrorStatus<KLFBackendCompilationTask *>
+  createCompilationTask(const KLFBackendInput & input,
+                        const QVariantMap & parameters) = 0;
 
 private:
   KLF_DECLARE_PRIVATE(KLFBackendImplementation) ;
@@ -151,27 +156,14 @@ public:
    * Return a list of format strings that are valid arguments to \ref
    * getOutput().
    *
-   * The order of the returned list should roughly reflect which formats should
-   * be preferred for applications and/or how difficult it is to generate these
-   * formats.  I.e., for various applications, the first available relevant
-   * format will be used.  For instance, when using \c pdflatex, the "PDF"
-   * format should probably be specified towards the beginning of the list
-   * because it is readily available.
+   * This is basically a list of the formats we can compile to, plus the save
+   * formats provided by \ref QImage which are reported at the end of the list.
    *
-   * Also, the returned order is relevant for \ref getImage().  The first format
-   * in the returned list that is a recognized image format (see \ref
-   * QImageReader::supportedImageFormats()) will be used when \ref getImage() is
-   * called.  The rationale is the following: If \ref availableFormats() returns
-   * "JPEG" before "PNG", it is assumed that "JPEG" is cheaper to produce than
-   * "PNG", and the QImage's returned by getImage() should use the "JPEG" format
-   * instead of "PNG" even if this means giving up on transparency.
-   *
-   * A list such as ["PDF", "PNG", "SVG", "JPEG", "BMP"] will for instance
-   * ensure that getImage() uses "PNG" (with transparency) and that applications
-   * that need a vector format will probably go for "PDF" and only query "SVG"
-   * if they don't want "PDF".
+   * Subclasses should normally not need to reimplement this function. Instead,
+   * they should override \ref availableCompileToFormats() to report formats
+   * they can compile to.
    */
-  virtual QStringList availableFormats() const = 0;
+  virtual QStringList availableFormats(bool also_formats_via_qimage = true) const;
 
   /** \brief Save output to the given file in the given format
    *
@@ -203,6 +195,11 @@ public:
 
 protected:
 
+  const KLFBackendInput _input;
+  const QVariantMap _parameters;
+  const KLFBackendSettings _settings;
+  KLFBackendImplementation * _implementation;
+
   /** \brief Create a temporary directory to work in
    *
    * Creates a temporary directory using \ref QTemporaryDir inside the temporary
@@ -231,6 +228,33 @@ protected:
    * The default implementation returns the \a parameters unchanged.
    */
   virtual QVariantMap canonicalFormatParameters(const QString & format, const QVariantMap & parameters);
+
+  /** \brief List of formats we can compile to
+   *
+   * Subclasses should override this function to report all the formats that
+   * they can compile to using the function \ref compileToFormat().
+   *
+   * The order of the returned list should roughly reflect which formats should
+   * be preferred for applications and/or how difficult it is to generate these
+   * formats.  I.e., for various applications, the first available relevant
+   * format will be used.  For instance, when using \c pdflatex, the "PDF"
+   * format should probably be specified towards the beginning of the list
+   * because it is readily available.
+   *
+   * Also, the returned order is relevant for \ref getImage().  The first format
+   * in the returned list that is a recognized image format (see \ref
+   * QImageReader::supportedImageFormats()) will be used when \ref getImage() is
+   * called.  The rationale is the following: If \ref availableFormats() returns
+   * "JPEG" before "PNG", it is assumed that "JPEG" is cheaper to produce than
+   * "PNG", and the QImage's returned by getImage() should use the "JPEG" format
+   * instead of "PNG" even if this means giving up on transparency.
+   *
+   * A list such as ["PDF", "PNG", "SVG", "JPEG", "BMP"] will for instance
+   * ensure that getImage() uses "PNG" (with transparency) and that applications
+   * that need a vector format will probably go for "PDF" and only query "SVG"
+   * if they don't want "PDF".
+   */
+  virtual QStringList availableCompileToFormats() const = 0;
 
   /** \brief Create output in the specified format with the given parameters.
    *

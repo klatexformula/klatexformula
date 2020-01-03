@@ -24,9 +24,24 @@
 
 #include <QtMath> // qFabs()
 #include <QDateTime>
+#include <QVariantMap>
+#include <QImage>
+#include <QMap>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QSet>
+#include <QRegularExpression>
+#include <QTextCodec>
+#include <QFileInfo>
+#include <QDir>
+#include <QBuffer>
+#include <QDebug>
 
 #include <klfutil.h>
+#include <klfdatautil.h>
 
+#include "klffilterprocess.h"
 #include "klfstdimplementation.h"
 
 
@@ -62,9 +77,9 @@ void KLFBackendDefaultImplementation::setLatexEngineExecPath(
     )
 {
   if (latex_exec.isEmpty()) {
-    latex_engines_exec.remove(engine);
+    d->latex_engines_exec.remove(engine);
   } else {
-    latex_engines_exec[engine] = latex_exec;
+    d->latex_engines_exec[engine] = latex_exec;
   }
 }
 void KLFBackendDefaultImplementation::setDvipsPath(const QString & dvips_exec)
@@ -76,12 +91,13 @@ void KLFBackendDefaultImplementation::setDvipsPath(const QString & dvips_exec)
 
 
 KLFResultErrorStatus<KLFBackendCompilationTask *>
-KLFBackendDefaultImplementation::createCompilationTask(const KLFBackend::klfInput & input,
-                                                 const QVariantMap & parameters)
+KLFBackendDefaultImplementation::createCompilationTask(const KLFBackendInput & input,
+                                                       const QVariantMap & parameters)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  ct = new KLFBackendDefaultCompilationTask(input, parameters, d->settings, this);
-  ct->setLatexExec(d->latex_engines_exec.value(input.engine, QString()), dvips_exec);
+  KLFBackendDefaultCompilationTask * ct =
+    new KLFBackendDefaultCompilationTask(input, parameters, settings(), this);
+  ct->setLatexEngineExec(d->latex_engines_exec.value(input.engine, QString()), d->dvips_exec);
   return ct;
 }
 
@@ -102,21 +118,35 @@ QStringList KLFBackendDefaultImplementation::knownLatexEngines()
 // -----------------------------------------------------------------------------
 
 
+struct KLFBackendDefaultCompilationTaskPrivate
+{
+  KLF_PRIVATE_HEAD(KLFBackendDefaultCompilationTask)
+  {
+  }
+};
+
+
+
 static QByteArray fmt_len(qreal length)
 {
   return QString::number(length, 'f', 5).toLatin1();
 }
 
 
-KLFBackendDefaultCompilationTaskBase::KLFBackendDefaultCompilationTaskBase(
-    KLFBackendDefaultCompilationTask *task_,
-    const KLFBackendInput & input_,
-    const QVariantMap & parameters_,
-    const KLFBackendSettings & settings_
+KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
+    const KLFBackendInput & input,
+    const QVariantMap & parameters,
+    const KLFBackendSettings & settings,
+    KLFBackendDefaultImplementation * implementation
     )
-  : task(task_), input(input_), parameters(parameters_), settings(settings_),
-    compilation_initialized(false)
+  : KLFBackendCompilationTask(input, parameters, settings, implementation)
 {
+  KLF_INIT_PRIVATE(KLFBackendDefaultCompilationTask) ;
+
+  //
+  // load default option parameters first
+  //
+
   // by default, executable path will be detected automatically later
   latex_engine_exec = QString();
   dvips_exec = QString();
@@ -137,25 +167,111 @@ KLFBackendDefaultCompilationTaskBase::KLFBackendDefaultCompilationTaskBase(
   // \usepackage{color}). Only loaded if nontrivial colors are specified.
   usepackage_color = "\\usepackage{xcolor}";
 
-  // Which baseline to report as the equation baseline, in case there are
-  // multiple lines. This is one of "top", "center", "bottom".
-  baseline_valign = "bottom";
-
   // inputenc package to load for encoding support (only for latex & pdflatex
   // engines)
   usepackage_utf8_inputenc = "\\usepackage[utf8]{inputenc}";
 
+  // Which baseline to report as the equation baseline, in case there are
+  // multiple lines. This is one of "top", "center", "bottom".
+  baseline_valign = "bottom";
+
+
   // number of times to re-run latex if we see something like "re-run latex"
   // [to get references right] or something like that
   max_latex_runs = 5;
+
+
+  //
+  // set option parameters from `parameters`
+  //
+  if (parameters.contains("document_class")) {
+    document_class = parameters["document_class"].toString();
+  }
+  if (parameters.contains("document_class_options")) {
+    document_class_options = parameters["document_class_options"].toString();
+  }
+  if (parameters.contains("fixed_page_size")) {
+    fixed_page_size = parameters["fixed_page_size"].toSizeF();
+  }
+  if (parameters.contains("usepackage_color")) {
+    usepackage_color = parameters["usepackage_color"].toString();
+  }
+  if (parameters.contains("baseline_valign")) {
+    baseline_valign = parameters["baseline_valign"].toString();
+  }
+
 }
 
-QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(
+
+KLFBackendDefaultCompilationTask::~KLFBackendDefaultCompilationTask()
+{
+  KLF_DELETE_PRIVATE ;
+}
+
+void KLFBackendDefaultCompilationTask::setLatexEngineExec(
+    const QString & latex_engine_exec_,
+    const QString & dvips_exec_
+    )
+{
+  latex_engine_exec = latex_engine_exec_;
+  if (_input.engine == "latex") {
+    dvips_exec = dvips_exec_;
+  }
+}
+
+KLFErrorStatus KLFBackendDefaultCompilationTask::compile()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFErrorStatus r;
+  KLFResultErrorStatus<QString> rs;
+
+  rs = createTemporaryDir(); // guaranteed trailing slash
+  if (!rs.ok) {
+    return klf_result_failure(rs.error_msg);
+  }
+  tmp_klfeqn_dir = rs.result;
+
+  compil_tmp_basefn = tmp_klfeqn_dir + "klfeqn";
+  klfDbg("Temp location file base name is " << compil_tmp_basefn) ;
+
+  compil_fn_tex = compil_tmp_basefn + ".tex";
+
+  compil_fn_final_pdf = compil_tmp_basefn + "_final.pdf";
+
+  compil_ltx_templatedata = generate_template();
+
+  // write template file
+  r = write_file_contents(compil_fn_tex, compil_ltx_templatedata);
+  if (!r.ok) {
+    return r;
+  }
+
+  // Run latex (including re-runs etc.). Calls after_latex_run().
+  r = run_latex();
+  if (!r.ok) {
+    return r;
+  }
+
+  // Process latex output (dvi or pdf) -> pdf with font outlines & pdfmarks.
+  // Calls ghostscript_process_pdf().
+  r = postprocess_latex_output();
+  if (!r.ok) {
+    return r;
+  }
+
+  // done! PNG will be generated later upon request.
+  return klf_result_success();
+}
+
+
+
+QByteArray KLFBackendDefaultCompilationTask::set_pagesize_latex(
     const QByteArray & ltxw,
     const QByteArray & ltxh
     ) const
 {
-  const QString & engine = input.engine;
+  const QString & engine = _input.engine;
 
   QByteArray s =
     "\\textwidth=" + ltxw + "\\relax"
@@ -192,7 +308,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(
   return s;
 }
 
-QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(const QSizeF & page_size) const
+QByteArray KLFBackendDefaultCompilationTask::set_pagesize_latex(const QSizeF & page_size) const
 {
   return 
     "\\klfXXXppw=" + fmt_len(page_size.width()) + "pt\\relax"
@@ -203,7 +319,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::set_pagesize_latex(const QSizeF
 
 
 
-QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
+QByteArray KLFBackendDefaultCompilationTask::generate_template() const
 {
   QByteArray s;
 
@@ -213,13 +329,13 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   }
   s += "{" + document_class.toUtf8() + "}\n";
 
-  bool has_fixed_page_width = (fixed_page_size.width() > 0);
-  bool has_fixed_page_height = (fixed_page_size.height() > 0);
+  bool has_fixed_paper_width = (fixed_page_size.width() > 0);
+  bool has_fixed_paper_height = (fixed_page_size.height() > 0);
 
-  bool has_fg_color = (in.fg_color != QColor(0,0,0));
-  bool has_fg_transparency = has_fg_color && (qAlpha(in.fg_color) != 255);
-  bool has_bg_color = (qAlpha(in.bg_color) > 0);
-  bool has_bg_transparency = has_bg_color && (qAlpha(in.fg_color) != 255);
+  bool has_fg_color = (_input.fg_color != qRgba(0,0,0,255));
+  bool has_fg_transparency = has_fg_color && (qAlpha(_input.fg_color) != 255);
+  bool has_bg_color = (qAlpha(_input.bg_color) > 0);
+  bool has_bg_transparency = has_bg_color && (qAlpha(_input.fg_color) != 255);
   bool has_transparency = has_fg_transparency || has_bg_transparency;
 
   if (has_fg_color || has_bg_color) {
@@ -266,12 +382,12 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   // If the engine is latex (i.e. to dvi), we need to set the page size here;
   // it will be a dummy size, but we add a comment marker so that this line is
   // changed in a second run of latex.
-  if (has_fixed_page_width && has_fixed_page_height) {
+  if (has_fixed_paper_width && has_fixed_paper_height) {
     s += begin_page_size_marker
       + set_pagesize_latex(fixed_page_size)
       + end_page_size_marker
       ;
-  } else if (engine == "latex") {
+  } else if (_input.engine == "latex") {
     // dummy size, will be set on second run
     s += begin_page_size_marker
       + "\\makeatletter\n"
@@ -279,7 +395,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
       + "\\makeatother\n"
       + end_page_size_marker
       ;
-  } else if (has_fixed_page_width) {
+  } else if (has_fixed_paper_width) {
     // dummy height will be fixed after \begin{document}
     s += begin_page_size_marker
       + "\\makeatletter\n"
@@ -301,22 +417,22 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
     
   if (has_fg_color) {
     s += ( QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n")
-           .arg(qRed(in.fg_color)/255.0, 0, 'f', 3)
-           .arg(qGreen(in.fg_color)/255.0, 0, 'f', 3)
-           .arg(qBlue(in.fg_color)/255.0, 0, 'f', 3) ).toUtf8();
+           .arg(qRed(_input.fg_color)/255.0, 0, 'f', 3)
+           .arg(qGreen(_input.fg_color)/255.0, 0, 'f', 3)
+           .arg(qBlue(_input.fg_color)/255.0, 0, 'f', 3) ).toUtf8();
   }
   if (has_bg_color) {
     s += ( QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n")
-           .arg(qRed(in.bg_color)/255.0, 0, 'f', 3)
-           .arg(qGreen(in.bg_color)/255.0, 0, 'f', 3)
-           .arg(qBlue(in.bg_color)/255.0, 0, 'f', 3) ).toUtf8();
+           .arg(qRed(_input.bg_color)/255.0, 0, 'f', 3)
+           .arg(qGreen(_input.bg_color)/255.0, 0, 'f', 3)
+           .arg(qBlue(_input.bg_color)/255.0, 0, 'f', 3) ).toUtf8();
     if (!has_bg_transparency) {
       s += "\\pagecolor{klfbgcolor}\n";
     }
   }
 
   s += "\n";
-  s += in.preamble.toUtf8();
+  s += _input.preamble.toUtf8();
   s += "\n"
     "\\pagestyle{empty}\n"
     "\\begin{document}%\n"
@@ -330,23 +446,23 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   } else if (baseline_valign == "bottom") {
     vbox = "\\vbox";
   } else {
-    klfWarning("Invalid setting for baseline_valign: " << baseline_valign) ;
-    return klf_result_failure("Invalid internal settings detected (baseline_valign).");
+    klfWarning("Invalid setting for baseline_valign: " << baseline_valign << ", using 'bottom'") ;
+    vbox = "\\vbox";
   }
 
   s += "\\setbox\\klfXXXeqnbox" + vbox + "\\bgroup%\n"
     "\\klfXXXdispskips%\n"
     ;
-  if (in.fontsize > 0) {
+  if (_input.font_size > 0) {
     s += ( QString::fromLatin1("\\fontsize{%1}{%2}\\selectfont%\n")
-           .arg(in.fontsize, 0, 'f', 2)
-           .arg(in.fontsize*1.2, 0, 'f', 2) ).toUtf8();
+           .arg(_input.font_size, 0, 'f', 2)
+           .arg(_input.font_size*1.2, 0, 'f', 2) ).toUtf8();
   }
   // the contents of the box -- the latex equation to evaluate, properly
   // enclosed in the given math mode delimiters
-  s += in.math_delimiters.first.toUtf8() + "%\n"
-    + latexin.toUtf8() + "%\n"
-    + in.math_delimiters.second.toUtf8() + "%\n"
+  s += _input.math_delimiters.first.toUtf8() + "%\n"
+    + _input.latex.toUtf8() + "%\n"
+    + _input.math_delimiters.second.toUtf8() + "%\n"
     ;
 
   s += "\\egroup"; // close the temporary box
@@ -374,11 +490,11 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
     // If we have a display equation, it is already the full box width and there
     // are no margins left to deal with; if it is an inline equation then the
     // box size is smaller (?)
-    s += "\\hoffset=\\dimexpr-1in+0.5\\klfXXXppw-0.5\\klfXXXw\\relax"
-  } else if (margins.left() != 0 || margins.right() != 0) {
+    s += "\\hoffset=\\dimexpr-1in+0.5\\klfXXXppw-0.5\\klfXXXw\\relax";
+  } else if (_input.margins.left() != 0 || _input.margins.right() != 0) {
     s +=
-      "\\advance\\klfXXXppw " + fmt_len(in.margins.left() + in.margins.right()) + "pt\\relax"
-      "\\advance\\hoffset " + fmt_len(in.margins.left()) + "pt\\relax"
+      "\\advance\\klfXXXppw " + fmt_len(_input.margins.left() + _input.margins.right()) + "pt\\relax"
+      "\\advance\\hoffset " + fmt_len(_input.margins.left()) + "pt\\relax"
       ;
   }
   if (has_fixed_paper_height) {
@@ -386,17 +502,17 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
     // ignored -- reflect behavior of left/right margins.
     s += "\\voffset=\\dimexpr-1in+0.5\\klfXXXpph-0.5\\klfXXXh-0.5\\klfXXXd\\relax"
       ;
-  } else if (margins.top() != 0 || margins.top() != 0) {
+  } else if (_input.margins.top() != 0 || _input.margins.top() != 0) {
     s +=
-      "\\advance\\klfXXXpph " + fmt_len(in.margins.top() + in.margins.bottom()) + "pt\\relax"
-      "\\advance\\voffset " + fmt_len(in.margins.top()) + "pt\\relax"
+      "\\advance\\klfXXXpph " + fmt_len(_input.margins.top() + _input.margins.bottom()) + "pt\\relax"
+      "\\advance\\voffset " + fmt_len(_input.margins.top()) + "pt\\relax"
       ;
   }
   s += "%\n";
 
   // now, set the page size (unless we had a fixed page size or the engine
   // doesn't support setting the page size after \begin{document}
-  if (!has_fixed_page_size && engine != "latex") {
+  if (!(has_fixed_paper_width && has_fixed_paper_height) && _input.engine != "latex") {
     s += set_pagesize_latex("\\klfXXXppw", "\\klfXXXpph");
   }
 
@@ -411,7 +527,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
                "\\makebox[0pt][l]{%\n"
                "\\color{klfbgcolor}\\pgfsetfillopacity{%1}"
                "\\rule{\\klfXXXppw}{\\klfXXXpph}}"
-               ).arg(qAlpha(bg_color)/255.0, 0, 'f', 3) ).toUtf8();
+               ).arg(qAlpha(_input.bg_color)/255.0, 0, 'f', 3) ).toUtf8();
   }
   // now draw the foreground
   if (has_transparency) {
@@ -421,7 +537,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
       s += "\\pgfsetfillopacity{1}%\n";
     } else {
       s += ( QString::fromLatin1("\\pgfsetfillopacity{%1}%\n")
-             .arg(qAlpha(fg_color)/255.0, 0, 'f', 3) ).toUtf8();
+             .arg(qAlpha(_input.fg_color)/255.0, 0, 'f', 3) ).toUtf8();
     }
   }
   if (has_fg_color) {
@@ -429,10 +545,15 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
   }
   s += "\\raisebox{\\klfXXXd}[\\klfXXXpph][0pt]{\\box\\klfXXXeqnbox}%\n";
 
+  QByteArray begin_marker = begin_output_meta_info_marker;
+  begin_marker.replace("\n", "^^J%\n");
+  QByteArray end_marker = end_output_meta_info_marker;
+  end_marker.replace("\n", "^^J%\n");
+
   // Finally, instruct latex to provide box size information via messages on
   // standard output
   s += "\\message{%\n" +
-    begin_output_meta_info_marker.replace("\n", "^^J%\n") + "%\n"
+    begin_marker + "%\n"
     "PAPER_WIDTH={\\the\\klfXXXppw}^^J%\n"
     "PAPER_HEIGHT={\\the\\klfXXXpph}^^J%\n"
     "HOFFSET={\\the\\hoffset}^^J%\n"
@@ -440,7 +561,7 @@ QByteArray KLFBackendDefaultCompilationTaskBase::generate_template() const
     "BOX_WIDTH={\\the\\klfXXXw}^^J%\n"
     "BOX_HEIGHT={\\the\\klfXXXh}^^J%\n"
     "BOX_DEPTH={\\the\\klfXXXd}^^J%\n" +
-    end_output_meta_info_marker.replace("\n", "^^J%\n") + "}%\n"
+    end_marker + "}%\n"
     ;
 
   // And that's it!
@@ -455,21 +576,21 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
   klfDbg("preparing to launch latex.") ;
 
   QString latex_exec;
-  if (latex_engine_exec) {
+  if (!latex_engine_exec.isEmpty()) {
     latex_exec = latex_engine_exec;
   } else {
-    latex_exec = findLatexEngineExecutable(input.engine, settings);
+    latex_exec = _settings.getLatexEngineExecutable(_input.engine);
   }
   if (latex_exec.isEmpty()) {
-    return klf_result_failure(tr("Cannot find executable for latex engine %1").arg(input.engine));
+    return klf_result_failure(tr("Cannot find executable for latex engine %1").arg(_input.engine));
   }
 
   // emit a warning if it looks like the executable is in fact a different
   // latex engine
   { const QString latex_exec_basename = QFileInfo(latex_exec).baseName().toLower();
     if (klf_known_latex_engines.contains(latex_exec_basename) &&
-        latex_exec_basename != input.engine) {
-      klfWarning("Requested engine " << input.engine
+        latex_exec_basename != _input.engine) {
+      klfWarning("Requested engine " << _input.engine
                  << " does not seem to correspond to specified executable " << latex_exec) ;
     }
   }
@@ -482,7 +603,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
   QString fn_out;
   QByteArray * data_raw_ptr = NULL;
   QString format;
-  if (input.engine == "latex") {
+  if (_input.engine == "latex") {
     format = "DVI";
     data_raw_ptr = &data_raw_dvi;
     fn_out = compil_tmp_basefn + ".dvi";
@@ -492,24 +613,26 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
     fn_out = compil_tmp_basefn + ".pdf";
   }
 
+  bool check_for_rerun = true;
+
   do {
 
-    KLFFilterProcess p(input.engine, tmp_klfeqn_dir);
-    p.setFromBackendSettings(settings);
+    KLFFilterProcess p(_input.engine, tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
 
-    p.setArgv(QStringList() << latex_exec << QDir::toNativeSeparators(fn_tex));
+    p.setArgv(QStringList() << latex_exec << QDir::toNativeSeparators(compil_fn_tex));
 
     QByteArray userinputforerrors = "h\nr\n";
     p.collectStdoutTo(&compil_ltx_output_data);
 
-    ok = p.run(userinputforerrors, fn_out, data_raw_ptr);
+    bool ok = p.run(userinputforerrors, fn_out, data_raw_ptr);
     if (!ok) {
       return klf_result_failure(QString::fromLatin1("LaTeX (%1): %2")
-                                .arg(input.engine, p.resultErrorString()));
+                                .arg(_input.engine, p.resultErrorString()));
     }
     ++ num_latex_runs;
 
-    bool check_for_rerun = true;
+    check_for_rerun = true;
     if (num_latex_runs >= max_latex_runs) {
       klfWarning("Maximum number of LaTeX re-runs reached (" << max_latex_runs << "), moving on") ;
       check_for_rerun = false;
@@ -518,7 +641,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
     requires_latex_rerun = false;
 
     r = after_latex_run(compil_ltx_output_data, fn_out, num_latex_runs,
-                       check_for_rerun, &requires_latex_rerun);
+                        check_for_rerun, &requires_latex_rerun);
     if (!r.ok) {
       return r;
     }
@@ -532,9 +655,9 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::run_latex()
 }
 
 
-KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
+KLFErrorStatus KLFBackendDefaultCompilationTask::after_latex_run(
     const QByteArray & latex_stdout,
-    const QString & fn_out,
+    const QString & /*fn_out*/,
     int num_latex_runs,
     bool check_for_rerun,
     bool * requires_latex_rerun
@@ -544,7 +667,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
 
   KLFErrorStatus r;
 
-  if (num_latex_runs < 2 && input.engine == "latex") {
+  if (num_latex_runs < 2 && _input.engine == "latex") {
     // read reported latex box size & fix template & re-run
 
     QRegularExpression rx("\\s*([A-Za-z0-9_.-]+)\\=\\{([^\\}]*)\\}");
@@ -587,7 +710,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
         // read length into variable *read_length_to
         QRegularExpressionMatch mpt = rx_length_pt.match(value);
         if (!mpt.hasMatch()) {
-          klfWarning("Invalid length reported by LaTeX (" << input.engine
+          klfWarning("Invalid length reported by LaTeX (" << _input.engine
                      << "): '" << value << "'") ;
         }
         *read_length_to = mpt.captured(1).toFloat();
@@ -638,10 +761,10 @@ KLFErrorStatus KLFBackendDefaultCompilationTaskBase::after_latex_run(
   // stuff right...]"
   { QRegularExpression rx_rerun("LaTeX Warning:.*(\\n.*){,3}.*\\bRe-?run\\b.*",
                                 QRegularExpression::CaseInsensitiveOption);
-    QRegularExpressionMatch m = rx_rerun.match(latex_output);
+    QRegularExpressionMatch m = rx_rerun.match(latex_stdout);
     if (m.hasMatch()) {
       // need to re-run latex for some latex feature to work (\ref{}, \cite{}, etc.)
-      klfDbg("latex needs to be rerun (detected from " << input.engine << " stdout).") ;
+      klfDbg("latex needs to be rerun (detected from " << _input.engine << " stdout).") ;
       *requires_latex_rerun = true;
       return klf_result_success();
     }
@@ -662,14 +785,13 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::ghostscript_process_pdf(const Q
   //   - add pdfmarks meta-information
   // --> generates our final PDF
 
-  QString fn_final_pdf = compil_tmp_basefn + "_final.pdf";
   QString fn_pdfmarks = compil_tmp_basefn + ".pdfmarks";
 
   KLFErrorStatus r;
 
   // prepare PDFMarks
   { QMap<QString,QString> map = get_metainfo_string_map();
-    map["Title"] = in.latex;
+    map["Title"] = _input.latex;
     map["Keywords"] = "KLatexFormula KLF LaTeX equation formula";
     map["Creator"] = "KLatexFormula " KLF_VERSION_STRING;
     map["Creation Time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
@@ -685,21 +807,22 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::ghostscript_process_pdf(const Q
 
   // run "gs"
   { KLFFilterProcess p("gs", tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
 
     QStringList gsoptions;
-    if (input.outline_fonts) {
+    if (_input.outline_fonts) {
       gsoptions << "-dNoOutputFonts";
     }
 
-    p.addArgv(settings.gs_exec);
+    p.addArgv(_settings.gs_exec);
     p.addArgv(QStringList()
               << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite" << gsoptions
-              << "-sOutputFile="+QDir::toNativeSeparators(fn_final_pdf)
+              << "-sOutputFile="+QDir::toNativeSeparators(compil_fn_final_pdf)
               << "-q" << "-dBATCH" << fn_input << fn_pdfmarks);
 
-    bool ok = p.run(fn_final_pdf, &data_final_pdf);
+    bool ok = p.run(compil_fn_final_pdf, &data_final_pdf);
     if (!ok) {
-      return klf_result_failure(p.errorString());
+      return klf_result_failure(p.resultErrorString());
     }
   }
 
@@ -719,20 +842,21 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::postprocess_latex_output()
   //
   // if "latex" engine, run dvips.
   //
-  if (input.engine == "latex") {
+  if (_input.engine == "latex") {
 
     // find dvips executable
     QString dvips;
-    if (dvips_exec) {
+    if (!dvips_exec.isEmpty()) {
       dvips = dvips_exec;
     } else {
-      dvips = findLatexEngineExecutable("dvips", settings);
+      dvips = _settings.getLatexEngineExecutable("dvips");
     }
     if (dvips.isEmpty()) {
       return klf_result_failure(tr("Cannot find dvips executable"));
     }
 
     KLFFilterProcess p("dvips", tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
 
     const QString fn_dvi = compil_tmp_basefn + ".dvi";
     const QString fn_ps = compil_tmp_basefn + ".ps";
@@ -742,7 +866,7 @@ KLFErrorStatus KLFBackendDefaultCompilationTask::postprocess_latex_output()
 
     bool ok = p.run(fn_ps, &data_raw_ps);
     if (!ok) {
-      return klf_result_failure(p.errorString());
+      return klf_result_failure(p.resultErrorString());
     }
 
     fn_gs_input = fn_ps;
@@ -776,14 +900,14 @@ QVariantMap KLFBackendDefaultCompilationTask::get_metainfo_variant() const
 
   vmap["Implementation"] = "klf5-default";
 
-  const QVariantMap vmapinput = input.asVariantMap();
+  const QVariantMap vmapinput = _input.asVariantMap();
   for (QVariantMap::const_iterator it = vmapinput.begin(); it != vmapinput.end(); ++it) {
     vmap["Input" + it.key()] = it.value();
   }
 
   // important legacy keys
   //InputLatex
-  vmap["InputMathMode"] = input.math_delimiters.first + " ... " + input.math_delimiters.second;
+  vmap["InputMathMode"] = _input.math_delimiters.first + " ... " + _input.math_delimiters.second;
   //InputPreamble
   //InputFontSize
   //InputFgColor
@@ -806,7 +930,7 @@ QMap<QString,QString> KLFBackendDefaultCompilationTask::get_metainfo_string_map(
 }
 
 
-KLFErrorStatus KLFBackendDefaultCompilationTaskBase::write_file_contents(
+KLFErrorStatus KLFBackendDefaultCompilationTask::write_file_contents(
     const QString & fn, const QByteArray & contents
     )
 {
@@ -840,92 +964,31 @@ const QByteArray KLFBackendDefaultCompilationTask::end_output_meta_info_marker =
 
 
 
-KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
-    const KLFBackendInput & input, const QVariantMap & parameters,
-    const KLFBackendSettings & settings,
-    KLFBackendDefaultImplementation * implementation
-    )
-  : KLFBackendCompilationTask(input, parameters, settings, implementation)
+
+
+
+QStringList KLFBackendDefaultCompilationTask::availableCompileToFormats() const
 {
-  KLF_INIT_PRIVATE(KLFBackendDefaultCompilationTask) ;
+  QStringList fl;
+  // base format
+  fl << "PDF";
 
-  if (parameters.contains("document_class")) {
-    document_class = parameters["document_class"].toString();
-  }
-  if (parameters.contains("document_class_options")) {
-    document_class_options = parameters["document_class_options"].toString();
-  }
-  if (parameters.contains("fixed_page_size")) {
-    fixed_page_size = parameters["fixed_page_size"].toSizeF();
-  }
-  if (parameters.contains("usepackage_color")) {
-    usepackage_color = parameters["usepackage_color"].toSizeF();
-  }
-  if (parameters.contains("baseline_valign")) {
-    baseline_valign = parameters["baseline_valign"].toSizeF();
-  }
-}
+  // derivative formats
+  fl << "PNG" << "EPS" << "PS" << "SVG";
 
-KLFBackendDefaultCompilationTask::~KLFBackendDefaultCompilationTask()
-{
-  KLF_DELETE_PRIVATE ;
-}
-
-void setLatexExec(const QString & latex_engine_exec, const QString & dvips_exec = QString())
-{
-  d->latex_engine_exec = latex_engine_exec;
-  if (d->engine == "latex") {
-    d->dvips_exec = dvips_exec;;
-  }
-}
-
-KLFErrorStatus KLFBackendDefaultCompilationTask::compile()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  KLFErrorStatus r;
-  KLFResultErrorStatus<QString> rs;
-
-  rs = K->createTemporaryDir(); // guaranteed trailing slash
-  if (!rs.ok) {
-    return klf_result_failure(rs.error_msg);
-  }
-  tmp_klfeqn_dir = rs.result;
-
-  compil_tmp_basefn = tmp_klfeqn_dir + "klfeqn";
-  klfDbg("Temp location file base name is " << compil_tmp_basefn) ;
-
-  compil_fn_tex = compil_tmp_basefn + ".tex";
-
-  compil_ltx_templatedata = generate_template(input.latex, parameters, input.engine);
-
-  // write template file
-  r = write_file_contents(compil_fn_tex, compil_ltx_templatedata);
-  if (!r.ok) {
-    return r;
+  if (_input.engine == "latex") {
+    fl << "DVI";
+    // fl << "PS"; // already reported
   }
 
-  // Run latex (including re-runs etc.). Calls after_latex_run().
-  r = run_latex();
-  if (!r.ok) {
-    return r;
-  }
-
-  // Process latex output (dvi or pdf) -> pdf with font outlines & pdfmarks.
-  // Calls ghostscript_process_pdf().
-  r = postprocess_latex_output();
-  if (!r.ok) {
-    return r;
-  }
-
-  // done! PNG will be generated later upon request.
-  return klf_result_success();
+  return fl;
 }
 
 
 // protected
-QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & format,
-                                                             const QVariantMap & parameters)
+KLFResultErrorStatus<QByteArray>
+KLFBackendDefaultCompilationTask::compileToFormat(const QString & format,
+                                                  const QVariantMap & parameters)
 {
   // These are already stored in the cache.
   //
@@ -945,26 +1008,27 @@ QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & for
   if (format == "PNG") {
     // generate PNG data via ghostscript from PDF
     KLFFilterProcess p("gs (for PNG)", tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
 
     QString fn_png = compil_tmp_basefn + ".png";
 
     QByteArray gsdev;
-    if (qAlpha(input.bg_color) == 255) { // opaque background color
+    if (qAlpha(_input.bg_color) == 255) { // opaque background color
       gsdev = "png16m";
     } else {
       gsdev = "pngalpha";
     }
 
-    p.addArgv(settings.gs_exec);
+    p.addArgv(_settings.gs_exec);
     p.addArgv(QStringList()
               << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE="+gsdev
               << "-sOutputFile="+QDir::toNativeSeparators(fn_png)
-              << "-q" << "-dBATCH" << fn_final_pdf);
+              << "-q" << "-dBATCH" << compil_fn_final_pdf);
 
     QByteArray rawpngdata;
     bool ok = p.run(fn_png, &rawpngdata);
     if (!ok) {
-      return klf_result_failure(p.errorString());
+      return klf_result_failure(p.resultErrorString());
     }
 
     if (parameters.value("raw", false).toBool()) {
@@ -982,7 +1046,7 @@ QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & for
 
       // save meta-information
       QMap<QString,QString> map = get_metainfo_string_map();
-      map["Title"] = in.latex;
+      map["Title"] = _input.latex;
       map["Keywords"] = "KLatexFormula KLF LaTeX equation formula";
       map["Creator"] = "KLatexFormula " KLF_VERSION_STRING;
       map["Creation Time"] = QDateTime::currentDateTime().toString(Qt::ISODate);
@@ -1006,36 +1070,44 @@ QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & for
   }
 
   if (format == "EPS") {
+    // generate PNG data via ghostscript from PDF
+    KLFFilterProcess p("gs (for EPS)", tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
+
     QString fn_eps = compil_tmp_basefn + ".eps";
 
-    p.addArgv(settings.gs_exec);
+    p.addArgv(_settings.gs_exec);
     p.addArgv(QStringList()
               << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=eps2write"
               << "-sOutputFile="+QDir::toNativeSeparators(fn_eps)
-              << "-q" << "-dBATCH" << fn_final_pdf);
+              << "-q" << "-dBATCH" << compil_fn_final_pdf);
 
     QByteArray epsdata;
     bool ok = p.run(fn_eps, &epsdata);
     if (!ok) {
-      return klf_result_failure(p.errorString());
+      return klf_result_failure(p.resultErrorString());
     }
 
     return epsdata;
   }
 
   if (format == "PS") { // non-raw PS (raw is already stored in the cache, if available)
+    // generate PNG data via ghostscript from PDF
+    KLFFilterProcess p("gs (for PS)", tmp_klfeqn_dir);
+    p.setFromBackendSettings(_settings);
+
     QString fn_ps = compil_tmp_basefn + ".ps";
 
-    p.addArgv(settings.gs_exec);
+    p.addArgv(_settings.gs_exec);
     p.addArgv(QStringList()
               << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=ps2write"
               << "-sOutputFile="+QDir::toNativeSeparators(fn_ps)
-              << "-q" << "-dBATCH" << fn_final_pdf);
+              << "-q" << "-dBATCH" << compil_fn_final_pdf);
 
     QByteArray psdata;
     bool ok = p.run(fn_ps, &psdata);
     if (!ok) {
-      return klf_result_failure(p.errorString());
+      return klf_result_failure(p.resultErrorString());
     }
 
     return psdata;
@@ -1048,7 +1120,9 @@ QByteArray KLFBackendDefaultCompilationTask::compileToFormat(const QString & for
   }
 
   
-  return klf_result_failure("Unknown data format/parameters: " << format << ", " << parameters) ;
+  QString msg;
+  QDebug(&msg) << "Unknown data format/parameters: " << format << ", " << parameters;
+  return klf_result_failure(msg);
 }
 
 
@@ -1165,7 +1239,7 @@ KLF_EXPORT QByteArray klf_generate_pdfmarks(const QMap<QString,QString> & map)
 
   QRegularExpression rx_invalid_name_char("[^A-Za-z0-9_-.:@]");
 
-  for (QVariantMap::const_iterator it = map.begin(); it != map.end(); ++it) {
+  for (QMap<QString,QString>::const_iterator it = map.begin(); it != map.end(); ++it) {
     QString key = it.key();
     QByteArray datavalue = klf_escape_ps_string(it.value());
 
@@ -1190,4 +1264,6 @@ KLF_EXPORT QByteArray klf_generate_pdfmarks(const QMap<QString,QString> & map)
   }
 
   s.append("  /DOCINFO pdfmark\n");
+
+  return s;
 }

@@ -25,6 +25,7 @@ set(klfbackend_SRCS
   klffilterprocess.cpp
   klflatexpreviewthread.cpp
   klfuserscript.cpp
+  klfbackendinput.cpp
   klfimplementation.cpp
   klfstdimplementation.cpp
   )
@@ -41,6 +42,7 @@ set(klfbackend_HEADERS
   klfbackend_p.h
   klfuserscript.h
   klffilterprocess.h
+  klfbackendinput.h
   ${klfbackend_MOCHEADERS}
   )
 

@@ -21,7 +21,16 @@
  ***************************************************************************/
 /* $Id$ */
 
+
+#include <QString>
+#include <QStringList>
+#include <QFileInfo>
+#include <QCoreApplication>
+
 #include "klfbackendinput.h"
+
+#include <klfutil.h>
+#include <klfsysinfo.h> // KLF_DIR_SEP
 
 
 
@@ -46,10 +55,11 @@ static klfbackend_exe_names search_latex_exe_names = {
   // << "%1" << "%1.exe" // exe name itself (& corresponding "XXX.exe") is automatically searched for
 };
 static klfbackend_exe_names search_gs_exe_names = {
-  "gs", QStringList() << "gswin32c.exe" << "gswin64c.exe" << "mgs.exe"
+  "gs",
+  QStringList() << "gswin32c.exe" << "gswin64c.exe" << "mgs.exe"
 };
 static QStringList std_extra_paths =
-  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  klfSplitEnvironmentPath(EXTRA_PATHS)
   << "C:\\Program Files*\\MiKTeX*\\miktex\\bin"
   << "C:\\texlive\\*\\bin\\win*"
   << "C:\\Program Files*\\gs*\\gs*\\bin"
@@ -63,7 +73,7 @@ static klfbackend_exe_names search_gs_exe_names = {
   "gs", QStringList() // exe name itself is automatically searched for
 };
 static QStringList std_extra_paths =
-  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  klfSplitEnvironmentPath(EXTRA_PATHS)
   << "/usr/texbin"
   << "/Library/TeX/texbin"
   << "/usr/local/bin"
@@ -80,7 +90,7 @@ static klfbackend_exe_names search_gs_exe_names = {
   "gs", QStringList() // exe name itself is automatically searched for
 };
 static QStringList std_extra_paths =
-  klfSplitEnvironmentPath(EXTRA_PATHS_PRE)
+  klfSplitEnvironmentPath(EXTRA_PATHS)
   ;
 #endif
 
@@ -106,6 +116,23 @@ const QStringList & get_std_extra_paths()
 }
 
 
+QString KLFBackendSettings::getLatexEngineExecutable(const QString & engine) const
+{
+  QString s;
+  if (!latex_bin_dir.isEmpty()) {
+    s = latex_bin_dir + KLF_DIR_SEP + engine;
+    if ( QFileInfo(s).isExecutable() ) { return s; }
+#ifdef Q_OS_WIN
+    s = latex_bin_dir + KLF_DIR_SEP + engine + ".exe";
+    if ( QFileInfo(s).isExecutable() ) { return s; }
+#endif
+  }
+  klfDbg("Cannot immediately locate latex executable for " << engine
+         << ", searching in stdandard paths ...") ;
+  return findLatexEngineExecutable(engine);
+}
+
+
 // static
 QString KLFBackendSettings::findLatexEngineExecutable(const QString & engine,
                                                       const QStringList & extra_path)
@@ -124,16 +151,15 @@ QString KLFBackendSettings::findExecutable(const QString & exe_name,
                                            const QStringList & exe_patterns_,
                                            const QStringList & extra_path)
 {
-  const QStringList exe_patterns =
-    exe_patterns_.replaceInStrings("%1", exe_name)
+  QStringList exe_patterns = exe_patterns_;
+  exe_patterns.replaceInStrings("%1", exe_name);
 #ifdef Q_OS_WIN
-    << exe_name+".exe"
+  exe_patterns << exe_name+".exe";
 #endif
-    << exe_name
-    ;
+  exe_patterns << exe_name;
   
   QStringList std_paths;
-  if (extra_path) {
+  if (extra_path.size()) {
     std_paths.append( extra_path );
   }
   std_paths.append( get_std_extra_paths() );
@@ -143,7 +169,8 @@ QString KLFBackendSettings::findExecutable(const QString & exe_name,
   QString result = srch.findFirstMatch();
 
   if (result.isEmpty()) {
-    klfWarning("Cannot find executable for latex engine: " << engine << "") ;
+    klfWarning("Cannot find executable " << exe_name << " using exe_patterns=" << exe_patterns
+               << " with extra_path=" << extra_path) ;
   }
 
   return result;
@@ -163,7 +190,7 @@ QVariantMap KLFBackendInput::asVariantMap() const
   m["FgColor"] = QColor::fromRgba(fg_color);
   m["BgColor"] = QColor::fromRgba(bg_color);
   m["Margins"] =
-    QList<qreal>() << margins.top() << margins.right() << margins.bottom() << margins.left();
+    QVariantList() << margins.top() << margins.right() << margins.bottom() << margins.left();
   m["Dpi"] = dpi;
   m["VectorScale"] = vector_scale;
   m["Engine"] = engine;
@@ -173,9 +200,9 @@ QVariantMap KLFBackendInput::asVariantMap() const
 }
 
 
-void KLFBackendInput::loadFromVariantMap(const QVariantMap & map)
+bool KLFBackendInput::loadFromVariantMap(const QVariantMap & vmap)
 {
-  latex = vmap.value("Latex", QString());
+  latex = vmap.value("Latex", QString()).toString();
   ..................;
 }
 

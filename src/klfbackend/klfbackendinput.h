@@ -199,6 +199,15 @@ struct KLFBackendSettings
   QMap<QString,QString> user_script_interpreters;
 
 
+  //! does its best to return the latex executable for the given \a engine
+  /** Searches first in latex_bin_dir. If it isn't in there, uses \ref
+   * findLatexEngineExecutable() to try to guess the location with some
+   * predefined system-specific search paths.
+   */
+  QString getLatexEngineExecutable(const QString & engine) const;
+
+
+
   static QString findLatexEngineExecutable(const QString & engine,
                                            const QStringList & extra_path = QStringList());
   static QString findGsExecutable(const QStringList & extra_path = QStringList());

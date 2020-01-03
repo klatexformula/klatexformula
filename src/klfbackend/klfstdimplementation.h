@@ -24,6 +24,12 @@
 #ifndef KLFSTDIMPLEMENTATION_H
 #define KLFSTDIMPLEMENTATION_H
 
+#include <QObject>
+#include <QByteArray>
+#include <QString>
+#include <QVariant>
+#include <QVariantMap>
+#include <QSizeF>
 
 #include <klfdefs.h>
 #include <klfimplementation.h>
@@ -65,7 +71,7 @@ private:
 
 
 
-struct KLBackendDefaultCompilationTaskPrivate;
+struct KLFBackendDefaultCompilationTaskPrivate;
 
 
 //
@@ -80,31 +86,33 @@ class KLFBackendDefaultCompilationTask : public KLFBackendCompilationTask
 {
   Q_OBJECT
 public:
-  KLFBackendDefaultCompilationTask(const KLFBackendInput & input, const KLFBackendSettings & settings,
+  KLFBackendDefaultCompilationTask(const KLFBackendInput & input, const QVariantMap & parameters,
+                                   const KLFBackendSettings & settings,
                                    KLFBackendDefaultImplementation * implementation);
   virtual ~KLFBackendDefaultCompilationTask();
 
-  virtual QStringList availableFormats() const;
+
+  void setLatexEngineExec(const QString & latex_engine_exec, const QString & dvips_exec = QString());
+
 
 protected:
+  virtual QStringList availableCompileToFormats() const;
+
   virtual KLFResultErrorStatus<QByteArray>
   compileToFormat(const QString & format, const QVariantMap & parameters);
 
   virtual QVariantMap canonicalFormatParameters(const QString & format, const QVariantMap & parameters);
 
-  const QString tmp_klfeqn_dir; // with trailing slash guaranteed
+  QString tmp_klfeqn_dir; // with trailing slash guaranteed
 
   QString latex_engine_exec;
   QString dvips_exec; // only needed if engine == "latex"
 
   QString document_class;
   QString document_class_options;
-
-  // size, in latex points
   QSizeF fixed_page_size;
-
   QString usepackage_color;
-
+  QString usepackage_utf8_inputenc;
   QString baseline_valign;
 
   int max_latex_runs;
@@ -112,7 +120,8 @@ protected:
   // compilation data
   QString compil_tmp_basefn;
   QString compil_fn_tex;
-
+  QString compil_fn_final_pdf;
+  
   QByteArray compil_ltx_templatedata;
   QByteArray compil_ltx_output_data;
 
@@ -120,8 +129,6 @@ protected:
   QByteArray data_raw_ps; // only if engine == "latex"
   QByteArray data_raw_pdf; // only if engine is pdf-based
   QByteArray data_final_pdf;
-
-  friend class KLFBackendDefaultImplementation;
 
   // markers
   static const QByteArray begin_page_size_marker;
@@ -157,15 +164,32 @@ protected:
 
   virtual KLFErrorStatus run_latex();
 
+  virtual KLFErrorStatus after_latex_run(
+      const QByteArray & latex_stdout,
+      const QString & fn_out,
+      int num_latex_runs,
+      bool check_for_rerun,
+      bool * requires_latex_rerun
+      );
+
+
   virtual KLFErrorStatus postprocess_latex_output();
 
+  KLFErrorStatus ghostscript_process_pdf(const QString & fn_input);
+
+  QVariantMap get_metainfo_variant() const;
+  QMap<QString,QString> get_metainfo_string_map() const;
   //! Utility to write the given contents to the given file
   virtual KLFErrorStatus write_file_contents(const QString & fn, const QByteArray & contents);
 
 
+
+  virtual KLFErrorStatus compile(); // overridden
+
+
 private:
   KLF_DECLARE_PRIVATE(KLFBackendDefaultCompilationTask) ;
-}
+};
 
 
 
