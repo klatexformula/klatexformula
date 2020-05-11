@@ -49,7 +49,7 @@ struct KLFBackendInput
 {
   //! The default constructor assigns reasonable values to all fields
   KLFBackendInput()
-    : latex(), math_delimiters(), preamble(), font_size(-1),
+    : latex(), math_delimiters("\\[", "\\]"), preamble(), font_size(-1),
       fg_color(qRgb(0,0,0)), bg_color(qRgba(255,255,255,0)),
       margins(0,0,0,0), dpi(600), vector_scale(1.0), engine("pdflatex"),
       outline_fonts(true)
@@ -168,7 +168,7 @@ struct KLFBackendSettings
    *
    * Returns TRUE on success or FALSE to indicate failure.
    */
-  bool detectSettings(const QString& extra_path);
+  bool detectSettings(const QStringList& extra_path = QStringList());
 
 
   //! A temporary directory in which we have write access, e.g. <tt>/tmp/</tt>

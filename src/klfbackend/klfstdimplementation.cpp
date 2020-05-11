@@ -465,13 +465,13 @@ QByteArray KLFBackendDefaultCompilationTask::generate_template() const
     + _input.math_delimiters.second.toUtf8() + "%\n"
     ;
 
-  s += "\\egroup"; // close the temporary box
+  s += "\\egroup%\n"; // close the temporary box
 
   // do box size calculations, set dimensions
   s +=
     "\\klfXXXw=\\wd\\klfXXXeqnbox\\relax"
     "\\klfXXXh=\\ht\\klfXXXeqnbox\\relax"
-    "\\klfXXXd=\\dp\\klfXXXeqnbox\\relax"
+    "\\klfXXXd=\\dp\\klfXXXeqnbox\\relax%\n"
     ;
   if (!has_fixed_paper_width) {
     s += "\\klfXXXppw=\\klfXXXw\\relax";
@@ -1022,6 +1022,7 @@ KLFBackendDefaultCompilationTask::compileToFormat(const QString & format,
     p.addArgv(_settings.gs_exec);
     p.addArgv(QStringList()
               << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE="+gsdev
+              << "-r"+QString::number(_input.dpi)
               << "-sOutputFile="+QDir::toNativeSeparators(fn_png)
               << "-q" << "-dBATCH" << compil_fn_final_pdf);
 
@@ -1126,7 +1127,7 @@ KLFBackendDefaultCompilationTask::compileToFormat(const QString & format,
 }
 
 
-QVariantMap KLFBackendCompilationTask::canonicalFormatParameters(
+QVariantMap KLFBackendDefaultCompilationTask::canonicalFormatParameters(
     const QString & format, const QVariantMap & parameters
     )
 {

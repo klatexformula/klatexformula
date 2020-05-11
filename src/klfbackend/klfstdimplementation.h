@@ -43,11 +43,12 @@ class KLFBackendDefaultImplementation : public KLFBackendImplementation
 {
   Q_OBJECT
 public:
-  KLFBackendDefaultImplementation(QObject * parent);
+  KLFBackendDefaultImplementation(QObject * parent = NULL);
   virtual ~KLFBackendDefaultImplementation();
 
   KLFResultErrorStatus<KLFBackendCompilationTask *>
-  createCompilationTask(const KLFBackendInput & input, const QVariantMap & parameters);
+  createCompilationTask(const KLFBackendInput & input,
+                        const QVariantMap & parameters = QVariantMap());
 
   static QStringList knownLatexEngines();
 
@@ -156,8 +157,6 @@ protected:
    */
   virtual QByteArray set_pagesize_latex(const QSizeF & page_size) const;
 
-
-  virtual KLFErrorStatus init_compilation();
 
   //! Generate default LaTeX template using the saved input, parameters and settings
   virtual QByteArray generate_template() const;

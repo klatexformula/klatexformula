@@ -26,6 +26,7 @@
 #include <QStringList>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QDir>
 
 #include "klfbackendinput.h"
 
@@ -101,7 +102,8 @@ const QStringList & get_std_extra_paths()
   static bool initialized = false;
 
   if (qApp == NULL) {
-    klfWarning("get_std_extra_paths called before qApp is initialized (qApp==NULL still)") ;
+    klfWarning("get_std_extra_paths called before qApp is initialized (qApp==NULL still). "
+               "This is fine, but if given, \"@executable_path\" won't be interpreted correctly.") ;
     return std_extra_paths;
   }
 
@@ -178,6 +180,61 @@ QString KLFBackendSettings::findExecutable(const QString & exe_name,
 
 
 
+bool KLFBackendSettings::detectSettings(const QStringList & extra_path)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+  // temp dir
+  temp_dir = QDir::fromNativeSeparators(QDir::tempPath());
+
+  QString latex_exe = findLatexEngineExecutable("latex", extra_path);
+
+  if (!latex_exe.isEmpty()) {
+    latex_bin_dir = QFileInfo(latex_exe).dir().path();
+  }
+
+  QString gs = findGsExecutable(extra_path);
+  if (!gs.isEmpty()) {
+    gs_exec = gs;
+  }
+
+  exec_env = QStringList();
+
+  // detect mgs.exe as ghostscript and setup its environment properly
+  if (!gs_exec.isEmpty()) {
+    QFileInfo gsfi(gs_exec);
+    if (gsfi.fileName() == "mgs.exe") {
+      QString mgsenv = QString("")
+        + QDir::toNativeSeparators(gsfi.absolutePath()+"/../../ghostscript/base")
+        + QString(KLF_PATH_SEP)
+        + QDir::toNativeSeparators(gsfi.absolutePath()+"/../../fonts");
+      exec_env = klfSetEnvironmentVariable(exec_env, "MIKTEX_GS_LIB", mgsenv);
+      klfDbg("Adjusting environment for mgs.exe: `MIKTEX_GS_LIB="+mgsenv+"'") ;
+    }
+  }
+
+  // if (settings->gsexec.length()) {
+  //   initGsInfo(settings, isMainThread);
+  //   if (!gsInfo.contains(settings->gsexec)) {
+  //     klfWarning("Cannot get 'gs' devices information with "<<(settings->gsexec+" --version/--help"));
+  //     ok = false;
+  //   } else if (gsInfo[settings->gsexec].availdevices.contains("svg")) {
+  //     settings->wantSVG = true;
+  //   }
+  // }
+
+  return (!latex_bin_dir.isEmpty() && !gs_exec.isEmpty()) ;
+}
+
+
+
+
+
+
+
+// -----------------------------------------------------------------------------
+
+
 
 QVariantMap KLFBackendInput::asVariantMap() const
 {
@@ -203,7 +260,8 @@ QVariantMap KLFBackendInput::asVariantMap() const
 bool KLFBackendInput::loadFromVariantMap(const QVariantMap & vmap)
 {
   latex = vmap.value("Latex", QString()).toString();
-  ..................;
+  klfWarning("THIS IS NOT YET IMPLEMENTED") ;
+  return false;
 }
 
 

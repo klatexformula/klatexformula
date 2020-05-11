@@ -73,7 +73,7 @@ public:
    */
   virtual KLFResultErrorStatus<KLFBackendCompilationTask *>
   createCompilationTask(const KLFBackendInput & input,
-                        const QVariantMap & parameters) = 0;
+                        const QVariantMap & parameters = QVariantMap()) = 0;
 
 private:
   KLF_DECLARE_PRIVATE(KLFBackendImplementation) ;

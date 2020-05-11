@@ -83,7 +83,7 @@ struct KLFBackendCompilationTaskPrivate
 
   QList<QTemporaryDir*> temp_dir_objs;
 
-  QMutex mutex;
+  QMutex cache_mutex;
   QMap<QPair<QString,QByteArray>, QByteArray> cached_output;
   QImage cached_image;
 };
@@ -160,7 +160,7 @@ KLFResultErrorStatus<QString> KLFBackendCompilationTask::createTemporaryDir()
   d->temp_dir_objs.append(tdir);
 
   // TODO: allow to disable this when debugging, e.g. using an environment variable
-  tdir->setAutoRemove(true);
+  tdir->setAutoRemove(false) ; //true);
 
   QString path = tdir->path();
   if (!path.endsWith(QString(KLF_DIR_SEP))) {
@@ -189,7 +189,7 @@ void KLFBackendCompilationTask::storeDataToCache(const QString & format_,
   QVariantMap parameters = canonicalFormatParameters(format, parameters_);
   QPair<QString,QByteArray> cache_key = get_cache_key(format, parameters);
   
-  QMutexLocker mutex_locker(& d->mutex);
+  QMutexLocker mutex_locker(& d->cache_mutex);
 
   if (d->cached_output.contains(cache_key)) {
     klfWarning("Data already exists in cache: for format " << format
@@ -223,9 +223,12 @@ KLFBackendCompilationTask::getOutput(const QString & format_,
   QVariantMap parameters = canonicalFormatParameters(format, parameters_);
   QPair<QString,QByteArray> cache_key = get_cache_key(format, parameters);
 
-  QMutexLocker mutex_locker(& d->mutex);
+  bool has_in_cache;
+  { QMutexLocker mutex_locker(& d->cache_mutex);
+    has_in_cache = d->cached_output.contains(cache_key);
+  }
 
-  if (! d->cached_output.contains(cache_key)) {
+  if (!has_in_cache) {
     // we need to create this output format for these parameters
     KLFResultErrorStatus<QByteArray> res = compileToFormat(format, parameters);
     klfDbg("Compiled output to " << format << " with parameters " << parameters
@@ -234,9 +237,12 @@ KLFBackendCompilationTask::getOutput(const QString & format_,
       return res;
     }
     if (!res.result.isEmpty()) {
+      QMutexLocker mutex_locker(& d->cache_mutex);
       d->cached_output[cache_key] = res.result;
     }
   }
+
+  QMutexLocker mutex_locker(& d->cache_mutex);
 
   if (! d->cached_output.contains(cache_key)) {
     klfWarning("Internal error: compileToFormat(\""<<format<<"\", "<<parameters << ") returned "
