@@ -53,6 +53,16 @@
   </font-def>
 
   <font-def>
+    <identifier>BaskervilleF</identifier>
+    <title>BaskervilleF</title>
+    <latexdefs>\usepackage[T1]{fontenc}
+\usepackage{baskervillef}
+\usepackage[baskerville,vvarbb]{newtxmath}
+\usepackage[cal=boondoxo]{mathalfa}</latexdefs>
+  </font-def>
+
+
+  <font-def>
     <identifier>Linux Libertine</identifier>
     <title>Linux Libertine</title>
     <latexdefs>\usepackage{libertine}
@@ -91,13 +101,13 @@
   <font-def>
     <identifier>kp-fonts</identifier>
     <title>kp-fonts</title>
-    <latexdefs>\usepackage{kpfonts}</latexdefs>
+    <latexdefs>\usepackage{kpfonts}\usepackage[T1]{fontenc}</latexdefs>
   </font-def>
 
   <font-def>
     <identifier>kp-fonts-sans</identifier>
     <title>kp-fonts (sans serif)</title>
-    <latexdefs>\usepackage[sfmath]{kpfonts}</latexdefs>
+    <latexdefs>\usepackage[sfmath]{kpfonts}\usepackage[T1]{fontenc}</latexdefs>
   </font-def>
     
   <font-def>
