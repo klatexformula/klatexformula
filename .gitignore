@@ -3,9 +3,7 @@
 #
 *~
 build/
-build-cmake-command.txt
-build-brew-qt/
-build-brew-qt-cmake-command.txt
+build-*
 
 #
 # Ignores imported from svn:ignore properties
