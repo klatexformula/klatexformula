@@ -111,7 +111,8 @@ protected:
 
   QString document_class;
   QString document_class_options;
-  QSizeF fixed_page_size;
+  QString fixed_page_width; // include LaTeX unit; empty string for auto
+  QString fixed_page_height; // include LaTeX unit; empty string for auto
   QString usepackage_color;
   QString usepackage_utf8_inputenc;
   QString baseline_valign;

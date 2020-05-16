@@ -157,11 +157,13 @@ KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
   document_class_options = "";
 
   // don't automatically size the page to the equation contents, rather, use
-  // this fixed size (in latex points "pt")
+  // this fixed size (include LaTeX unit).  Leave empty string for automatic
+  // size detection.
   //
-  // We can also set a page width (e.g., to wrap text) and leave page height to
-  // -1 for it to be determined automatically
-  fixed_page_size = QSizeF(-1,-1);
+  // We can also set a page width (e.g., to wrap text) and leave page height
+  // empty for it to be determined automatically
+  fixed_page_width = QString();
+  fixed_page_height = QString();
 
   // which color package to use (\usepackage{xcolor} or
   // \usepackage{color}). Only loaded if nontrivial colors are specified.
@@ -190,8 +192,11 @@ KLFBackendDefaultCompilationTask::KLFBackendDefaultCompilationTask(
   if (parameters.contains("document_class_options")) {
     document_class_options = parameters["document_class_options"].toString();
   }
-  if (parameters.contains("fixed_page_size")) {
-    fixed_page_size = parameters["fixed_page_size"].toSizeF();
+  if (parameters.contains("fixed_page_width")) {
+    fixed_page_width = parameters["fixed_page_width"].toString();
+  }
+  if (parameters.contains("fixed_page_height")) {
+    fixed_page_height = parameters["fixed_page_height"].toString();
   }
   if (parameters.contains("usepackage_color")) {
     usepackage_color = parameters["usepackage_color"].toString();
