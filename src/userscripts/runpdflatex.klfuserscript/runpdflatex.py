@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# dvipng-backend.py
+# runpdflatex.py
 #   This file is part of the KLatexFormula Project.
 #   Copyright (C) 2018 by Philippe Faist
 #   philippe.faist at bluewin.ch
