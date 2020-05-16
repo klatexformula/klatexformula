@@ -1,0 +1,11 @@
+*.aux
+*.log
+*.toc
+*.out
+*.glo
+*.ind
+*.idx
+*.hd
+*.synctex.gz
+klfimpl.pdf
+klfimpl.sty

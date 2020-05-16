@@ -1,0 +1,89 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2020 by Philippe Faist, philippe.faist@bluewin.ch
+% -------------------------------------------------------
+% 
+% This file is part of the KLatexFormula sources.  See LICENSE file
+% for more information.
+%
+% \fi
+%
+% \iffalse
+%<*driver>
+\ProvidesFile{klfimpl.dtx}
+%</driver>
+%<package>\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+%<package>\ProvidesPackage{klfimpl}
+%<*package>
+    [2020/05/16 v0.1 klfimpl package]
+%</package>
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{xcolor}
+\usepackage[preset=xpkgdoc]{phfnote}
+\EnableCrossrefs         
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{klfimpl.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{0}
+%
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+%
+% \GetFileInfo{klfimpl.dtx}
+%
+% \DoNotIndex{\newcommand,\newenvironment,\def,\gdef,\edef,\xdef,\if,\else,\fi,\ifx}
+% 
+% \title{The \pkgname{klfimpl} package\thanks{\itshape This document corresponds
+% to \pkgname{klfimpl}~\fileversion, dated \filedate. It is part of the
+% KLatexFormula sources, see \url{https://klatexformula.sourceforge.io/}.}}
+% \author{Philippe Faist\quad\email{philippe.faist@bluewin.ch}}
+% \date{\pkgfmtdate\filedate}
+% \maketitle
+%
+% \begin{abstract}
+%   \pkgname{klfimpl}---LaTeX helper code for KLatexFormula's implementation.
+% \end{abstract}
+%
+% \inlinetoc
+%
+% \section{Introduction}
+%
+% KLatexFormula 5 will ship with a new backend implementation that converts a
+% LaTeX equation to different formats such as PDF or PNG.  While KLatexFormula
+% up to version 4 required significant patching after running |latex| and
+% |dvips|, the new workflow aims at directly doing everything from the latex end
+% of things---get the correct page size, correct background color, page margins,
+% and so on.
+%
+% \StopEventually{\PrintChanges\PrintIndex}
+%
+% \section{Implementation}
+%
+% Say cheese!
+%    \begin{macrocode}
+\def\klfhello{Hello World!}
+%    \end{macrocode}
+%
+%\Finale
+\endinput
