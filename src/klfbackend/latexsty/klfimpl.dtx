@@ -78,7 +78,14 @@
 % color, page margins, and so on---therefore cleaning up the workflow and
 % speeding up the whole compilation.
 %
-% TODO: Decide \& document the different output configurations.
+% This package provides an environment
+% |\begin{klfrawcontent}...\end{klfrawcontent}| which typesets the given content
+% in a box, measures the box dimensions, then resizes the page to fit the box as
+% requested including margins and/or alignment to some fixed size, and renders
+% the whole thing.
+%
+% This package expects that there is a single such environment in the entire
+% document and no other content.
 %
 %
 %
@@ -363,14 +370,13 @@
 % Now, set the paper size (if the current latex engine allows this at this
 % point) and display the box:
 %    \begin{macrocode}
-  \ifklf@ltxengine@latexdvi% tough luck
+  \ifklf@ltxengine@latexdvi% tough luck -- user needs second pass to set page size in preamble
   \else
-    \message{***SETTING PAPER SIZE \the\klf@ppw\space x \the\klf@pph *****}%
-    %\advance\klf@ppw 1in\relax\advance\klf@pph 1in\relax%%DEBUG !!!!!!!!!!!
     \klf@SetPaperSize@FromDims\klf@ppw\klf@pph%
   \fi
   \klfRenderContentBox{\klf@vshift}{\klf@hshift}{\klf@eqnbox}%
   \klfDumpMetaInfo
+  \ignorespaces
 }
 \def\klfRenderContentBox#1#2#3{%
   \nobreak
