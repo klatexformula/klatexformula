@@ -79,7 +79,7 @@
 % speeding up the whole compilation.
 %
 % This package provides an environment
-% |\begin{klfrawcontent}...\end{klfrawcontent}| which typesets the given content
+% |\begin{klfcontent}...\end{klfcontent}| which typesets the given content
 % in a box, measures the box dimensions, then resizes the page to fit the box as
 % requested including margins and/or alignment to some fixed size, and renders
 % the whole thing.
@@ -166,13 +166,39 @@
 \def\klf@set@fixedwidth{}
 \def\klf@set@fixedheight{}
 %    \end{macrocode}
-% Same, allow user to specify margins around the equations.
+% Enable user to specify margins around the equations.
 %    \begin{macrocode}
 \def\klf@set@topmargin{0.1ex}
 \def\klf@set@rightmargin{0.1ex}
 \def\klf@set@bottommargin{0.1ex}
 \def\klf@set@leftmargin{0.1ex}
 %    \end{macrocode}
+% Enable user to specify global scaling factors for the full resulting box.
+% Scale will be applied to margins as well as to fixed size.
+%    \begin{macrocode}
+\def\klf@set@xscale{1}
+\def\klf@set@yscale{1}
+%    \end{macrocode}
+% User can specify how the equation is aligned inside the box, in case we have a
+% fixed width or a fixed height.  The horizontal (resp.\@ vectical) alignment
+% coefficient is |0| for left (resp.\@ top) alignment, |0.5| for middle
+% alignment, and |1| for right (resp.\@ bottom) alignment.  It can be any value
+% that interpolates between these.
+%    \begin{macrocode}
+\def\klf@set@xaligncoeff{0.5}
+\def\klf@set@yaligncoeff{0.5}
+%    \end{macrocode}
+% User can specify the reference points for top and bottom alignment.  The top
+% can be aligned to the natural height of the box (|bbox|, the default) or to
+% the height of a capital 'X' (|Xheight|).  The bottom can be aligned to the
+% natural depth of the box (|bbox|, the default) or to the baseline
+% (|baseline|).  (When you set |baseline|, make sure you have a fixed size or
+% reasonable margins to accomodate any box depth.)
+%    \begin{macrocode}
+\def\klf@set@topalignment{bbox}
+\def\klf@set@bottomalignment{bbox}
+%    \end{macrocode}
+% 
 % 
 % \subsection{Package options and settings}
 %
@@ -200,6 +226,8 @@
 % of simplicity (and to avoid having to use \pkgname{keyval}/\pkgname{xkeyval}
 % and so on, the information is provided via a simple macro call.
 %
+% \begin{macro}{\klfSetFixedWidth}
+% \begin{macro}{\klfSetFixedHeight}
 % If applicable, set the fixed width and/or fixed height of the content to
 % typeset.
 %    \begin{macrocode}
@@ -208,7 +236,13 @@
 \def\klfSetFixedHeight#1{%
   \xdef\klf@set@fixedheight{#1}}
 %    \end{macrocode}
-%
+% \end{macro}
+% \end{macro}
+% 
+% \begin{macro}{\klfSetTopMargin}
+% \begin{macro}{\klfSetRightMargin}
+% \begin{macro}{\klfSetBottomMargin}
+% \begin{macro}{\klfSetLeftMargin}
 % Same for equation margins:
 %    \begin{macrocode}
 \def\klfSetTopMargin#1{%
@@ -220,6 +254,78 @@
 \def\klfSetLeftMargin#1{%
   \xdef\klf@set@leftmargin{#1}}
 %    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\klfSetXScale}
+% \begin{macro}{\klfSetYScale}
+% \begin{macro}{\klfSetScale}
+%   Specify horizontal and vectical scaling factors.  Values are a multipliying
+%   factor for dimensions: the value |1| means original size, |0.5| half size,
+%   |2| double size.  If a value different than |1| was specified, the
+%   \pkgname{graphics} package is loaded.  {\itshape NOTE: This has to be the
+%   exact expression |1|, not |1.0| or |1.|.}  The |\klfSetScale| macro is a
+%   convenience macro that sets both horizontal and vectical scaling factors to
+%   the same value.
+%    \begin{macrocode}
+\def\klfSetXScale#1{%
+  \xdef\klf@set@xscale{#1}%
+  \ifx\klf@set@xscale\klf@macro@one
+  \else
+    \RequirePackage{graphics}%
+  \fi
+}
+\def\klfSetYScale#1{%
+  \xdef\klf@set@yscale{#1}%
+  \ifx\klf@set@yscale\klf@macro@one
+  \else
+    \RequirePackage{graphics}%
+  \fi
+}
+\def\klfSetScale#1{%
+  \xdef\klf@set@xscale{#1}%
+  \xdef\klf@set@yscale{#1}%
+  \ifx\klf@set@xscale\klf@macro@one
+  \else
+    \RequirePackage{graphics}%
+  \fi
+}
+\def\klf@macro@one{1}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\klfSetXAlignCoeff}
+% \begin{macro}{\klfSetYAlignCoeff}
+%    \begin{macrocode}
+\def\klfSetXAlignCoeff#1{%
+  \def\klf@set@xaligncoeff{#1}%
+}
+\def\klfSetYAlignCoeff#1{%
+  \def\klf@set@yaligncoeff{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\klfSetTopAlignment}
+% \begin{macro}{\klfSetBottomAlignment}
+%   Macros for the user to set top and bottom alignment.  See earlier for
+%   explanation of possible values.  The possible values will be used to invoke
+%   a macro named e.g. |\klf@correctboxheight@@|\meta{top-alignment-name} and
+%   |\klf@correctboxdepth@@|\meta{bottom-alignment-name}, see below in
+%   |{klfcontent}| environment.
+%    \begin{macrocode}
+\def\klfSetTopAlignment#1{%
+  \def\klf@set@topalignment{#1}}
+\def\klfSetBottomAlignment#1{%
+  \def\klf@set@bottomalignment{#1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
 %
 % \subsection{Basic/common implementation macros}
 % 
@@ -263,7 +369,6 @@
 \fi
 %    \end{macrocode}
 % 
-%
 % \begin{macro}{\klfSetPaperSize}
 %   Change the paper size.  For |pdflatex| and |xe/luatex| this can be called
 %   after |\begin||{document}| but for |latex| with traditional |dvi| output
@@ -300,12 +405,15 @@
 %
 % \subsection{Main implementation routine}
 % 
-% \begin{environment}{klfrawcontent}
-%   The argument should be a |\hbox| or |\vbox| command.  Example usage:\\
-%   |\begin||{klfrawcontent}{\vbox}{initialization code...} ...| or\\
-%   |\begin||{klfrawcontent}{\hbox to 10cm}{init code...} ...|.
+% \begin{environment}{klfcontent}
+%   The argument should be a box command (e.g., |\hbox|, |\vbox|, |\vtop|,
+%   |\vcenter|).  Example usage:
+%   |\begin||{klfcontent}{\vcenter}{|\meta{initialization code}|}...| or
+%     |\begin||{klfcontent}{\hbox to 1cm}{|\meta{init. code}|}...|.
 %    \begin{macrocode}
-\def\klfrawcontent#1#2{%
+\def\klfcontent#1#2{%
+  \unskip
+  \samepage
   \setbox\klf@eqnbox=#1\bgroup
     \klf@ZeroDisplaySkips%
     #2%
@@ -324,23 +432,34 @@
     \global\klf@dim@bottommargin=\klf@set@bottommargin\relax
     \global\klf@dim@leftmargin=\klf@set@leftmargin\relax
 }
-\def\endklfrawcontent{%
+\def\endklfcontent{%
   \egroup
 %    \end{macrocode}
 % 
-% Now we record the box dimensions.  Add an epsilon in each dimension to prevent
-% rounding errors from causing unwanted breaks.
+% Now we record the box dimensions.
+%
 %    \begin{macrocode}
   \klf@w=\wd\klf@eqnbox\relax
   \klf@h=\ht\klf@eqnbox\relax
   \klf@d=\dp\klf@eqnbox\relax
-  \advance \klf@w 0.00001pt \relax
-  \advance \klf@h 0.00001pt \relax
+%    \end{macrocode}
+% If we shouldn't align to the bounding box, correct the height and the depth of
+% the box to whatever is requested by the corresponding top/bottom alignment
+% options.
+%    \begin{macrocode}
+  \csname klf@correctboxheight@@\klf@set@topalignment\endcsname
+  \csname klf@correctboxdepth@@\klf@set@bottomalignment\endcsname
+% \end{environment}
+% Add an epsilon in each dimension to prevent rounding errors from causing
+% unwanted breaks.  Compute the ``total height'' = height + depth.
+%    \begin{macrocode}
+  %\advance \klf@w 0.00001pt \relax
+  %\advance \klf@h 0.00001pt \relax
   \klf@th=\klf@h\relax
   \advance \klf@th \klf@d \relax
 %    \end{macrocode}
-% Determine the page size, taking into account any possible fixed paper width or
-% height.
+% \emph{Determine page size and offsets.}  Take into account any possible fixed
+% paper width or height and any margins.
 %    \begin{macrocode}
   \ifx\klf@set@fixedwidth\@empty%
     \klf@ppw=\klf@w\relax
@@ -349,10 +468,11 @@
     \klf@hshift=\klf@dim@leftmargin\relax
   \else%
     \klf@ppw=\klf@dim@fixedwidth\relax
-    \klf@hshift=0.5\klf@ppw\relax
-    \advance \klf@hshift -0.5\klf@w\relax
-    \advance \klf@hshift -0.5\klf@dim@rightmargin\relax
-    \advance \klf@hshift +0.5\klf@dim@leftmargin\relax
+    \klf@hshift=\klf@set@xaligncoeff\klf@ppw\relax
+    \advance \klf@hshift -\klf@set@xaligncoeff\klf@w\relax
+    \advance \klf@hshift -\klf@set@xaligncoeff\klf@dim@rightmargin\relax
+    \advance \klf@hshift -\klf@set@xaligncoeff\klf@dim@leftmargin\relax
+    \advance \klf@hshift \klf@dim@leftmargin\relax
   \fi
   \ifx\klf@set@fixedheight\@empty%
     \klf@pph=\klf@th\relax
@@ -361,43 +481,102 @@
     \klf@vshift=\klf@dim@topmargin\relax
   \else%
     \klf@pph=\klf@dim@fixedheight\relax
-    \klf@vshift=0.5\klf@pph\relax
-    \advance \klf@vshift -0.5\klf@th\relax
-    \advance \klf@vshift -0.5\klf@dim@bottommargin\relax
-    \advance \klf@vshift +0.5\klf@dim@topmargin\relax
+    \klf@vshift=\klf@set@yaligncoeff\klf@pph\relax
+    \advance \klf@vshift -\klf@set@yaligncoeff\klf@th\relax
+    \advance \klf@vshift -\klf@set@yaligncoeff\klf@dim@bottommargin\relax
+    \advance \klf@vshift -\klf@set@yaligncoeff\klf@dim@topmargin\relax
+    \advance \klf@vshift \klf@dim@topmargin\relax
   \fi
 %    \end{macrocode}
-% Now, set the paper size (if the current latex engine allows this at this
-% point) and display the box:
+% No scale has been applied yet.  Call the rendering routine that will take into
+% account scaling factors as necessary.
 %    \begin{macrocode}
-  \ifklf@ltxengine@latexdvi% tough luck -- user needs second pass to set page size in preamble
-  \else
-    \klf@SetPaperSize@FromDims\klf@ppw\klf@pph%
-  \fi
-  \klfRenderContentBox{\klf@vshift}{\klf@hshift}{\klf@eqnbox}%
+  \klf@RenderContentBox
+%    \end{macrocode}
+% Finally dump all meta-info to the standard output to provide additional
+% information back to \emph{klatexformula}.
+%    \begin{macrocode}
   \klfDumpMetaInfo
   \ignorespaces
 }
-\def\klfRenderContentBox#1#2#3{%
+%    \end{macrocode}
+% The |\klf@RenderContentBox| macro sets the paper size (if the current latex
+% engine allows this at this point), and displays the box accordingly:
+%    \begin{macrocode}
+\def\klf@RenderContentBox{%
+  \ifklf@ltxengine@latexdvi% tough luck -- user needs second pass to set page size in preamble
+  \else
+    \@tempdima=\klf@ppw
+    \multiply\@tempdima \klf@set@xscale\relax
+    \@tempdimb=\klf@pph
+    \multiply\@tempdimb \klf@set@yscale\relax
+    \klf@SetPaperSize@FromDims\@tempdima\@tempdimb%
+  \fi
   \nobreak
-  \hrule \@height\z@\nobreak
-  \vskip #1\relax\nobreak
-  \hbox{\vrule \@width\z@ \relax
-    \hskip #2\relax
-    \raise \klf@d \box#3%
+  \let\klf@apply@scale\@firstofone
+  \ifx\klf@set@xscale\klf@macro@one\else
+    \let\klf@apply@scale\klf@do@scale\fi
+  \ifx\klf@set@yscale\klf@macro@one\else
+    \let\klf@apply@scale\klf@do@scale\fi
+  \klf@apply@scale{\hbox to \z@{\vbox to \z@{%
+    \hrule \@height\z@\nobreak
+    \vskip \klf@vshift\relax\nobreak
+    \hbox{\vrule \@width\z@ \relax
+      \hskip \klf@hshift\relax
+      \raise \klf@d \box\klf@eqnbox%
+    }}}%
   }%
 }
+\def\klf@do@scale#1{%
+  \scalebox{\klf@set@xscale}[\klf@set@yscale]{#1}}
 %    \end{macrocode}
 % \end{environment}
 % 
-% \subsection{Meta-info output back to \phfverb{klatexformula}}
+% Now we define the top/bottom alignment correction routines.  These ``fix'' the
+% height and the depth of the box (rather, their values recorded in |\klf@h| and
+% |\klf@d|) according to the given options.
 %
+% The |bbox| top and bottom alignment options is the default, and leaves the box
+% dimensions unchanged.
+%    \begin{macrocode}
+\def\klf@correctboxheight@@bbox{}
+\def\klf@correctboxdepth@@bbox{}
+%    \end{macrocode}
+% The |Xheight| top alignment option sets the height of the ``box'' to be the
+% height of a capital ``X''.  WARNING: This assumes that the box only contains a
+% single line of text.
+%    \begin{macrocode}
+\def\klf@correctboxheight@@Xheight{%
+  \klf@h=\klf@capxhgt
+}
+%    \end{macrocode}
+% The |baseline| bottom alignment option sets the bottom of the ``box'' to be
+% the baseline, so sets the depth to zero.
+%    \begin{macrocode}
+\def\klf@correctboxdepth@@baseline{%
+  \klf@d=\z@
+}
+%    \end{macrocode}
+% 
 % \begin{macro}{\klfDumpMetaInfo}
 %   Dump meta-info on standard output to provide additional information to
-%   KLatexFormula.
+%   KLatexFormula.  Careful, scaling factors have not been applied yet.  So
+%   apply them here before displaying the quantities.
 %    \begin{macrocode}
 \def\klfDumpMetaInfo{%
-  \message{%
+  \begingroup
+    \multiply\klf@em \klf@set@xscale\relax
+    \multiply\klf@ex \klf@set@yscale\relax
+    \multiply\klf@capxhgt \klf@set@yscale\relax
+    \multiply\klf@ppw \klf@set@xscale\relax
+    \multiply\klf@pph \klf@set@yscale\relax
+    \multiply\klf@hshift \klf@set@xscale\relax
+    \multiply\klf@vshift \klf@set@yscale\relax
+    \multiply\klf@w \klf@set@xscale\relax
+    \multiply\klf@h \klf@set@yscale\relax
+    \multiply\klf@d \klf@set@yscale\relax
+    \multiply\klf@th \klf@set@yscale\relax
+    \message{%
 ^^J%
 ***-KLF-META-INFO-BEGIN-***^^J%
 EM={\the\klf@em}^^J%
@@ -413,7 +592,8 @@ BOX_DEPTH={\the\klf@d}^^J%
 BOX_TOTALHEIGHT={\the\klf@th}^^J%
 ^^J%
 ***-KLF-META-INFO-END-***^^J%
-  }
+    }
+  \endgroup
 }%
 %    \end{macrocode}
 % \end{macro}
