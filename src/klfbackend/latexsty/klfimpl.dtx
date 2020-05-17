@@ -198,6 +198,12 @@
 \def\klf@set@topalignment{bbox}
 \def\klf@set@bottomalignment{bbox}
 %    \end{macrocode}
+% User can tell if they would like a line to be drawn where the baseline is, for
+% instance as a visual reference for use in vector graphics editing software.
+% This can be |none| or |line|.
+%    \begin{macrocode}
+\def\klf@set@baselineruletype{none}
+%    \end{macrocode}
 % 
 % 
 % \subsection{Package options and settings}
@@ -302,10 +308,10 @@
 % \begin{macro}{\klfSetYAlignCoeff}
 %    \begin{macrocode}
 \def\klfSetXAlignCoeff#1{%
-  \def\klf@set@xaligncoeff{#1}%
+  \xdef\klf@set@xaligncoeff{#1}%
 }
 \def\klfSetYAlignCoeff#1{%
-  \def\klf@set@yaligncoeff{#1}%
+  \xdef\klf@set@yaligncoeff{#1}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -320,13 +326,20 @@
 %   |{klfcontent}| environment.
 %    \begin{macrocode}
 \def\klfSetTopAlignment#1{%
-  \def\klf@set@topalignment{#1}}
+  \xdef\klf@set@topalignment{#1}}
 \def\klfSetBottomAlignment#1{%
-  \def\klf@set@bottomalignment{#1}}
+  \xdef\klf@set@bottomalignment{#1}}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
 %
+% \begin{macro}{\klfSetBaselineRuleType}
+%   Set which kind of baseline rule we would like, if any.
+%    \begin{macrocode}
+\def\klfSetBaselineRuleType#1{%
+  \xdef\klf@set@baselineruletype{#1}}
+%    \end{macrocode}
+% 
 % \subsection{Basic/common implementation macros}
 % 
 % First of all, a simple macro to reset all LaTeX layout dimensions.
@@ -500,11 +513,22 @@
   \ignorespaces
 }
 %    \end{macrocode}
-% The |\klf@RenderContentBox| macro sets the paper size (if the current latex
-% engine allows this at this point), and displays the box accordingly:
+%
+% \begin{macro}{\klf@RenderContentBox}
+%   The |\klf@RenderContentBox| macro sets the paper size (if the current latex
+%   engine allows this at this point), and displays the box accordingly.
+%
+%   If we're using a pdf-based engine (|pdflatex|, |xelatex| or |lualatex|),
+%   then we set the page size immediately (scaled correctly).  If we're using
+%   the |latex| (\LaTeX\space $\to$ DVI) engine, then we cannot set the page
+%   size at this point, because the page size needs to be set in the preamble.
+%   In this case, we don't do anything now, but \emph{klatexformula} performs a
+%   second pass where the correct exact page size is set in preamble (via
+%   meta-data dumped by |\klfDumpMetaInfo|).
+%
 %    \begin{macrocode}
 \def\klf@RenderContentBox{%
-  \ifklf@ltxengine@latexdvi% tough luck -- user needs second pass to set page size in preamble
+  \ifklf@ltxengine@latexdvi% tough luck
   \else
     \@tempdima=\klf@ppw
     \multiply\@tempdima \klf@set@xscale\relax
@@ -512,24 +536,36 @@
     \multiply\@tempdimb \klf@set@yscale\relax
     \klf@SetPaperSize@FromDims\@tempdima\@tempdimb%
   \fi
-  \nobreak
-  \let\klf@apply@scale\@firstofone
+%    \end{macrocode}
+%   To render the contents, we check whether any scaling is applied.  If so, we
+%   call |\klf@do@scale| which wraps the argument in an appropriate |\scalebox|
+%   (provided by the \pkgname{graphics} package). (Otherwise we simply render
+%   the box without any |\scalebox|.)
+%    \begin{macrocode}
+  \let\klf@next\@firstofone
   \ifx\klf@set@xscale\klf@macro@one\else
-    \let\klf@apply@scale\klf@do@scale\fi
+    \let\klf@next\klf@do@scale\fi
   \ifx\klf@set@yscale\klf@macro@one\else
-    \let\klf@apply@scale\klf@do@scale\fi
-  \klf@apply@scale{\hbox to \z@{\vbox to \z@{%
-    \hrule \@height\z@\nobreak
-    \vskip \klf@vshift\relax\nobreak
-    \hbox{\vrule \@width\z@ \relax
-      \hskip \klf@hshift\relax
-      \raise \klf@d \box\klf@eqnbox%
-    }}}%
+    \let\klf@next\klf@do@scale\fi
+  \nobreak
+  \klf@next{%
+    \hbox to \z@{\vbox to \z@{%
+        \hrule \@height\z@\nobreak
+        \vskip \klf@vshift\relax\nobreak
+        \hbox{\vrule \@width\z@ \relax
+          \raise \klf@d \hbox to \z@{%
+            \csname klf@baseline@rule@@\klf@set@baselineruletype\endcsname
+          }%
+          \hskip \klf@hshift\relax
+          \raise \klf@d \box\klf@eqnbox}%
+      }}%
   }%
 }
 \def\klf@do@scale#1{%
-  \scalebox{\klf@set@xscale}[\klf@set@yscale]{#1}}
+  \scalebox{\klf@set@xscale}[\klf@set@yscale]{#1}%
+}
 %    \end{macrocode}
+% \end{macro}
 % \end{environment}
 % 
 % Now we define the top/bottom alignment correction routines.  These ``fix'' the
@@ -557,7 +593,52 @@
   \klf@d=\z@
 }
 %    \end{macrocode}
+%
+% Now we define the baseline rule types.  These simply draw whatever they want,
+% typically a simple |\vrule| of a given width (because we're in horizontal
+% mode).
+%
+% First, we have the |none| rule type which simply typesets nothing.
+%    \begin{macrocode}
+\def\klf@baseline@rule@@none{}
+%    \end{macrocode}
 % 
+% Then we have the |line| rule, which draws a horizontal line throughout the box
+% at the baseline height.
+% \begin{macro}{\klfBaselineRuleLineSetup}
+% \begin{macro}{\klfBaselineRuleLineThickness}
+%   The line is controlled by the macros |\klfBaselineRuleLineSetup| and
+%   |\klfBaselineRuleLineThickness|:
+%    \begin{macrocode}
+\def\klfBaselineRuleLineSetup{}
+\def\klfBaselineRuleLineThickness{0.05\p@}
+%    \end{macrocode}
+% You may redefine these to style the line as appropriate.  For instance, this
+% would give you a blue baseline that is 0.2pt thick:
+% \begin{verbatim}
+% \renewcommand\klfBaselineRuleLineSetup{\color{blue}}
+% \renewcommand\klfBaselineRuleLineThickness{0.2pt}
+% \end{verbatim}
+%
+% And finally this is the code that draws the line.
+%    \begin{macrocode}
+\def\klf@baseline@rule@@line{%
+  \begingroup
+    \klfBaselineRuleLineSetup
+    \vrule width\klf@ppw height\z@ depth\klfBaselineRuleLineThickness\relax
+  \endgroup
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Dump meta-info on standard output}
+%
+% Define the routine that communicates back to \emph{klatexformula} meta-info
+% about the typeset content.  This is automatically called in
+% |\end||{klfcontent}|.
+%
 % \begin{macro}{\klfDumpMetaInfo}
 %   Dump meta-info on standard output to provide additional information to
 %   KLatexFormula.  Careful, scaling factors have not been applied yet.  So
