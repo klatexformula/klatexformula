@@ -38,7 +38,7 @@
 
 /** \page pageUserScript User Scripts
  *
- * Doc here: http://klatexformula.sourceforge.net/doc/user-scripts-devel
+ * Doc here: https://klatexformula.sourceforge.io/doc/user-scripts-devel
  *
  */
 

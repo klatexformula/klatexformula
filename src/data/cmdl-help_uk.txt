@@ -168,7 +168,7 @@ KLatexFormula, автор — Philippe Faist
   Будь ласка, повідомляйте про усі вади і помилки авторові програми.
 
 Докладнішу інформацію можна отримати на сайті
-http://klatexformula.sourceforge.net/.
+https://klatexformula.sourceforge.io/.
 
 Щасти!
 

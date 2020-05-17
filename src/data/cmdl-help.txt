@@ -163,7 +163,7 @@ Notes:
   
   Please report any bugs and malfunctions to the author.
 
-More information is available on http://klatexformula.sourceforge.net/.
+More information is available on https://klatexformula.sourceforge.io/.
 
 Have a lot of fun!
 

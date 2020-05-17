@@ -54,8 +54,7 @@ if(NOT KLF_WELCOME_MSG_SILENT)
    For more options and help:
       - look at the stored cache variable documentation (displayed eg. by cmake-gui
         and ccmake, or directly in the CMakeCache.txt file)
-      - take a look at
-http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
+      - take a look at https://klatexformula.sourceforge.io/doc/install
 
    And have a lot of fun!
 

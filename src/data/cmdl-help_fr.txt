@@ -158,5 +158,5 @@ Remarques:
   
   Merci d'annoncer à l'auteur les éventuels bugs et dysfonctionnements du programme.
 
-Plus d'informations sont disponibles sur http://klatexformula.sourceforge.net/.
+Plus d'informations sont disponibles sur https://klatexformula.sourceforge.io/.
 

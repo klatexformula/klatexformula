@@ -13,5 +13,5 @@ build> cmake .. -DCMAKE_INSTALL_PREFIX=/usr
 
 
 For detailed up-to-date installation instructions, please see
-http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
+https://klatexformula.sourceforge.io/doc/install
 

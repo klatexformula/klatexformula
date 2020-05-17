@@ -145,8 +145,8 @@ if(KLF_USE_CPACK)
     set(CPACK_NSIS_DISPLAY_NAME "KLatexFormula ${KLF_VERSION}")
     set(CPACK_NSIS_INSTALLED_ICON_NAME "${KLF_INSTALL_BIN_DIR}\\\\klatexformula.exe")
     set(CPACK_NSIS_HELP_LINK
-      "http://klatexformula.sourceforge.net/")
-    set(CPACK_NSIS_URL_INFO_ABOUT "http://klatexformula.sourceforge.net/")
+      "https://klatexformula.sourceforge.io/")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://klatexformula.sourceforge.io/")
     set(CPACK_NSIS_CONTACT "philippe.faist@bluewin.ch")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL on) # ask user to uninstall previous version before installing
     set(CPACK_NSIS_MUI_FINISHPAGE_RUN "klatexformula.exe")
