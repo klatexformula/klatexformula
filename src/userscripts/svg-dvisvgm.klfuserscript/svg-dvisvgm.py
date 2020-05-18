@@ -29,6 +29,7 @@ import os
 import sys
 import argparse
 import subprocess
+import shlex
 
 #sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..')) -- no longer needed
 import pyklfuserscript
@@ -37,7 +38,11 @@ import pyklfuserscript
 args = pyklfuserscript.export_type_args_parser().parse_args()
 
 format = args.format
-dvifile = args.inputfile
+infile = args.inputfile
+
+# can be changed in Settings dialog -> user scripts -> svg-dvisvgm.klfuserscript
+# -> settings
+default_dvisvgm_opts = "-a -e -n -b min"
 
 if args.query_default_settings:
 
@@ -51,6 +56,7 @@ if args.query_default_settings:
     if dvisvgm is not None:
         # found
         print("dvisvgm={}".format(dvisvgm))
+    print("opts=" + default_dvisvgm_opts)
     gzip = pyklfuserscript.find_executable(['gzip'], [
         "/usr/bin", "/bin", "/usr/local/bin"
     ])
@@ -78,14 +84,44 @@ print("Using dvisvgm path: {}".format(dvisvgm), file=sys.stderr)
 
 pyklfuserscript.ensure_configured_executable(dvisvgm, exename='dvisvgm', userscript=__file__)
 
-print("Converting file {}\n".format(dvifile), file=sys.stderr)
+informat = os.environ.get("KLF_INPUTDATA_FORMAT")
+assert informat in ('DVI', 'PDF') # should be one of DVI, PDF as per scriptinfo.xml spec
 
-svgfile = re.sub(r'\.dvi$', '.svg', dvifile)
+print("Converting file {}\n".format(infile), file=sys.stderr)
+
+svgfile = re.sub(r'\.dvi$', '.svg', infile)
+
+arg_opts = os.environ.get("KLF_USCONFIG_opts", default_dvisvgm_opts)
+
+cmdargs = shlex.split(arg_opts) + [ infile ]
+
+if informat == 'PDF':
+    cmdargs = ['--pdf'] + cmdargs
+
+cmdargs = [dvisvgm] + cmdargs
+
+print("Calling dvisvgm with arguments: ", repr(cmdargs))
 
 # CalledProcessError is raised if an error occurs.
-output = subprocess.check_output(args=[dvisvgm, '-a', '-e', '-n', '-b', 'min', dvifile],
-                                 shell=False, stderr=subprocess.STDOUT)
-print("Output from {}: \n{}".format(dvisvgm, output.decode('utf-8')))
+try:
+    output = subprocess.check_output(args=cmdargs,
+                                     shell=False,
+                                     stderr=subprocess.STDOUT)
+except subprocess.CalledProcessError as e:
+    output = e.output
+    if 'unknown option --pdf' in output:
+        print("""\
+ERROR: Your version of dvisvgm does not support the option '--pdf'.  This
+dvisvgm can only generate SVG in case of direct PDF generation.  You could:
+
+  - Upgrade dvisvgm (eg., update your LaTeX distribution) to dvisvgm >= 2.4
+
+  - use the latex->DVI workflow (no direct PDF generation)
+""")
+        raise RuntimeError("dvisvgm version too old, need >= 2.4 to generate SVG directly from PDF")
+    raise
+finally:
+    print("dvisvgm output:\n" + output)
 
 if format == 'svgz':
 
@@ -99,8 +135,9 @@ if format == 'svgz':
     pyklfuserscript.ensure_configured_executable(gzip, exename='gzip', userscript=__file__)
 
     # CalledProcessError is raised if an error occurs.
-    output2 = subprocess.check_output(args=[gzip, '-Sz', svgfile], shell=False)
-    print("Output from {}: \n{}".format(gzip, output2.decode('utf-8')))
+    cmdargs = [gzip, '-Sz', svgfile]
+    print("Calling gz with arguments: ", repr(cmdargs))
+    subprocess.check_call(args=cmdargs, shell=False)
 
 sys.exit(0)
 
