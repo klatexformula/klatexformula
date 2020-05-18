@@ -589,7 +589,7 @@ public:
 
     QString latexattr = toHtmlAttrText(klfLatexToPseudoTex(output.input.latex));
     QString w_in = QString::number(output.width_pt / 72.0, 'f', 4);
-    QString h_in = QString::number(output.width_pt / 72.0, 'f', 4);
+    QString h_in = QString::number(output.height_pt / 72.0, 'f', 4);
 
     return "<img src=\"data:image/svg+xml;base64," + svgdata.toBase64() + "\" "
       +  (QString::fromLatin1(" alt=\"%1\" title=\"%2\" style=\"width: %3in; height: %4in; vertical-align: middle;\" />")
