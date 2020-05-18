@@ -118,7 +118,7 @@
          </sizepolicy>
         </property>
         <property name="toolTip">
-         <string>Delete de selected history items</string>
+         <string>Delete the selected history items</string>
         </property>
         <property name="text">
          <string>&amp;Delete item(s)</string>

@@ -119,7 +119,7 @@ Options:
   --gs <gs executable>
   --epstopdf <epstopdf executable>
       [OBSOLETE: EPSTOPDF NO LONGER USED]
-      Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
+      Specify the executable for latex, dvips, gs or epstopdf. By default, they
       are searched for in $PATH and in common system directories.
 
   -Q, --qtoption <qt-option>

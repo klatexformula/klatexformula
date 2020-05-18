@@ -276,7 +276,7 @@ public:
 	v->highlightSearchMatches(v->mSymbols.size(), searchQueryString());
       }
     }
-    klfDbg("pos is is "<<pos) ;
+    klfDbg("pos is "<<pos) ;
     KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>::searchPerformed(pos);
   }
   virtual void searchAborted()

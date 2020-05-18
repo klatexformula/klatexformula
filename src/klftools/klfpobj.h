@@ -116,8 +116,8 @@ public:
    * The default implementation uses propertyNameList() and setProperty() to set all the
    * given properties.
    *
-   * Subclasses may be interested in reimplementing this function in order to garantee
-   * the the properties are set in a correct order. This might be necessary in some cases
+   * Subclasses may be interested in reimplementing this function in order to guarantee
+   * that the properties are set in a correct order. This might be necessary in some cases
    * where you are allowed to set a given property depending on the value of another, for
    * example a "Locked" property.
    */
