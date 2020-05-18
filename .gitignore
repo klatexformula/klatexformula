@@ -2,6 +2,11 @@
 # standard ignores
 #
 *~
+.DS_Store
+
+#
+# Build directories
+#
 build/
 build-*
 
