@@ -145,59 +145,62 @@ bool KLFWinClipboard::convertFromMime(const FORMATETC &formatetc, const QMimeDat
   const QString prefix = KLF_MIME_PROXY_WIN_FORMAT_PREFIX;
 
   // decide which format to use
-  
+  QString the_wfmt;
+  QString the_mime;
+
   foreach (QString mime, mimeData->formats()) {
 
     // only continue if this is a proxy mime for a windows format
     if (!mime.startsWith(prefix)) {
+      klfDbg("won't attempt to convert from non-klf-win-proxy mime type " << mime) ;
       continue;
     }
+
     QString wfmt = mime.mid(prefix.length());
-
-    // Get the windows ID of this format.  
-    int fmt_id = -1;
-
-    // First, see if it is a built-in windows format
-    fmt_id = KLFWinClipboardPrivate::getStdWinFormatConstant(wfmt);
-
-    if (fmt_id == -1) {
-      // If it isn't a built-in windows format, it must have been previously registered
-      // because it was (I hope!!!) obtained by formatsForMime()
-      int k;
-      for (k = 0; k < KLFWinClipboardPrivate::registeredWinFormats.size(); ++k) {
-        const FmtWithId wfmtid = KLFWinClipboardPrivate::registeredWinFormats[k];
-        if (wfmtid.fmt == wfmt) {
-          // found
-          fmt_id = wfmtid.id;
-          break;
-        }
+    klfDbg("wfmt corresponding to this mime type " << mime << " is = " << wfmt) ;
+    if (KLFWinClipboardPrivate::getStdWinFormatConstant(wfmt) == formatetc.cfFormat) {
+      // wfmt is a predefined format, and it matches the one we want to convert to.
+      the_wfmt = wfmt;
+      the_mime = mime;
+      break;
+    }
+    // find wfmt in registeredWinFormats and see if IDs match.
+    foreach (FmtWithId rf, KLFWinClipboardPrivate::registeredWinFormats) {
+      if (wfmt == rf.fmt && rf.id == formatetc.cfFormat) {
+        the_wfmt = wfmt;
+        the_mime = mime;
+        break;
       }
     }
-    KLF_ASSERT_CONDITION(fmt_id != -1, "windows format " << wfmt << " not registered!!!!", return false; ) ;
-
-    // get the data
-    QByteArray data = mimeData->data(mime);
-
-    // QWinMime docs are bad and give no clue as to how to set the data in pmedium, e.g.,
-    // whether fields are prealllocated or not ... found an example in
-    // qt-everywhere-opensource-src-5.7.1/qtbase/src/plugins/platforms/windows/qwindowsmime.cpp
-    // It seems that nothing in pmedium is prepared and that we have to set all fields.
-
-    HGLOBAL hData = GlobalAlloc(0, SIZE_T(data.size()));
-    if (!hData) {
-      klfWarning("Error: can't allocate HGLOBAL data");
-        return false;
-    }
-
-    void *out = GlobalLock(hData);
-    std::memcpy(out, data.data(), size_t(data.size()));
-    GlobalUnlock(hData);
-    pmedium->tymed = TYMED_HGLOBAL;
-    pmedium->hGlobal = hData;
-    pmedium->pUnkForRelease = 0;
-    return true;
   }
-  return false;
+
+  KLF_ASSERT_CONDITION(!the_wfmt.isEmpty(), "Could not find mime type to convert to requested windows format!",
+                       return false; ) ;
+
+  // get the data and populate the windows data object
+
+  QByteArray data = mimeData->data(the_mime);
+
+  // QWinMime docs offer no clue as to how to set the data in pmedium, e.g.,
+  // whether fields are prealllocated or not ... found an example in
+  // qt-everywhere-opensource-src-5.7.1/qtbase/src/plugins/platforms/windows/qwindowsmime.cpp
+  // It seems that nothing in pmedium is prepared and that we have to set all
+  // fields.
+
+  HGLOBAL hData = GlobalAlloc(0, SIZE_T(data.size()));
+  if (!hData) {
+    klfWarning("Error: can't allocate HGLOBAL data");
+    return false;
+  }
+
+  void *out = GlobalLock(hData);
+  std::memcpy(out, data.data(), size_t(data.size()));
+  GlobalUnlock(hData);
+  pmedium->tymed = TYMED_HGLOBAL;
+  pmedium->hGlobal = hData;
+  pmedium->pUnkForRelease = 0;
+
+  return true;
 }
 QVariant KLFWinClipboard::convertToMime(const QString &, IDataObject *,
                                         QVariant::Type ) const
@@ -214,6 +217,7 @@ QVector<FORMATETC> KLFWinClipboard::formatsForMime(const QString &mimeType, cons
 
   // only continue if this is a proxy mime for a windows format
   if (!mimeType.startsWith(prefix)) {
+    klfDbg("won't attempt to convert non-klf-win-proxy mime type " << mimeType) ;
     return formats;
   }
   QString wfmt = mimeType.mid(prefix.length());

@@ -139,6 +139,14 @@
 
   </profile>
 
+  <!-- Simple image. Let Qt do the job -->
+  <profile name="simple-image-via-qt">
+    <description>Simple Image (via Qt)</description>
+    <export-type exporter="KLFBackendFormatsExporter" format="PNG">
+      <default-qt-formats type="image" />
+    </export-type>
+  </profile>
+
   <!-- An HTML fragment for pasting into gmail or thunderbird, with PNG data -->
   <profile name="html-png-fragment">
     <description>HTML fragment (PNG)</description>

@@ -734,7 +734,7 @@ QString KLFMimeDataPrivate::winFormatFromProxyMime(const QString& proxyMime) con
   if (proxyMime.startsWith(prefix)) {
     return proxyMime.mid(prefix.size());
   }
-  klfWarning(proxyMime << " is not a mac flavor proxy mime type !") ;
+  klfWarning(proxyMime << " is not a win flavor proxy mime type !") ;
   return QString();
 }
 
