@@ -108,6 +108,9 @@ def run_cmd(do_cmd, ignore_fail=False, callargs={}):
         if not ignore_fail:
             print("ERROR: Exit Status "+str(e.returncode)+ "\n" + e.output)
             raise
+    if sys.version_info >= (3, 0):
+        # need to convert output from bytes to string
+        output = output.decode('utf-8')
     return output
 
 
