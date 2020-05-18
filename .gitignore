@@ -9,29 +9,6 @@ build-*
 # Ignores imported from svn:ignore properties
 #
 
-# /
-/build
-/build32
-/rccresources
-/build-qt3
-/build-rel
-/build-qt4.4
-/build-qt4.5
-/build-backend-shared
-/build-cmake-tests
-/build-qt3-debug
-
-# /apidoc/
-/apidoc/klf-apidoc-3.1.2.tar.bz2
-/apidoc/klf-apidoc-3.1.2a.tar.bz2
-/apidoc/klfbackend
-/apidoc/klfsrc
-
-# /src/
-/src/
-
 # /src/i18n/
-/src/i18n/klf_el.qm
-/src/i18n/klf_el.ts
-/src/i18n/temp_xmltr_klf_fr.ts.cxx
-/src/i18n/temp_tr_pro_klf_fr.ts.pro
+src/i18n/temp_xmltr_klf_fr.ts.cxx
+src/i18n/temp_tr_pro_klf_fr.ts.pro
