@@ -893,11 +893,14 @@ void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& 
     return;
   }
 
+  klfDbg("user script config is = " << data) ;
+
   // find the input widgets
   QList<QWidget*> inwidgets = w->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
   Q_FOREACH (QWidget *inw, inwidgets) {
     QString n = inw->objectName();
-    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"),
+                         "?!? found child widget "<<n<<" that is not INPUT_*?",
 			 continue; ) ;
     n = n.mid(strlen("INPUT_"));
     // find the user property
@@ -906,11 +909,14 @@ void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& 
       userPropName = "plainText";
     } else {
       QMetaProperty userProp = inw->metaObject()->userProperty();
-      KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+      KLF_ASSERT_CONDITION(userProp.isValid(),
+                           "user property of widget "<<n<<" invalid!", continue ; ) ;
       userPropName = userProp.name();
     }
     // find this widget in our list of input values
-    KLF_ASSERT_CONDITION(data.contains(n), "No value given for config widget "<<n, continue ; );
+    KLF_ASSERT_CONDITION(data.contains(n),
+                         "No value given for config widget "<<n,
+                         continue ; );
     QVariant value = data[n];
     inw->setProperty(userPropName.constData(), value);
     klfDbg("Set config widget for " << n << " to " << value);

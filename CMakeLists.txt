@@ -309,7 +309,7 @@ if(KLF_MACOSX_BUNDLES)
   set(default_KLF_BUNDLE_QT_PLUGINS
     Qt5::QCocoaIntegrationPlugin
     Qt5::QGifPlugin
-    Qt5::QDDSPlugin
+    #Qt5::QDDSPlugin
     Qt5::QGifPlugin
     Qt5::QICNSPlugin
     Qt5::QICOPlugin

@@ -2964,7 +2964,8 @@ QVariantMap KLFMainWinPrivate::collectUserScriptInput() const
   QList<QWidget*> inwidgets = scriptInputWidget->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
   Q_FOREACH (QWidget *inw, inwidgets) {
     QString n = inw->objectName();
-    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"),
+                         "?!? \"found\" child widget "<<n<<" that is not INPUT_*?",
 			 continue; ) ;
     n = n.mid(strlen("INPUT_"));
     // get the user property
@@ -2973,7 +2974,8 @@ QVariantMap KLFMainWinPrivate::collectUserScriptInput() const
       userPropName = "plainText";
     } else {
       QMetaProperty userProp = inw->metaObject()->userProperty();
-      KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+      KLF_ASSERT_CONDITION(userProp.isValid(),
+                           "user property of widget "<<n<<" invalid!", continue ; ) ;
       userPropName = userProp.name();
     }
     QVariant value = inw->property(userPropName.constData());
@@ -4172,7 +4174,8 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   } else {
     u->spnLatexFontSize->setValue((int)(style.fontsize + 0.5));
   }
-  slotSetPreamble(style.preamble); // to preserve text edit undo/redo, don't use txtPreamble->setText()
+  // to preserve text edit undo/redo, don't use txtPreamble->setText():
+  slotSetPreamble(style.preamble);
   u->spnDPI->setValue(style.dpi);
   u->spnVectorScale->setValue(style.vectorscale * 100.0);
   u->chkVectorScale->setChecked(fabs(style.vectorscale - 1.0) > 0.00001);
@@ -4186,7 +4189,8 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   }
   if (idx == u->cbxLatexFont->count()) {
     // didn't find font
-    QMessageBox::warning(this, tr("Can't find font"), tr("Sorry, I don't know about font `%1'.").arg(style.fontname));
+    QMessageBox::warning(this, tr("Can't find font"),
+                         tr("Sorry, I don't know about font `%1'.").arg(style.fontname));
   }
 
 
@@ -4207,26 +4211,43 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   // check for user script input
   QWidget * scriptInputWidget = u->stkScriptInput->currentWidget();
   if (scriptInputWidget != u->wScriptInputEmptyPage) {
+    klfDbg("Setting user script input widgets to corresponding values...") ;
     QVariantMap data = style.userScriptInput();
     // find the input widgets
     QList<QWidget*> inwidgets = scriptInputWidget->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
     Q_FOREACH (QWidget *inw, inwidgets) {
       QString n = inw->objectName();
-      KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+      KLF_ASSERT_CONDITION(n.startsWith("INPUT_"),
+                           "?!? \"found\" child widget "<<n<<" that is not INPUT_*?",
 			   continue; ) ;
       n = n.mid(strlen("INPUT_"));
+
+      // find this widget in our list of input values
+      KLF_ASSERT_CONDITION(data.contains(n), "No value given for input widget "<<n, continue ; );
+      QVariant value = data[n];
+
       // find the user property
       QByteArray userPropName;
       if (inw->inherits("KLFLatexEdit")) {
 	userPropName = "plainText";
+      } else if (inw->inherits("QComboBox") and inw->property("editable").toBool() == false) {
+        // special handling for setting a string in a non-editable combo box,
+        // need to call setCurrentIndex()
+        QString strvalue = value.toString();
+        QComboBox * comboboxwidget = dynamic_cast<QComboBox*>(inw);
+        const int idx = comboboxwidget->findText(strvalue);
+        KLF_ASSERT_CONDITION(idx != -1, "Invalid value "<<strvalue<<" for input widget "<<n,
+                             continue; );
+        value = QVariant(idx);
+        userPropName = "currentIndex";
       } else {
 	QMetaProperty userProp = inw->metaObject()->userProperty();
-	KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+	KLF_ASSERT_CONDITION(userProp.isValid(),
+                             "user property of widget "<<n<<" invalid!",
+                             continue ; ) ;
 	userPropName = userProp.name();
       }
-      // find this widget in our list of input values
-      KLF_ASSERT_CONDITION(data.contains(n), "No value given for input widget "<<n, continue ; );
-      QVariant value = data[n];
+
       inw->setProperty(userPropName.constData(), value);
     }
   }

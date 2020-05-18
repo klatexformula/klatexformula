@@ -76,6 +76,7 @@
     <file>data/cmdl-help.txt</file>
     <file>data/about.html</file>
     <file>data/whats-new-4.0.html</file>
+    <file>data/whats-new-4.1.html</file>
     <file>data/base_symbolspixmapcache-klf3.3</file>
     <file>data/base_symbolspixmapcache@2x-klf3.3</file>
     <file>data/defaultlibrary.klf</file>
@@ -89,8 +90,8 @@
   <qresource>
     <file>data/cmdl-help_fr.txt</file>
     <file>data/about_fr.html</file>
-    <file>data/whats-new-3.3_fr.html</file>
     <file>data/whats-new-4.0_fr.html</file>
+    <file>data/whats-new-4.1_fr.html</file>
   </qresource>
   <qresource>
     <file>data/cmdl-help_cs.txt</file>

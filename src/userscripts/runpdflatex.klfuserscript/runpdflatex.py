@@ -20,7 +20,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-#   $Id: klffeynmf.py 941 2015-06-07 19:38:11Z phfaist $
+#   $Id$
 
 from __future__ import print_function
 
@@ -44,15 +44,23 @@ args = pyklfuserscript.backend_engine_args_parser(can_query_default_settings=Tru
 
 if args.query_default_settings:
 
-    pdflatex = pyklfuserscript.find_executable(['pdflatex'], [
+    tex_bin_paths = [
         "/usr/texbin/",
         "/usr/local/texbin/",
         "/Library/TeX/texbin/",
         # add more non-trivial paths here (but not necessary to include /usr/bin/
         # because we do a PATH search anyway
-    ])
+    ]
+
+    pdflatex = pyklfuserscript.find_executable(['pdflatex'], tex_bin_paths)
     if pdflatex is not None:
         print("pdflatex={}".format(pdflatex))
+    xelatex = pyklfuserscript.find_executable(['xelatex'], tex_bin_paths)
+    if xelatex is not None:
+        print("xelatex={}".format(xelatex))
+    lualatex = pyklfuserscript.find_executable(['lualatex'], tex_bin_paths)
+    if lualatex is not None:
+        print("lualatex={}".format(lualatex))
 
     sys.exit(0)
 
@@ -66,14 +74,25 @@ pngfname = os.environ["KLF_FN_PNG"]
 gsexe = os.environ.get("KLF_GS")
 
 pdflatex = os.environ.get("KLF_USCONFIG_pdflatex")
+xelatex = os.environ.get("KLF_USCONFIG_xelatex")
+lualatex = os.environ.get("KLF_USCONFIG_lualatex")
 
 dpi_value = os.environ.get("KLF_INPUT_DPI", 180)
 
 ps_x = os.environ.get("KLF_ARG_pagesize_x")
 ps_y = os.environ.get("KLF_ARG_pagesize_y")
 
-print("Using pdflatex path: {}".format(pdflatex), file=sys.stderr)
-pyklfuserscript.ensure_configured_executable(pdflatex, exename='pdflatex', userscript=__file__)
+arg_ltxengine = os.environ.get("KLF_ARG_ltxengine")
+
+if arg_ltxengine == 'pdflatex': ltxexe = pdflatex
+elif arg_ltxengine == 'xelatex': ltxexe = xelatex
+elif arg_ltxengine == 'lualatex': ltxexe = lualatex
+else:
+    raise ValueError("Invalid latex engine: {}".format(arg_ltxengine))
+
+print("Using engine {} at {}".format(arg_ltxengine, ltxexe), file=sys.stderr)
+
+pyklfuserscript.ensure_configured_executable(ltxexe, exename=arg_ltxengine, userscript=__file__)
 
 
 tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
@@ -122,6 +141,22 @@ if strtobool(vertical_centering_arg):
     # plus 1fil: vertically center equations on page
     vspc = '0pt plus 1fil'
     
+if arg_ltxengine in ('pdflatex', 'xelatex'):
+    pagesizecmds = r"""
+\pdfpageheight=%(h)s
+\pdfpagewidth=%(w)s
+\paperwidth=%(w)s
+\paperheight=%(h)s
+"""[1:] % { 'w': ps_x, 'h': ps_y }
+elif arg_ltxengine == 'lualatex':
+    pagesizecmds = r"""
+\pageheight=%(h)s
+\pagewidth=%(w)s
+\paperwidth=%(w)s
+\paperheight=%(h)s
+"""[1:] % { 'w': ps_x, 'h': ps_y }
+else:
+    raise ValueError("Unknown latex engine for paper size commands: {}".format(arg_ltxengine))
 
 LENGTHSCMDS = r"""
 \oddsidemargin=0pt
@@ -129,10 +164,7 @@ LENGTHSCMDS = r"""
 \topmargin=0pt
 \textwidth=%(w)s
 \textheight=%(h)s
-\pdfpageheight=%(h)s
-\pdfpagewidth=%(w)s
-\paperwidth=%(w)s
-\paperheight=%(h)s
+%(pagesizecmds)s
 \voffset=-1in
 \hoffset=-1in
 \headsep=0pt
@@ -150,13 +182,14 @@ LENGTHSCMDS = r"""
   \belowdisplayshortskip=%(vspc)s%%
 }
 \klfXXXsetdisplayskiplengths
-""" % { 'w': ps_x, 'h': ps_y, 'vspc': vspc }
+""" % { 'w': ps_x, 'h': ps_y, 'vspc': vspc, 'pagesizecmds': pagesizecmds }
 
 
+# m is regex match object for \begin{document}
 newlatexcode = latexcode[:m.start()]
 newlatexcode += LENGTHSCMDS
 newlatexcode += latexcode[m.start():m.end()]
-newlatexcode += "\n\\klfXXXsetdisplayskiplengths\n"
+newlatexcode += "%\n\\klfXXXsetdisplayskiplengths\n"
 newlatexcode += latexcode[m.end():]
 
 print("NEW LATEX CODE:\n----------\n"+newlatexcode+"\n----------\n")
@@ -175,7 +208,7 @@ with open(latexfname, 'w') as f:
 # run pdflatex
 # ------------
 
-run_cmd([pdflatex, os.path.basename(latexfname)])
+run_cmd([ltxexe, os.path.basename(latexfname)])
 
 
 
@@ -208,9 +241,11 @@ if crop_arg_val:
 
     print("GS Bounding box info:\n" + bboxoutput + "\n\n")
 
-    mbb = re.search(r'^%%HiResBoundingBox:\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s*$',
-                    bboxoutput,
-                    flags=re.MULTILINE)
+    mbb = re.search(
+        r'^%%HiResBoundingBox:\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s+([0-9.e+-]+)\s*$',
+        bboxoutput,
+        flags=re.MULTILINE
+    )
     if mbb is None:
         raise ValueError("Ghostscript didn't report any bounding box!!")
 
