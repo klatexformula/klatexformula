@@ -12,10 +12,13 @@ PROJECT(klatexformula)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 
-if(APPLE)
-  # find HomeBrew Qt5, if present
-  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5/lib/cmake")
-endif(APPLE)
+# ### Don't automatically set any paths, this could lead to unexpected results
+# ### and issues that ard hard to trace
+#
+#if(APPLE)
+#  # find HomeBrew Qt5, if present
+#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5/lib/cmake")
+#endif(APPLE)
 
 
 # Read project version
