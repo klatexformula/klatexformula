@@ -892,8 +892,14 @@ public:
 
     pCmdIface = NULL;
 
+    loadedlibrary = false;
+    firstshow = false;
+    settings_altered = false;
+    evaloutput_uptodate = false;
+
     is_quitting = false;
     qapp_quit_called = false;
+    ignore_close_event = false;
   }
 
 
