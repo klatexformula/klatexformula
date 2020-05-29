@@ -4373,6 +4373,7 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
 
   if (d->ignore_close_event) {
     // simple hide, not close
+    klfDbg("closeEvent is simple hide, not quit") ;
     hide();
 
     event->ignore();
@@ -4381,6 +4382,7 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
 
   event->accept();
 
+  klfDbg(" quitting.") ;
   quit();
 }
 

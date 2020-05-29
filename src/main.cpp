@@ -278,6 +278,7 @@ void signal_act(int sig)
     time(&curtime);
     bool isInsisted = (curtime - last_sigint_time <= 2); // re-pressed Ctrl-C after less than 2 secs
     if (!isInsisted && qApp != NULL) {
+      klfDbg("Interrupt; quitting") ;
       qApp->quit();
       last_sigint_time = curtime;
     } else {
