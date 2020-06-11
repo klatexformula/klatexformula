@@ -77,7 +77,17 @@ pdflatex = os.environ.get("KLF_USCONFIG_pdflatex")
 xelatex = os.environ.get("KLF_USCONFIG_xelatex")
 lualatex = os.environ.get("KLF_USCONFIG_lualatex")
 
-dpi_value = os.environ.get("KLF_INPUT_DPI", 180)
+dpi_value = int(os.environ.get("KLF_INPUT_DPI", 180))
+
+# --- VECTORSCALE not supported for now (we would need to build our own template
+#     to use \scalebox{}, for instance)
+#
+#vectorscale_s = os.environ.get("KLF_INPUT_VECTORSCALE", "1").strip()
+#vectorscale = float(vectorscale_s)
+#if re.match(r'^\s*0*1([.]0*)?(e[+-]0+)?$', vectorscale_s):
+#    has_vectorscale = False
+#else:
+#    has_vectorscale = True
 
 ps_x = os.environ.get("KLF_ARG_pagesize_x")
 ps_y = os.environ.get("KLF_ARG_pagesize_y")
@@ -186,7 +196,6 @@ LENGTHSCMDS = r"""
 }
 \klfXXXsetdisplayskiplengths
 """ % { 'w': ps_x, 'h': ps_y, 'vspc': vspc, 'pagesizecmds': pagesizecmds }
-
 
 # m is regex match object for \begin{document}
 newlatexcode = latexcode[:m.start()]

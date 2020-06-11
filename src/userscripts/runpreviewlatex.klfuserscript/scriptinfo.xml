@@ -3,7 +3,7 @@
   <exe-script>runpreviewlatex.py</exe-script>
   <can-provide-default-settings>true</can-provide-default-settings>
   <category>klf-backend-engine</category>
-  <name>Use preview-latex package</name>
+  <name>Use {preview} latex package</name>
   <author>Philippe Faist, philippe.faist@bluewin.ch</author>
   <version>1.0</version>
   <license>GPL v2+</license>
@@ -15,7 +15,7 @@
     </skip-formats>
     <disable-inputs selector="ALL EXCEPT">
       FG_COLOR MATHMODE PREAMBLE FONT FONTSIZE
-      DPI MARGINS
+      DPI VECTORSCALE MARGINS
     </disable-inputs>
     <input-form-ui>runpreviewlatex_params.ui</input-form-ui>
   </klf-backend-engine>

@@ -77,7 +77,14 @@ pdflatex = os.environ.get("KLF_USCONFIG_pdflatex")
 xelatex = os.environ.get("KLF_USCONFIG_xelatex")
 lualatex = os.environ.get("KLF_USCONFIG_lualatex")
 
-dpi_value = os.environ.get("KLF_INPUT_DPI", 180)
+dpi_value = int(os.environ.get("KLF_INPUT_DPI", 180))
+
+vectorscale_s = os.environ.get("KLF_INPUT_VECTORSCALE", "1").strip()
+vectorscale = float(vectorscale_s)
+if re.match(r'^\s*0*1([.]0*)?(e[+-]0+)?$', vectorscale_s):
+    has_vectorscale = False
+else:
+    has_vectorscale = True
 
 ps_x = os.environ.get("KLF_ARG_pagesize_x")
 ps_y = os.environ.get("KLF_ARG_pagesize_y")
@@ -198,13 +205,25 @@ else:
     m = match_environ_rx(r'align\*?|gather\*?', mm)
     if m is not None:
         env = m.group('envname').rstrip('*')
-        delims = (r'$\displaystyle\begin{' + env + r'ed}',
+        delims = (r'$\displaystyle\begin{' + env + r'ed}', # "align" -> "aligned" etc.
                   r'\end{' + env + r'ed}$')
     else:
         delims = mm.split('...', 1)
 
 eqn_content = delims[0] + latex_input + delims[1]
 
+#
+# get user-defined preamble
+#
+preamble = os.environ.get("KLF_INPUT_PREAMBLE")
+
+
+#
+# add \scalebox{}{} if we want to scale the vector graphics
+#
+if has_vectorscale:
+    eqn_content = r"\scalebox{%s}{%s}"%(vectorscale_s, eqn_content)
+    preamble += "\n\n" + r"\RequirePackage{graphicx}" + "\n\n"
 
 # --- form template ---
 
@@ -226,7 +245,7 @@ latexcode = r"""
 \end{preview}
 \end{document}
 """[1:] % {
-    'preamble': os.environ.get("KLF_INPUT_PREAMBLE"),
+    'preamble': preamble,
     'preview_border_margins': preview_border_margins,
     'color_cmds': color_cmds,
     'fontsize_cmds': fontsize_cmds,

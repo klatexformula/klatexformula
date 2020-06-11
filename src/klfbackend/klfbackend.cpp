@@ -352,7 +352,7 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
   s += QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
     .arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0);
   if (qAlpha(in.bg_color)>0)
-    s += "\\pagecolor{klfbgcolor}\n";
+    s += "\\pagecolor{klfbgcolor}%\n";
   s += "{\\color{klffgcolor} ";
   s += latexin;
   s += "%\n"
