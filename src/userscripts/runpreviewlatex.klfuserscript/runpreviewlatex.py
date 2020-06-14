@@ -223,7 +223,7 @@ preamble = os.environ.get("KLF_INPUT_PREAMBLE")
 #
 if has_vectorscale:
     eqn_content = r"\scalebox{%s}{%s}"%(vectorscale_s, eqn_content)
-    preamble += "\n\n" + r"\RequirePackage{graphicx}" + "\n\n"
+    preamble += "\n" + r"\RequirePackage{graphicx}" + "\n"
 
 # --- form template ---
 
