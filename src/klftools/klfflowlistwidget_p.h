@@ -34,6 +34,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPainter>
+#include <QPainterPath>
 #include <QMouseEvent>
 #include <QHoverEvent>
 #include <QTimer>
