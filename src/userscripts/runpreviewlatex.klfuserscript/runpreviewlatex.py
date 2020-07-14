@@ -34,6 +34,16 @@ import math
 import pyklfuserscript
 
 
+if sys.version_info >= (3, 0):
+    # need to convert output from bytes to string
+    def decode_output(output):
+        return output.decode('utf-8')
+else:
+    def decode_output(output):
+        return output
+
+
+
 def intceil(x):
     return int(math.ceil(x) + 0.01)
 def intfloor(x):
@@ -99,13 +109,15 @@ else:
 
 print("Using engine {} at {}".format(arg_ltxengine, ltxexe), file=sys.stderr)
 
-pyklfuserscript.ensure_configured_executable(ltxexe, exename=arg_ltxengine, userscript=__file__)
+pyklfuserscript.ensure_configured_executable(ltxexe, exename=arg_ltxengine,
+                                             userscript=__file__)
 
 
 tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"])
 
 def run_cmd(do_cmd, ignore_fail=False, callargs={}):
-    print("Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n")
+    print("Running " + " ".join(["'%s'"%(x) for x in do_cmd])
+          + "  [ in %s ]..." %(tempdir) + "\n")
     output = None
     thecallargs = {'stderr': subprocess.STDOUT}
     thecallargs.update(dict(callargs))
@@ -113,12 +125,9 @@ def run_cmd(do_cmd, ignore_fail=False, callargs={}):
         output = subprocess.check_output(do_cmd, cwd=tempdir, **thecallargs)
     except subprocess.CalledProcessError as e:
         if not ignore_fail:
-            print("ERROR: Exit Status "+str(e.returncode)+ "\n" + e.output)
+            print("ERROR: Exit Status "+str(e.returncode)+ "\n" + decode_output(e.output))
             raise
-    if sys.version_info >= (3, 0):
-        # need to convert output from bytes to string
-        output = output.decode('utf-8')
-    return output
+    return decode_output(output)
 
 
 # add pdf page size commands latex
@@ -146,41 +155,48 @@ if fsz != -1:
         'fsz': fsz, 'fszbl': 1.2*fsz
     }
 
-rx_col = re.compile(r"rgba?\(\s*(?P<r>\d+)\s*,\s*(?P<g>\d+)\s*,\s*(?P<b>\d+)\s*(?:,\s*(?P<a>\d+)\s*)\)", flags=re.IGNORECASE)
+rx_col = re.compile(
+    r"rgba?\(\s*(?P<r>\d+)\s*,\s*(?P<g>\d+)\s*,\s*(?P<b>\d+)\s*(?:,\s*(?P<a>\d+)\s*)\)",
+    flags=re.IGNORECASE
+)
+
+fg_color = rx_col.match(os.environ.get("KLF_INPUT_FG_COLOR_RGBA")).groupdict()
+bg_color = rx_col.match(os.environ.get("KLF_INPUT_BG_COLOR_RGBA")).groupdict()
+
+has_bg_color = bg_color.get('a', None) and int(bg_color['a']) > 0
 
 color_cmds = r"""
 \definecolor{klffgcolor}{RGB}{%(r)s,%(g)s,%(b)s}%%
-"""[1:] % rx_col.match(os.environ.get("KLF_INPUT_FG_COLOR_RGBA")).groupdict()
+"""[1:] % fg_color
 
-### --- \pagecolor{} is ignored by {preview} package
-# hack_page_bg_color = ""
-# bgm = rx_col.match(os.environ.get("KLF_INPUT_BG_COLOR_RGBA")).groupdict()
-# if bgm['a'] and int(bgm['a']) > 0:
-#     hack_page_bg_color = r"""
-# \pdfliteral page{%
-#     q % gsave
-#     \current@page@color\GPT@space
-#     n % newpath
-#     0 0 \strip@pt\pdfpagewidth\GPT@space
-#     \strip@pt\pdfpageheight\GPT@space re % rectangle
-#     % there is no need to convert to bp
-#     f % fill
-#     Q% grestore
-#     }%
-# """[1:] ...........???????????
-#     color_cmds += r"""
-# \definecolor{klfbgcolor}{RGB}{%(r)s,%(g)s,%(b)s}%%
-# \pagecolor{klfbgcolor}%%
-# """[1:] % bgm.groupdict()
+# ### SEE ISSUES WITH BG_COLOR BELOW.
+#
+
+#print("DEBUG: bg_color=%r, has_bg_color=%r"%(bg_color, has_bg_color))
+#print("DEBUG: os.environ=%r"%(os.environ))
+
+#if has_bg_color:
+#    color_cmds += r"""
+#\definecolor{klfbgcolor}{RGB}{%(r)s,%(g)s,%(b)s}%%
+#"""[1:] % bg_color
+
 
 m = re.match(r'(?P<top>[\d.+-]+)\s*,\s*(?P<right>[\d.+-]+)\s*,\s*(?P<bottom>[\d.+-]+)\s*,\s*(?P<left>[\d.+-]+)\s*(?:pt)?',
              os.environ.get("KLF_SETTINGS_BORDEROFFSET", ""),
              flags=re.IGNORECASE)
 preview_border_margins = ""
 if m is not None:
+    if has_vectorscale:
+        vectorscaled_margins = dict([
+            (k, str(vectorscale*float(v)))
+            for k, v in m.groupdict().items()
+        ])
+    else:
+        vectorscaled_margins = m.groupdict()
+
     preview_border_margins = r"""
 \renewcommand{\PreviewBbAdjust}{-%(left)spt -%(bottom)spt %(right)spt %(top)spt}%%
-"""[1:] % m.groupdict()
+"""[1:] % vectorscaled_margins
 
 
 latex_input = os.environ.get("KLF_INPUT_LATEX")
@@ -225,6 +241,25 @@ if has_vectorscale:
     eqn_content = r"\scalebox{%s}{%s}"%(vectorscale_s, eqn_content)
     preamble += "\n" + r"\RequirePackage{graphicx}" + "\n"
 
+# ### PROBLEMS WITH BG_COLOR:
+# ###
+# ###  - the below code doesn't work. (why???)
+# ###
+# ###  - we need to also color the background color in the margins.  How do we
+# ###    do this with the preview package?
+#
+# if has_bg_color:
+#     eqn_content = r"""
+# \let\klfXoldfboxsep=\fboxsep%%
+# \fboxsep=0pt\relax%%
+# \colorbox{klfbgcolor}{%%
+#   \fboxsep=\klfXoldfboxsep\relax%%
+#   %s%%
+# }%%
+# """[1:] % (
+#     eqn_content
+# )
+
 # --- form template ---
 
 latexcode = r"""
@@ -233,7 +268,7 @@ latexcode = r"""
 
 %(preamble)s
 
-\usepackage[active,tightpage]{preview}
+\usepackage[active,delayed,tightpage]{preview}
 %(preview_border_margins)s
 \begin{document}%%
 %(color_cmds)s%%
