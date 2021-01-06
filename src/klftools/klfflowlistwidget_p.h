@@ -39,6 +39,7 @@
 #include <QHoverEvent>
 #include <QTimer>
 #include <QPixmap>
+#include <QPainterPath>
 
 #include <klfdefs.h>
 
