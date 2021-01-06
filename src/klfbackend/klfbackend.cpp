@@ -100,6 +100,7 @@ static const char * standard_extra_paths[] = {
   "C:\\Program Files*\\MiKTeX*\\miktex\\bin",
   "C:\\texlive\\*\\bin\\win*",
   "C:\\Program Files*\\gs*\\gs*\\bin",
+//  "C:\\texlive\\*\\tlpkg\\tlgs\\bin", // TODO: add this but also set GS_LIB! (issue #51)
   NULL
 };
 #elif defined(KLF_WS_MAC)
@@ -334,8 +335,11 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
   QString latexin;
   QString s;
 
+  // Need "%\n" to fix bug if last line of in.latex is a comment w/o final
+  // newline.  (Can't simply add \n because it might insert a paragraph if it
+  // already has a final newline.)
   latexin = in.mathmode;
-  latexin.replace("...", in.latex);
+  latexin.replace("...", in.latex + "%\n");
 
   /// \todo 'minimal' or 'article' by default ???
   s += "\\documentclass{article}\n"
@@ -1881,6 +1885,8 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
     settings->execenv = klfSetEnvironmentVariable(settings->execenv, "MIKTEX_GS_LIB", mgsenv);
     klfDbg("Adjusting environment for mgs.exe: `MIKTEX_GS_LIB="+mgsenv+"'") ;
   }
+
+  // TODO: add GS_LIB for texlive's gs! (issue #51)
 
   return true;
 }
