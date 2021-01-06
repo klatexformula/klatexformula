@@ -5164,7 +5164,7 @@ OPTIONS may be one or many of:
   --dvips &lt;dvips executable&gt;
   --gs &lt;gs executable&gt;
   --epstopdf &lt;epstopdf executable&gt;
-      Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
+      Specify the executable for latex, dvips, gs or epstopdf. By default, they
       are searched for in $PATH and/or in common system directories.
 
   -h|--help
