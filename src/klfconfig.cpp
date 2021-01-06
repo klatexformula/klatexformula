@@ -432,14 +432,15 @@ void KLFConfig::loadDefaults()
 
 
 static inline void ensure_interp_exe(KLFConfigProp<QVariantMap> & userScriptInterpreters,
-                                     const QString& ext,
-                                     const QString& program)
+                                     const QString& ext)
 {
   const QString & curval = userScriptInterpreters().value(ext, QString()).toString();
   if (curval.isEmpty() || curval == ".") {
+    // can't use "userScriptInterpreters[ext] = .." because of KLFConfigProp<>
+    // API, we need to create a new QVariantMap.
     QVariantMap map = userScriptInterpreters;
-    map[ext] = KLFBlockProcess::detectInterpreterPath(program);
-    userScriptInterpreters = map; // can't use "userScriptInterpreters[ext] = .." because of KLFConfigProp<> API
+    map[ext] = KLFBlockProcess::getInterpreterPathDefault(ext);
+    userScriptInterpreters = map;
   } else if (!QFile::exists(curval)) {
     klfWarning("Path "<<curval<<" (for executing "<<("."+ext)<<" script files) does not exist") ;
   }
@@ -482,8 +483,8 @@ void KLFConfig::detectMissingSettings()
       BackendSettings.wantSVG.setDefaultValue(defaultsettings.wantSVG);
   }
 
-  ensure_interp_exe(BackendSettings.userScriptInterpreters, "py", "python");
-  ensure_interp_exe(BackendSettings.userScriptInterpreters, "sh", "bash");
+  ensure_interp_exe(BackendSettings.userScriptInterpreters, "py");
+  ensure_interp_exe(BackendSettings.userScriptInterpreters, "sh");
 }
 
 

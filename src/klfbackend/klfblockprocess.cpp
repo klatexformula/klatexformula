@@ -26,6 +26,7 @@
 #include <QEventLoop>
 #include <QFile>
 #include <QThread>
+#include <QPair>
 
 #include <klfutil.h>
 #include <klfsysinfo.h>
@@ -58,37 +59,88 @@ static bool is_binary_file(QString fn)
   return false;
 }
 
+
+
+
+
+
 #if defined(Q_OS_WIN)
-const static QString script_extra_paths = QString("C:\\Python27;C:\\Python*");
+const static QString script_extra_paths =
+#  ifdef KLF_EXTRA_SEARCH_PATHS
+                KLF_EXTRA_SEARCH_PATHS ";" // include compilation-specified extra paths
+#  endif
+                "C:\\Python3*;C:\\Python2*;C:\\Python*"
+                ;
 const static QString exe_suffix = ".exe";
 #elif defined(Q_OS_MAC)
 const static QString script_extra_paths =
-                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin" // general unix
+#  ifdef KLF_EXTRA_SEARCH_PATHS
+                KLF_EXTRA_SEARCH_PATHS ":" // include compilation-specified extra paths
+#  endif
+                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin:" // general unix
                 "/usr/local/opt/*/bin:/opt/local/bin:" // homebrew
-                "/opt/local/sbin" // macports
+                "/opt/local/sbin:" // macports
                 "/Library/TeX/texbin:/usr/texbin"; // mactex binaries
 const static QString exe_suffix = "";
 #else
 const static QString script_extra_paths =
-                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin"; // general unix paths
+#  ifdef KLF_EXTRA_SEARCH_PATHS
+                KLF_EXTRA_SEARCH_PATHS ":" // include compilation-specified extra paths
+#  endif
+                // general unix paths
+                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin";
 const static QString exe_suffix = "";
 #endif
 
 
+// TODO: At some point, if it's worth it, add a CMake option to customize this
+// value at compile time... and use FindPython, etc., to find the correct path
+// as suggested in Issue #57
+#ifndef KLF_EXTRA_SCRIPT_INTERP_NAMES_AS_QPAIRS
+#  define KLF_EXTRA_SCRIPT_INTERP_NAMES_AS_QPAIRS 
+#endif
+
+// specify precise alternative executable names for each interpreter type, so
+// that we avoid situations like in issue #57 where an unrelated program is
+// found.
+const static QVector<QPair<QString,QStringList> > interp_search_exe_names_pairslist =
+  QVector<QPair<QString,QStringList> >()
+  KLF_EXTRA_SCRIPT_INTERP_NAMES_AS_QPAIRS
+  << QPair<QString,QStringList>(
+      "py",
+      QStringList()<<"python3"<<"python2"<<"python"<<"python3*"<<"python2*"<<"python*")
+  << QPair<QString,QStringList>(
+      "sh",
+      QStringList()<<"bash"<<"sh"<<"bash*")
+  << QPair<QString,QStringList>(
+      "rb",
+      QStringList()<<"ruby"<<"ruby*")
+;
+
+
+
 // static
-QString KLFBlockProcess::detectInterpreterPath(const QString& interp, const QStringList & addpaths)
+QString KLFBlockProcess::detectInterpreterPath(const QString& interp,
+                                               const QStringList & addpaths)
 {
   QString search_paths = script_extra_paths;
   search_paths += addpaths.join(KLF_PATH_SEP);
-  // first, try exact name (python.exe, bash.exe)
+
   QString s = klfSearchPath(interp+exe_suffix, script_extra_paths);
   if (!s.isEmpty()) {
     return s;
   }
-  // otherwise, try name with some suffix (e.g. python2.exe) -- dont directly try with
-  // wildcard, because we want the exact name if it exists (and not some other program,
-  // such as 'bashbug', which happened to be found first)
-  return klfSearchPath(interp+"*"+exe_suffix, script_extra_paths);
+
+  // do not perform wildcard search because it can find unrelated programs
+  // (e.g. "bashbug", or "python-argcomplete-check-easy-install-script3", see
+  // issue #57.
+  return QString();
+
+  // // otherwise, try name with some suffix (e.g. python3.9.exe) -- try with
+  // // wildcard only after search of the exact name, because we want the exact
+  // // name if it exists (and not some other program, such as 'bashbug', which
+  // // happened to be found first)
+  // return klfSearchPath(interp+"*"+exe_suffix, script_extra_paths);
 }
 
 
@@ -115,16 +167,33 @@ void KLFBlockProcess::ourProcExited()
   _runstatus = 1; // exited
 }
 
+// virtual
 QString KLFBlockProcess::getInterpreterPath(const QString & ext)
+{
+  return getInterpreterPathDefault(ext);
+}
+// static
+QString KLFBlockProcess::getInterpreterPathDefault(const QString & ext)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("ext = " << ext) ;
-  if (ext == "py") {
-    return detectInterpreterPath("python");
-  } else if (ext == "sh") {
-    return detectInterpreterPath("bash");
-  } else if (ext == "rb") {
-    return detectInterpreterPath("ruby");
+
+  // search interp_search_exe_names_pairslist to find what interpreter names are
+  // associated with the given extension.
+
+  for (int k = 0; k < interp_search_exe_names_pairslist.size(); ++k) {
+    if (ext == interp_search_exe_names_pairslist[k].first) {
+
+      // found the extension, now try the given associated interpreter names.
+      const QStringList & names = interp_search_exe_names_pairslist[k].second;
+      for (int j = 0; j < names.size(); ++j) {
+        QString s = detectInterpreterPath(names[j]);
+        if (!s.isEmpty()) {
+          return s;
+        }
+      }
+      return QString(); // not found in list of possible interpreter names
+    }
   }
   return QString();
 }

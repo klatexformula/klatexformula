@@ -94,6 +94,9 @@ public:
                                        const QStringList & addpaths = QStringList());
 
 
+  // detect interpreter path to use for given extension, default implementation
+  static QString getInterpreterPathDefault(const QString& ext);
+
   /** \brief The interpter path to use for the given extension.
    *
    * This function will be queried by \ref startProcess() when we have to execute a
