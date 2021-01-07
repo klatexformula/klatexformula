@@ -92,7 +92,7 @@ if args.query_default_settings:
             else:
                 use_new_option_syntax_v1x = False
         except Exception as e:
-            print(e)
+            sys.stderr.write("{}\n".format(e))
 
     if inkscape is not None:
         # found
@@ -105,7 +105,7 @@ if args.query_default_settings:
    </pair>
    <pair>
       <key>use_new_option_syntax_v1x</key>
-      <value type="bool">true</value>
+      <value type="bool">{}</value>
    </pair>
 </klfuserscript-default-settings>
 """.format(
