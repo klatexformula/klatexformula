@@ -139,6 +139,8 @@ if "KLF_USCONFIG_use_new_option_syntax_v1x" in os.environ:
         use_new_option_syntax_v1x = True
     else:
         use_new_option_syntax_v1x = False
+else:
+    use_new_option_syntax_v1x = True # guess ?
 
 
 print("Using inkscape path: {}".format(inkscape), file=sys.stderr)
