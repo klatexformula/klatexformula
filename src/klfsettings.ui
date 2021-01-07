@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>552</height>
+    <width>488</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -477,11 +477,21 @@
         </spacer>
        </item>
        <item row="2" column="0">
-        <widget class="QGroupBox" name="gbxSetTexInputs">
+        <widget class="QGroupBox" name="gbxLatexEnvironment">
          <property name="title">
-          <string>TEXINPUTS</string>
+          <string>Environment variables</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxSetTexInputs">
+          <item row="3" column="0">
+           <widget class="QTextEdit" name="txtExecEnv">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QLineEdit" name="txtSetTexInputs">
             <property name="toolTip">
@@ -492,7 +502,17 @@
           <item row="0" column="0">
            <widget class="QLabel" name="lblSetTexInputs">
             <property name="text">
-             <string>Specify additional TEXINPUTS paths:</string>
+             <string>Additional TEXINPUTS paths:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lblSetTexInputs_2">
+            <property name="text">
+             <string>Other environment variables (VARNAME=VARVALUE, one per line)</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -813,7 +833,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>372</width>
+                 <width>388</width>
                  <height>113</height>
                 </rect>
                </property>
@@ -870,8 +890,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>372</width>
-                 <height>79</height>
+                 <width>86</width>
+                 <height>162</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -1090,8 +1110,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>194</width>
-                    <height>40</height>
+                    <width>267</width>
+                    <height>77</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1266,8 +1286,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>194</width>
-                       <height>40</height>
+                       <width>248</width>
+                       <height>85</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -2622,6 +2642,12 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
+   <class>KLFPathChooser</class>
+   <extends>QFrame</extends>
+   <header>klfpathchooser.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>KLFColorChooser</class>
    <extends>QPushButton</extends>
    <header>klfcolorchooser.h</header>
@@ -2643,12 +2669,6 @@
     <signal>unitChanged(double,QString)</signal>
     <signal>unitChanged(double)</signal>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>KLFPathChooser</class>
-   <extends>QFrame</extends>
-   <header>klfpathchooser.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>KLFEnumComboBox</class>

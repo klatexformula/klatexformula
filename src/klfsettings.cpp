@@ -566,6 +566,17 @@ void KLFSettings::reset()
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
   u->txtSetTexInputs->setText( klfconfig.BackendSettings.setTexInputs );
+  QStringList the_execenv_wo_texinputs = klfconfig.BackendSettings.execenv;
+  int j_found = 0;
+  for (; j_found < the_execenv_wo_texinputs.size(); ++j_found) {
+    if (the_execenv_wo_texinputs[j_found].startsWith("TEXINPUTS=")) {
+      break;
+    }
+  }
+  if (j_found < the_execenv_wo_texinputs.size()) {
+    the_execenv_wo_texinputs.removeAt(j_found);
+  }
+  u->txtExecEnv->setText( the_execenv_wo_texinputs.join("\n") );
 
   u->chkEditorTabInsertsTab->setChecked( klfconfig.UI.editorTabInsertsTab );
   u->chkEditorWrapLines->setChecked( klfconfig.UI.editorWrapLines );
@@ -649,7 +660,8 @@ void KLFSettings::reset()
 
 
 
-bool KLFSettingsPrivate::setDefaultFor(const QString& progname, const QString& guessedprog, bool required,
+bool KLFSettingsPrivate::setDefaultFor(const QString& progname, const QString& guessedprog,
+                                       bool required,
 				       KLFPathChooser *destination)
 {
   QString progpath = guessedprog;
@@ -658,8 +670,9 @@ bool KLFSettingsPrivate::setDefaultFor(const QString& progname, const QString& g
       // field already has a valid value, don't touch it and don't complain
       return true;
     }
-    if ( ! required )
+    if ( ! required ) {
       return false;
+    }
     QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !")
 		       .arg(progname),  QMessageBox::Ok, K);
     msgbox.setInformativeText(tr("Please check your installation and specify the path"
@@ -679,8 +692,11 @@ void KLFSettings::setDefaultPaths()
 {
   KLFBackend::klfSettings defaultsettings;
   KLFBackend::detectSettings(&defaultsettings);
-  if ( ! QFileInfo(u->pathTempDir->path()).isDir() )
+
+  if ( ! QFileInfo(u->pathTempDir->path()).isDir() ) {
     u->pathTempDir->setPath(QDir::toNativeSeparators(defaultsettings.tempdir));
+  }
+
   d->setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
   d->setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
   d->setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
@@ -1064,8 +1080,7 @@ void KLFSettings::apply()
   //    backendsettings.epstopdfexec = u->pathEpstopdf->path();
   //  }
   // detect environment for those settings (in particular mgs.exe for ghostscript ...)
-
-  KLFBackend::detectOptionSettings(&backendsettings);
+  //KLFBackend::detectOptionSettings(&backendsettings);
 
   backendsettings.lborderoffset = u->spnLBorderOffset->valueInRefUnit();
   backendsettings.tborderoffset = u->spnTBorderOffset->valueInRefUnit();
@@ -1075,6 +1090,8 @@ void KLFSettings::apply()
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
   klfconfig.BackendSettings.setTexInputs = u->txtSetTexInputs->text();
+
+  backendsettings.execenv = u->txtExecEnv->toPlainText().split('\n', Qt::SkipEmptyParts);
 
   backendsettings.userScriptInterpreters["py"] = u->txtScriptInterpreterPython->text();
   backendsettings.userScriptInterpreters["sh"] = u->txtScriptInterpreterShell->text();
@@ -1127,9 +1144,11 @@ void KLFSettings::apply()
   klfDbg("New locale name: "<<localename);
   bool localechanged = false;
   if (klfconfig.UI.locale != localename) {
-    if ((!klfconfig.UI.locale().isEmpty() && klfconfig.UI.locale != "C" && klfconfig.UI.locale != "en_US") ||
+    if ((!klfconfig.UI.locale().isEmpty() && klfconfig.UI.locale != "C"
+         && klfconfig.UI.locale != "en_US") ||
 	(!localename.isEmpty() && localename != "C" && localename != "en_US"))
-      localechanged = true; // not just switching from "C" to "en_US" which is not a locale change...
+      localechanged = true; // not just switching from "C" to "en_US" which is
+                            // not a locale change...
   }
   klfconfig.UI.locale = localename;
   QLocale::setDefault(klfconfig.UI.locale());
@@ -1174,7 +1193,8 @@ void KLFSettings::apply()
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
   klfconfig.UI.realTimePreviewExceptBattery = u->chkRealTimePreviewExceptBattery->isChecked();
 
-  klfconfig.UI.previewTooltipMaxSize = QSize(u->spnToolTipMaxWidth->value(), u->spnToolTipMaxHeight->value());
+  klfconfig.UI.previewTooltipMaxSize = QSize(u->spnToolTipMaxWidth->value(),
+                                             u->spnToolTipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
 
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
