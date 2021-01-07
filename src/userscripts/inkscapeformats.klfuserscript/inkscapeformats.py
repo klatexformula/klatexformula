@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # inkscapeformats.py
 #   This file is part of the KLatexFormula Project.
@@ -37,6 +38,38 @@ import pyklfuserscript
 
 FORMATS = ('svg', 'emf', 'wmf', )
 
+
+
+def get_inkscape_version(inkscape_path):
+
+    rx_ver = re.compile(
+        r'\s*inkscape\s*(?P<major>\d+)[.](?P<minor>\d+)(?P<rel_part>\S*)?(\s+|$)',
+        flags=re.IGNORECASE | re.MULTILINE
+    )
+    try:
+        output = subprocess.check_output(args=[inkscape_path, '--version'],
+                                         shell=False, stderr=subprocess.STDOUT)
+    except Exception:
+        raise RuntimeError(u"Cannot run inkscape to determine its version: ‘{}’".format(inkscape))
+
+    try:
+        output = output.decode('utf-8')
+    except Exception:
+        pass
+
+    m = rx_ver.match(output)
+    if m is None:
+        raise RuntimeError(u"Cannot parse inkscape version ’{}’: ‘{}’".format(inkscape,output))
+
+    return {'major': int(m.group('major')), 'minor': int(m.group('minor')),
+            'rel_part': m.group('rel_part')}
+        
+
+#
+#
+#
+
+
 args = pyklfuserscript.export_type_args_parser().parse_args()
 
 if args.query_default_settings:
@@ -45,9 +78,22 @@ if args.query_default_settings:
         "/Applications/Inkscape.app/Contents/Resources/bin/",
         "C:/Program Files/Inkscape/",
         "C:/Program Files (x86)/Inkscape/",
-        # add more non-trivial paths here (but not necessary to include /usr/bin/
-        # because we do a PATH search anyway
+        # add more non-trivial paths here (but it's not necessary to include
+        # /usr/bin/ because we do a PATH search anyway)
     ])
+
+    use_new_option_syntax_v1x = True # by default
+
+    if inkscape is not None:
+        try:
+            inkscape_version = get_inkscape_version(inkscape)
+            if inkscape_version['major'] >= 1:
+                use_new_option_syntax_v1x = True
+            else:
+                use_new_option_syntax_v1x = False
+        except Exception as e:
+            print(e)
+
     if inkscape is not None:
         # found
         print("""\
@@ -57,8 +103,16 @@ if args.query_default_settings:
       <key>inkscape</key>
       <value type="QString">{}</value>
    </pair>
+   <pair>
+      <key>use_new_option_syntax_v1x</key>
+      <value type="bool">true</value>
+   </pair>
 </klfuserscript-default-settings>
-""".format(pyklfuserscript.escapexml(pyklfuserscript.saveStringForKlfVariantText(inkscape))))
+""".format(
+    pyklfuserscript.escapexml(pyklfuserscript.saveStringForKlfVariantText(inkscape)),
+    'true' if use_new_option_syntax_v1x else 'false'
+)
+        )
     sys.exit(0)
 
 
@@ -67,7 +121,7 @@ format = args.format
 pdffile = args.inputfile
 
 if format not in FORMATS:
-    print("Invalid format: "+format)
+    print("Invalid format: {}".format(format))
     sys.exit(255)
 
 #debug environment
@@ -79,6 +133,14 @@ else:
     print("Warning: inkscape config not set.")
     inkscape = "inkscape"
 
+if "KLF_USCONFIG_use_new_option_syntax_v1x" in os.environ:
+    if re.match(r'^\s*(t|true|1|y|yes|on)\s*$',
+                os.environ["KLF_USCONFIG_use_new_option_syntax_v1x"]) is not None:
+        use_new_option_syntax_v1x = True
+    else:
+        use_new_option_syntax_v1x = False
+
+
 print("Using inkscape path: {}".format(inkscape), file=sys.stderr)
 
 pyklfuserscript.ensure_configured_executable(inkscape, exename='inkscape', userscript=__file__)
@@ -87,15 +149,25 @@ print("Converting file {}\n".format(pdffile), file=sys.stderr)
 
 outfile = re.sub(r'\.pdf$', '.'+format, pdffile)
 
-if format == 'svg':
-    exportarg_outfile = "--export-plain-svg="+outfile
+if use_new_option_syntax_v1x:
+    export_flags = [ '--export-type='+format ]
+    if format == 'svg':
+        export_flags.append('--export-plain-svg')
+
+    cmdargs = [ inkscape ]
+    cmdargs += export_flags
+    cmdargs += [ pdffile,
+                 '-o',
+                 outfile ]
 else:
-    exportarg_outfile = "--export-"+format+"="+outfile
+    if format == 'svg':
+        exportarg_outfile = "--export-plain-svg="+outfile
+    else:
+        exportarg_outfile = "--export-"+format+"="+outfile
+    cmdargs = [ inkscape, pdffile, exportarg_outfile ]
 
 # CalledProcessError is raised if an error occurs.
-output = subprocess.check_output(args=[
-    inkscape, pdffile, exportarg_outfile
-], shell=False, stderr=subprocess.STDOUT)
+output = subprocess.check_output(args=cmdargs, shell=False, stderr=subprocess.STDOUT)
 
 print("Output from {}: \n{}".format(inkscape, output.decode('utf-8')))
 

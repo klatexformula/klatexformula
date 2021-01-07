@@ -351,7 +351,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.glowEffectRadius, 4) ;
   KLFCONFIGPROP_INIT(UI.customMathModes, QStringList()) ;
   KLFCONFIGPROP_INIT(UI.emacsStyleBackspaceSearch, true) ;
-  KLFCONFIGPROP_INIT(UI.macBrushedMetalLook, true) ;
+  KLFCONFIGPROP_INIT(UI.macBrushedMetalLook, false) ;
   KLFCONFIGPROP_INIT(ExportData.copyExportProfile, "default") ;
   KLFCONFIGPROP_INIT(ExportData.dragExportProfile, "default") ;
   KLFCONFIGPROP_INIT(ExportData.showExportProfilesLabel, true) ;

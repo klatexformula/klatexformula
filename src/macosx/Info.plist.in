@@ -30,6 +30,8 @@
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <true/>
     <key>NSAppTransportSecurity</key>  
     <dict>
       <key>NSAllowsArbitraryLoads</key><true/>  

@@ -84,7 +84,7 @@
 
 
 #define KLF_WELCOME                                             \
-  "KLatexFormula Version %s by Philippe Faist (c) 2005-2017\n"  \
+  "KLatexFormula Version %s by Philippe Faist (c) 2005-2021\n"  \
   "Licensed under the terms of the GNU General Public License (GPLv2+)\n\n"
 
 
