@@ -87,6 +87,8 @@ public:
 
   KLFAdvancedConfigEditor *advancedConfigEditor;
 
+  QStringList getInputTxtExecEnv();
+
   bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
 		     KLFPathChooser *destination);
 

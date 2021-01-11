@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include <QDialog>
+#include <QString>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLineEdit>
@@ -576,7 +577,7 @@ void KLFSettings::reset()
   if (j_found < the_execenv_wo_texinputs.size()) {
     the_execenv_wo_texinputs.removeAt(j_found);
   }
-  u->txtExecEnv->setText( the_execenv_wo_texinputs.join("\n") );
+  u->txtExecEnv->setPlainText( the_execenv_wo_texinputs.join("\n") );
 
   u->chkEditorTabInsertsTab->setChecked( klfconfig.UI.editorTabInsertsTab );
   u->chkEditorWrapLines->setChecked( klfconfig.UI.editorWrapLines );
@@ -700,8 +701,32 @@ void KLFSettings::setDefaultPaths()
   d->setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
   d->setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
   d->setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
+
+  // merge detected environment variables with existing environment
+  QStringList old_execenv = d->getInputTxtExecEnv();
+  QStringList the_execenv = old_execenv;
+  klfMergeEnvironment(
+      &the_execenv,
+      defaultsettings.execenv,
+      // list of PATH-like variables
+      QStringList()<<"PATH"<<"TEXINPUTS"<<"BIBINPUTS"//
+      <<"GS_LIB"<<"MIKTEX_GS_LIB"<<"PYTHONPATH"
+  );
+
+  klfDbg("Detected default settings. Using latex = " << defaultsettings.latexexec
+         << ", dvips = " << defaultsettings.dvipsexec
+         << ", gs = " << defaultsettings.gsexec
+         << ", execenv = " << defaultsettings.execenv
+         << ". Current exec_env is = " << old_execenv
+         << "; full merged exec_env is = " << the_execenv);
+
+  u->txtExecEnv->setPlainText( the_execenv.join("\n") );
 }
 
+QStringList KLFSettingsPrivate::getInputTxtExecEnv()
+{
+  return K->u->txtExecEnv->toPlainText().split('\n', QString::SkipEmptyParts);
+}
 
 void KLFSettingsPrivate::refreshUserScriptList()
 {
@@ -1091,7 +1116,7 @@ void KLFSettings::apply()
 
   klfconfig.BackendSettings.setTexInputs = u->txtSetTexInputs->text();
 
-  backendsettings.execenv = u->txtExecEnv->toPlainText().split('\n', Qt::SkipEmptyParts);
+  backendsettings.execenv = d->getInputTxtExecEnv();
 
   backendsettings.userScriptInterpreters["py"] = u->txtScriptInterpreterPython->text();
   backendsettings.userScriptInterpreters["sh"] = u->txtScriptInterpreterShell->text();

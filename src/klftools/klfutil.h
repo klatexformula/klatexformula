@@ -319,11 +319,12 @@ enum KlfEnvAction {
 
 /** \brief merge two environment definitions
  *
- * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
- * those variables if they already exist.
+ * Adds the environment variables specified in \c addvars into env, overwriting
+ * previous entries for those variables if they already exist.
  *
- * If some variable names are specified in \c pathvars, then those variables will be treated as containing
- * paths like PATH or TEXINPUTS, and the new values will be prepended to the old ones.
+ * If some variable names are specified in \c pathvars, then those variables
+ * will be treated as containing paths like PATH or TEXINPUTS, and the new
+ * values will be prepended to the old ones.
  */
 KLF_EXPORT void klfMergeEnvironment(QStringList * env, const QStringList& addvars,
 				    const QStringList& pathvars = QStringList(),

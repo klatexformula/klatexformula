@@ -30,6 +30,7 @@
 #include <QtGlobal>
 #include <QByteArray>
 #include <QSet>
+#include <QString>
 #include <QCoreApplication>
 #include <QRegExp>
 #include <QFile>
@@ -97,10 +98,10 @@ QStringList progGS = QStringList() << "gswin32c.exe" << "gswin64c.exe" << "mgs.e
 //QStringList progEPSTOPDF = QStringList() << "epstopdf.exe";
 static const char * standard_extra_paths[] = {
   EXTRA_PATHS_PRE
-  "C:\\Program Files*\\MiKTeX*\\miktex\\bin",
-  "C:\\texlive\\*\\bin\\win*",
   "C:\\Program Files*\\gs*\\gs*\\bin",
-//  "C:\\texlive\\*\\tlpkg\\tlgs\\bin", // TODO: add this but also set GS_LIB! (issue #51)
+  "C:\\texlive\\*\\tlpkg\\tlgs\\bin", // See issue #51. We also need to set GS_LIB
+  "C:\\texlive\\*\\bin\\win*",
+  "C:\\Program Files*\\MiKTeX*\\miktex\\bin",
   NULL
 };
 #elif defined(KLF_WS_MAC)
@@ -1790,8 +1791,9 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath,
     stdextrapaths.append(standard_extra_paths[k]);
   }
   QString extra_paths = stdextrapaths.join(QString("")+KLF_PATH_SEP);
-  if (!extraPath.isEmpty())
+  if (!extraPath.isEmpty()) {
     extra_paths += KLF_PATH_SEP + extraPath;
+  }
 
   // temp dir
   settings->tempdir = QDir::fromNativeSeparators(QDir::tempPath());
@@ -1887,6 +1889,20 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
   }
 
   // TODO: add GS_LIB for texlive's gs! (issue #51)
+  // check for "xxx/xxx/tlgs/bin/gswin32c.exe"
+  QString gsparentparentdir = QFileInfo(gsfi.dir().absolutePath()).dir().absolutePath();
+  if (QFileInfo(gsparentparentdir).fileName() ==  "tlgs") {
+    QString tlgsdir = gsparentparentdir = gsparentparentdir;
+    // this is TeXLive's GS, wee need to add some custom GS_LIB paths (issue #51)
+    QStringList add_tlgsdirs;
+    add_tlgsdirs << "fonts" << "Resource/Init" << "lib" << "bin" << "Resource" << "kanji" << "iccprofiles";
+    for (int j = 0; j < add_tlgsdirs.size(); ++j) {
+      add_tlgsdirs[j] = QDir::toNativeSeparators(tlgsdir + "/" + add_tlgsdirs[j]);
+    }
+    QString tlgsenv = add_tlgsdirs.join(QString(KLF_PATH_SEP));
+    settings->execenv = klfSetEnvironmentVariable(settings->execenv, "GS_LIB", tlgsenv);
+    klfDbg("Adjusting environment for texlive's ghostscript: GS_LIB="+tlgsenv) ;
+  }
 
   return true;
 }

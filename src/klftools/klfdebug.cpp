@@ -160,7 +160,7 @@ KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*c
 #endif
 
 #if defined KLF_WS_WIN && defined KLF_DEBUG
-#  define   SAFECOUNTER_NUM   10
+#  define   SAFECOUNTER_NUM   3
     // only show dialog after having created a QApplication
     if (qApp != NULL && qApp->inherits("QApplication")) {
       static int safecounter = SAFECOUNTER_NUM;
