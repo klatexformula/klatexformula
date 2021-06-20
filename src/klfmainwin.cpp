@@ -139,15 +139,32 @@ KLFMainWin::KLFMainWin()
   klfDbg("Setting up LaTeX fonts") ;
   // latex fonts
   d->reloadLatexFontDefs();
-  u->cbxLatexFont->addItem(tr("Computer Modern (default font)"), QVariant(QString()));
+
+  u->cbxLatexFont->addItem(
+    QIcon(":/pics/fonts/Computer Modern.png"),
+    tr("Computer Modern (default font)"),
+    QVariant(QString())
+  );
+
   int k;
   for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
-    u->cbxLatexFont->addItem(d->pLatexFontDefs[k].title, QVariant(d->pLatexFontDefs[k].identifier));
+    u->cbxLatexFont->addItem(
+      QIcon(":/pics/fonts/" + d->pLatexFontDefs[k].identifier),
+      d->pLatexFontDefs[k].title,
+      QVariant(d->pLatexFontDefs[k].identifier)
+    );
   }
   // no idea why this seems to be needed to get text on combo box to display:
   u->cbxLatexFont->setPalette(QPalette(Qt::white));
   u->cbxUserScript->setPalette(QPalette(Qt::white));
   u->cbxMarginsUnit->setPalette(QPalette(Qt::white));
+
+  // edit sizes of font combo box to fit the preview thumbnails
+  QListView *view = new QListView(u->cbxLatexFont);
+  view->setStyleSheet("QListView::item::icon{height: 70px}");
+  u->cbxLatexFont->setView(view);
+
+  u->cbxLatexFont->setIconSize(QSize(200,60));
 
 
   connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
@@ -226,10 +243,10 @@ KLFMainWin::KLFMainWin()
 		Qt::ApplicationShortcut);
 
   // Shortcut for activating editor
-  //  QShortcut *editorActivatorShortcut = 
+  //  QShortcut *editorActivatorShortcut =
   new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotActivateEditor()),
 		SLOT(slotActivateEditor()), Qt::ApplicationShortcut);
-  //  QShortcut *editorActivatorShortcut = 
+  //  QShortcut *editorActivatorShortcut =
   new QShortcut(QKeySequence(Qt::Key_F4 | Qt::ShiftModifier), this, SLOT(slotActivateEditorSelectAll()),
 		SLOT(slotActivateEditorSelectAll()), Qt::ApplicationShortcut);
   // shortcut for big preview
@@ -506,7 +523,7 @@ KLFMainWin::KLFMainWin()
   // 		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
   //   new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
   // 		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
-  
+
 
   // dock menu will be added once shown only, to avoid '...autoreleased without NSAutoreleasePool...'
   // annoying messages
@@ -868,7 +885,7 @@ void KLFMainWin::saveSettings()
 
   u->btnSetExportProfile->setEnabled(klfconfig.ExportData.menuExportProfileAffectsDrag ||
 				     klfconfig.ExportData.menuExportProfileAffectsCopy);
-  
+
   d->pContLatexPreview->setEnabled( klfconfig.UI.enableRealTimePreview );
 
   u->txtLatex->setWrapLines(klfconfig.UI.editorWrapLines);
@@ -2057,7 +2074,7 @@ void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * infobase
   WANT_DISABLE_ALL(x, (disableall || disableallinput))
 #define WANT_DISABLE_NORMAL(x)                  \
   WANT_DISABLE_ALL(x, disableall)
-  
+
   // names are the same as in klfbackend.cpp
   K->u->colFg->setDisabled(WANT_DISABLE_INPUT("FG_COLOR"));
   K->u->colBg->setDisabled(WANT_DISABLE_INPUT("BG_COLOR"));
@@ -2094,7 +2111,7 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
   K->u->btnUserScriptInfo->setEnabled(true);
 
   // update user script info and settings widget
-  
+
   KLFBackendEngineUserScriptInfo usinfo(K->u->cbxUserScript->itemData(index).toString());
 
   if (usinfo.hasWarnings() || usinfo.hasErrors())
@@ -2198,7 +2215,7 @@ void KLFMainWinPrivate::reloadLatexFontDefs()
       continue;
     }
     file.close();
-    
+
     QDomElement root = doc.documentElement();
     if (root.nodeName() != "latex-font-defs-list") {
       klfWarning("Error parsing XML for latex font defs from file "<<fn<<": unexpected root tag `"
@@ -2516,7 +2533,7 @@ bool KLFMainWin::event(QEvent *e)
     if (klfconfig.UI.useSystemAppFont)
       klfconfig.UI.applicationFont = QApplication::font(); // refresh the font setting...
   }
-  
+
   return QWidget::event(e);
 }
 
@@ -2657,7 +2674,7 @@ void KLFMainWin::showEvent(QShowEvent *e)
 {
   if ( d->firstshow ) {
     d->firstshow = false;
-    // if it's the first time we're run, 
+    // if it's the first time we're run,
     // show the what's new if needed.
     if ( klfconfig.Core.thisVersionMajMinFirstRun ) {
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
@@ -3297,7 +3314,7 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
 			 .arg(userScript));
     klfWarning("Can't find user script "<<userScript);
   }
-  
+
   //   // append our new item
   //   KLFUserScriptInfo us(userScript);
   //   if (us.scriptInfoError()) {
@@ -3880,7 +3897,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
       fout.write(data);
       fout.close();
     }
-    
+
     emit savedToFile(fname, formatname, exporter);
     return;
   }
@@ -3923,7 +3940,7 @@ void KLFMainWinPrivate::slotPresetDPISender()
 {
   QAction *a = qobject_cast<QAction*>(sender());
   KLF_ASSERT_NOT_NULL(a, "Action sender is NULL!", return ; ) ;
-  
+
   K->slotSetDPI(a->data().toInt());
 }
 
@@ -4035,7 +4052,7 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
       klfMergeEnvironment(&settings.execenv, klfMapToEnvironmentList(mdata));
     }
   }
-  
+
   klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
 
   return settings;
@@ -4385,7 +4402,3 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
   klfDbg(" quitting.") ;
   quit();
 }
-
-
-
-

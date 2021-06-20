@@ -64,6 +64,30 @@
     <file>pics/showtoolwindow.png</file>
     <file>pics/hidetoolwindow.png</file>
     <file>pics/iconhere.png</file>
+
+    <file>pics/fonts/BaskervilleF.png</file>
+    <file>pics/fonts/Charter BT.png</file>
+    <file>pics/fonts/Cochineal.png</file>
+    <file>pics/fonts/Computer Modern.png</file>
+    <file>pics/fonts/Computer Modern Bright.png</file>
+    <file>pics/fonts/Computer Modern Sans Serif.png</file>
+    <file>pics/fonts/Erewhon.png</file>
+    <file>pics/fonts/Garamond-EB.png</file>
+    <file>pics/fonts/Helvetica.png</file>
+    <file>pics/fonts/Iwona.png</file>
+    <file>pics/fonts/Kerkis.png</file>
+    <file>pics/fonts/kp-fonts.png</file>
+    <file>pics/fonts/kp-fonts-sans.png</file>
+    <file>pics/fonts/Kurier.png</file>
+    <file>pics/fonts/Linux Libertine.png</file>
+    <file>pics/fonts/New Century Schoolbook.png</file>
+    <file>pics/fonts/Palatino.png</file>
+    <file>pics/fonts/Palatino-newpxmath.png</file>
+    <file>pics/fonts/Stix.png</file>
+    <file>pics/fonts/Times.png</file>
+    <file>pics/fonts/Times-mathptmx.png</file>
+    <file>pics/fonts/Utopia.png</file>
+
   </qresource>
   <qresource prefix="/pics">
     <file>klatexformula-16.png</file>
