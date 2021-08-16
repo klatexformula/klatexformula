@@ -75,6 +75,7 @@ args = pyklfuserscript.export_type_args_parser().parse_args()
 if args.query_default_settings:
 
     inkscape = pyklfuserscript.find_executable(['inkscape'], [
+        "/Applications/Inkscape.app/Contents/MacOS/",
         "/Applications/Inkscape.app/Contents/Resources/bin/",
         "C:/Program Files/Inkscape/",
         "C:/Program Files (x86)/Inkscape/",

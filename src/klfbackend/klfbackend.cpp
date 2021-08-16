@@ -1892,7 +1892,7 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
   // check for "xxx/xxx/tlgs/bin/gswin32c.exe"
   QString gsparentparentdir = QFileInfo(gsfi.dir().absolutePath()).dir().absolutePath();
   if (QFileInfo(gsparentparentdir).fileName() ==  "tlgs") {
-    QString tlgsdir = gsparentparentdir = gsparentparentdir;
+    QString tlgsdir = gsparentparentdir;
     // this is TeXLive's GS, wee need to add some custom GS_LIB paths (issue #51)
     QStringList add_tlgsdirs;
     add_tlgsdirs << "fonts" << "Resource/Init" << "lib" << "bin" << "Resource" << "kanji" << "iccprofiles";

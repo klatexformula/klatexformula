@@ -56,7 +56,7 @@ if args.query_default_settings:
     if dvisvgm is not None:
         # found
         print("dvisvgm={}".format(dvisvgm))
-    print("opts=" + default_dvisvgm_opts)
+    print("opts={}".format(default_dvisvgm_opts))
     gzip = pyklfuserscript.find_executable(['gzip'], [
         "/usr/bin", "/bin", "/usr/local/bin"
     ])
@@ -68,7 +68,7 @@ if args.query_default_settings:
 
 
 if format not in ('svg', 'svgz'):
-    print("Invalid format: "+format, file=sys.stderr)
+    print("Invalid format: {}".format(format), file=sys.stderr)
     sys.exit(255)
 
 
@@ -121,7 +121,7 @@ dvisvgm can only generate SVG in case of direct PDF generation.  You could:
         raise RuntimeError("dvisvgm version too old, need >= 2.4 to generate SVG directly from PDF")
     raise
 finally:
-    print("dvisvgm output:\n" + output)
+    print("dvisvgm output: {}\n".format(output))
 
 if format == 'svgz':
 
