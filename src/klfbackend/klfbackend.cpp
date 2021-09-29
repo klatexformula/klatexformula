@@ -555,10 +555,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	     settings.calcEpsBoundingBox, qRed(in.bg_color), qGreen(in.bg_color), qBlue(in.bg_color),
 	     qAlpha(in.bg_color)));
 
+  QRgba use_bg_color = in.bg_color;
   if (settings.calcEpsBoundingBox &&
-      qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)) {
+      qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)
+    ) {
     bgcolor_when_correcting_bbox = in.bg_color;
-    in.bg_color = qRgba(0,0,0,0);
+    use_bg_color = qRgba(0,0,0,0);
   }
 
 
@@ -1149,7 +1151,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
 	      << "-r"+QString::number(in.dpi) << "-dEPSCrop" << "-dMaxBitmap=2147483647");
-    if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
+    if (qAlpha(use_bg_color) > 0) { // we're forcing a background color
       p.addArgv("-sDEVICE=png16m");
     } else {
       p.addArgv("-sDEVICE=pngalpha");
