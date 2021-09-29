@@ -555,12 +555,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	     settings.calcEpsBoundingBox, qRed(in.bg_color), qGreen(in.bg_color), qBlue(in.bg_color),
 	     qAlpha(in.bg_color)));
 
-  QRgba use_bg_color = in.bg_color;
   if (settings.calcEpsBoundingBox &&
       qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)
     ) {
     bgcolor_when_correcting_bbox = in.bg_color;
-    use_bg_color = qRgba(0,0,0,0);
+    klfDbg("Using fake bg_color = " << in_fake.bg_color) ;
+    in.bg_color = qRgba(0,0,0,0);
   }
 
 
@@ -733,7 +733,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       << "KLF_GS_VERSION=" + thisGsInfo.version
       << "KLF_GS_DEVICES=" + QStringList(thisGsInfo.availdevices.toList()).join(",")
       // input
-      << klfInputToEnvironmentForUserScript(in)
+      << klfInputToEnvironmentForUserScript(input) // "input", not "in" -- the original input!
       // more advanced settings
       << klfSettingsToEnvironmentForUserScript(settings)
       // file names (all formed with same basename...) to access by the script
@@ -1151,7 +1151,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
 	      << "-r"+QString::number(in.dpi) << "-dEPSCrop" << "-dMaxBitmap=2147483647");
-    if (qAlpha(use_bg_color) > 0) { // we're forcing a background color
+    if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
       p.addArgv("-sDEVICE=png16m");
     } else {
       p.addArgv("-sDEVICE=pngalpha");
@@ -1186,7 +1186,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
     // store some meta-information into result
     KLFImageLatexMetaInfo metainfo(&res.result);
-    metainfo.saveMetaInfo(in, settings);
+    metainfo.saveMetaInfo(input, settings);
     
     { // create "final" PNG data
       QBuffer buf(&res.pngdata);
@@ -1219,7 +1219,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       pdfmetainfo.savePDFField("Title", in.latex);
       pdfmetainfo.savePDFField("Keywords", "KLatexFormula KLF LaTeX equation formula");
       pdfmetainfo.savePDFField("Creator", "KLatexFormula " KLF_VERSION_STRING);
-      pdfmetainfo.saveMetaInfo(in, settings);
+      pdfmetainfo.saveMetaInfo(input, settings);
       pdfmetainfo.finish();
       fpdfmarks.write(pdfmarkstr);
       // file is ready.
