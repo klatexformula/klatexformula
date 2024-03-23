@@ -559,7 +559,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)
     ) {
     bgcolor_when_correcting_bbox = in.bg_color;
-    klfDbg("Using fake bg_color = " << in_fake.bg_color) ;
+    klfDbg("Using fake bg_color = " << in.bg_color) ;
     in.bg_color = qRgba(0,0,0,0);
   }
 
