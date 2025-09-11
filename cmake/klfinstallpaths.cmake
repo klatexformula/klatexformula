@@ -243,6 +243,7 @@ if(KLF_BUILD_GUI)
     KLFSetIfNotDefined(KLF_INSTALL_SHARE_PIXMAPS_DIR "share/pixmaps/")
     KLFSetIfNotDefined(KLF_INSTALL_ICON_THEME "")
     KLFSetIfNotDefined(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR "share/mime/packages/")
+    KLFSetIfNotDefined(KLF_INSTALL_SHARE_METAINFO_DIR "share/metainfo/")
   
     # Reasonable Icon= entry given the installation settings
     set(klf_icon "klatexformula")

@@ -560,6 +560,11 @@ if(KLF_BUILD_GUI)
       install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
         DESTINATION "${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}")
     endif()
+    if(KLF_INSTALL_SHARE_METAINFO_DIR)
+      install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-metainfo.xml"
+        DESTINATION "${KLF_INSTALL_SHARE_METAINFO_DIR}"
+        RENAME "io.sourceforge.klatexformula.klatexformula.metainfo.xml")
+    endif()
 
     if(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
       install(CODE
