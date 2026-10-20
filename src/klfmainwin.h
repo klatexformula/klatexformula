@@ -404,6 +404,11 @@ private:
 
   Ui::KLFMainWin *u;
 
+#ifdef KLF_WS_MAC
+  void setupMacAppearance();
+  void refreshMacAppearance();
+#endif
+
 private slots:
 
   void slotCycleParenModifiers(bool forward = true);

@@ -295,7 +295,7 @@ void KLFConfig::loadDefaults()
   
   KLFCONFIGPROP_INIT(UI.locale, QLocale::system().name()) ;
   klfDbg("System locale: "<<QLocale::system().name());
-#ifdef KLF_NO_CMU_FONT
+#if defined(KLF_NO_CMU_FONT) || defined(KLF_WS_MAC)
   KLFCONFIGPROP_INIT(UI.useSystemAppFont, true) ;
   KLFCONFIGPROP_INIT(UI.applicationFont, defaultStdFont) ;
 #else
@@ -310,12 +310,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.labelOutputFixedSize, QSize(280, 80)) ;
   KLFCONFIGPROP_INIT(UI.smallPreviewSize, QSize(280, 80));
   //  KLFCONFIGPROP_INIT(UI.savedWindowSize, QSize());
-  QString swtype;
-#ifdef KLF_WS_MAC
-  swtype = QLatin1String("Drawer");
-#else
-  swtype = QLatin1String("ShowHide");
-#endif
+  QString swtype = QLatin1String("ShowHide");
   KLFCONFIGPROP_INIT(UI.detailsSideWidgetType, swtype) ;
   KLFCONFIGPROP_INIT(UI.lastSaveDir, QDir::homePath()) ;
   KLFCONFIGPROP_INIT(UI.symbolsPerLine, 6) ;

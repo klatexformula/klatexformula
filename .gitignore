@@ -8,7 +8,7 @@
 # Build directories
 #
 build/
-build-*
+/build-*
 
 #
 # Ignores imported from svn:ignore properties

@@ -27,6 +27,7 @@
 #include <QMessageBox>
 #include <QVariant>
 #include <QPainter>
+#include <QStyle>
 
 #include <klfguiutil.h>
 #include "klfdisplaylabel.h"
@@ -208,6 +209,15 @@ void KLFDisplayLabel::set_error(bool error_on)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   setProperty("realTimeLatexError", QVariant(error_on));
+  if (property("themedSurface").toBool()) {
+    // The stylesheet owns the rounded surface, including its error state.
+    // Legacy palette fills paint a square red rectangle behind its corners.
+    setAutoFillBackground(false);
+    style()->unpolish(this);
+    style()->polish(this);
+    update();
+    return;
+  }
   QPalette *p;
   if (error_on) {
     p = &pErrorPalette;

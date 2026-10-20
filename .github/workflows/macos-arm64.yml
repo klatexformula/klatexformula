@@ -1,0 +1,28 @@
+name: macOS Apple Silicon
+
+on:
+  push:
+    branches: [apple-silicon]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native build dependencies
+        run: brew install cmake qt@5
+      - name: Build, sign and verify ARM64 bundle
+        run: bash scripts/build-macos-arm64.sh
+      - name: Archive development app
+        run: ditto -c -k --sequesterRsrc --keepParent build-arm64/src/klatexformula.app klatexformula-macos-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: klatexformula-macos-arm64
+          path: klatexformula-macos-arm64.zip
+          if-no-files-found: error

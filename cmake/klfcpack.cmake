@@ -50,9 +50,9 @@ if(KLF_USE_CPACK)
 
   elseif(APPLE) # but not CMAKE_OSX_ARCHITECTURES
 
-    # best guess these days is that it's a x86_64. Change manually otherwise.
+    # With no explicit architecture, CMake builds for the host architecture.
     if(NOT DEFINED KLF_CMAKE_ARCH)
-      set(default_KLF_CMAKE_ARCH "x86_64")
+      set(default_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
       set(KLF_CMAKE_ARCH "${default_KLF_CMAKE_ARCH}")
       message(STATUS "Guessing ${KLF_CMAKE_ARCH} processor architecture on Mac OS X (KLF_CMAKE_ARCH)")
     else()

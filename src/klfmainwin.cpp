@@ -144,10 +144,12 @@ KLFMainWin::KLFMainWin()
   for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
     u->cbxLatexFont->addItem(d->pLatexFontDefs[k].title, QVariant(d->pLatexFontDefs[k].identifier));
   }
-  // no idea why this seems to be needed to get text on combo box to display:
+  // Legacy non-macOS styles need this; macOS uses the shared dark palette.
+#ifndef KLF_WS_MAC
   u->cbxLatexFont->setPalette(QPalette(Qt::white));
   u->cbxUserScript->setPalette(QPalette(Qt::white));
   u->cbxMarginsUnit->setPalette(QPalette(Qt::white));
+#endif
 
 
   connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
@@ -198,13 +200,17 @@ KLFMainWin::KLFMainWin()
   klfDbg("setting up relative font...") ;
   KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
 #ifdef KLF_WS_MAC
-  rf->setRelPointSize(-2);
+  rf->setRelPointSize(0);
   rf->setThorough(true);
 #else
   rf->setRelPointSize(-1);
 #endif
 
   //  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
+#ifdef KLF_WS_MAC
+  if (klfconfig.UI.detailsSideWidgetType == QLatin1String("Drawer"))
+    klfconfig.UI.detailsSideWidgetType = QLatin1String("ShowHide");
+#endif
   klfconfig.UI.detailsSideWidgetType.connectQObjectProperty(u->frmDetails, "sideWidgetManagerType");
   u->frmDetails->showSideWidget(false);
 
@@ -284,7 +290,12 @@ KLFMainWin::KLFMainWin()
   connect(u->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
   connect(u->btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
   connect(u->btnLibrary, SIGNAL(toggled(bool)), this, SLOT(slotLibrary(bool)));
+#ifdef KLF_WS_MAC
+  u->btnExpand->setCheckable(true);
+  connect(u->btnExpand, SIGNAL(toggled(bool)), this, SLOT(slotExpand(bool)));
+#else
   connect(u->btnExpand, SIGNAL(clicked()), this, SLOT(slotExpandOrShrink()));
+#endif
   connect(u->btnCopy, SIGNAL(clicked()), this, SLOT(slotCopy()));
   connect(u->btnDrag, SIGNAL(released()), this, SLOT(slotDrag()));
   connect(u->btnSave, SIGNAL(clicked()), this, SLOT(slotSave()));
@@ -573,7 +584,11 @@ KLFMainWin::KLFMainWin()
   registerDataOpener(new KLFTexDataOpener(this));
 
   // and present a cool window size
+#ifdef KLF_WS_MAC
+  setupMacAppearance();
+#else
   adjustSize();
+#endif
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -2535,6 +2550,17 @@ void KLFMainWin::childEvent(QChildEvent *e)
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
+#ifdef KLF_WS_MAC
+  if (obj == this && (e->type() == QEvent::Show || e->type() == QEvent::WindowActivate ||
+                      e->type() == QEvent::Resize)) {
+    QTimer::singleShot(0, this, [this]() {
+      extern int klf_mac_modern_window(QWidget *);
+      const int titlebar = klf_mac_modern_window(this);
+      if (u->lyt_KLFMainWin->contentsMargins().top() != 6 + titlebar)
+        u->lyt_KLFMainWin->setContentsMargins(6, 6 + titlebar, 6, 6);
+    });
+  }
+#endif
 
   // even with QShortcuts, we still need this event handler (why?)
   if (obj == u->txtLatex) {
@@ -2592,6 +2618,11 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 
   // ----
   if ( obj == QApplication::instance() ) {
+#ifdef KLF_WS_MAC
+    if (e->type() == QEvent::ApplicationPaletteChange) {
+      refreshMacAppearance();
+    }
+#endif
     klfDbg("Application event: type="<<e->type()) ;
     if ( e->type() == QEvent::Close && ! d->qapp_quit_called ) {
       // intercept close-event, which means that qApp->quit() was called directly
@@ -4134,6 +4165,14 @@ void KLFMainWinPrivate::slotLoadStyleAct()
 
 void KLFMainWinPrivate::slotDetailsSideWidgetShown(bool shown)
 {
+#ifdef KLF_WS_MAC
+  extern QIcon klf_mac_button_icon(const QString&);
+  K->u->btnExpand->setIcon(klf_mac_button_icon(shown ? ":/pics/switchshrinked.svg"
+                                                                 : ":/pics/switchexpanded.svg"));
+  K->u->btnExpand->setCheckable(true);
+  K->u->btnExpand->setChecked(shown);
+  return;
+#endif
   if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
     if (shown)
       K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.svg"));

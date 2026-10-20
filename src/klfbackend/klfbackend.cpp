@@ -111,7 +111,7 @@ QStringList progGS = QStringList() << "gs";
 //QStringList progEPSTOPDF = QStringList() << "epstopdf";
 static const char * standard_extra_paths[] = {
   EXTRA_PATHS_PRE
-  "/usr/texbin:/Library/TeX/texbin:/usr/local/bin:/opt/local/bin:/sw/bin:/sw/usr/bin",
+  "/usr/texbin:/Library/TeX/texbin:/opt/homebrew/bin:/usr/local/bin:/opt/local/bin:/sw/bin:/sw/usr/bin",
   NULL
 };
 #else

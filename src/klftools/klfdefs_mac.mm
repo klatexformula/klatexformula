@@ -37,16 +37,22 @@
 
 KLF_EXPORT QString klf_defs_sysinfo_arch()
 {
-  static bool is_64 = (sizeof(void*) == 8);
-
-  SInt32 x;
-  Gestalt(gestaltSysArchitecture, &x);
-  if (x == gestaltPowerPC) {
-    return is_64 ? QString::fromLatin1("ppc64") : QString::fromLatin1("ppc");
-  } else if (x == gestaltIntel) {
-    return is_64 ? QString::fromLatin1("x86_64") : QString::fromLatin1("x86");
-  }
+  // Report this process's architecture, including the active slice of a
+  // universal binary. Hardware detection would misidentify Intel processes
+  // running under Rosetta and allow incompatible plug-ins to be loaded.
+#if defined(__arm64__) || defined(__aarch64__)
+  return QString::fromLatin1("arm64");
+#elif defined(__x86_64__)
+  return QString::fromLatin1("x86_64");
+#elif defined(__i386__)
+  return QString::fromLatin1("x86");
+#elif defined(__ppc64__)
+  return QString::fromLatin1("ppc64");
+#elif defined(__ppc__)
+  return QString::fromLatin1("ppc");
+#else
   return QString::fromLatin1("unknown");
+#endif
 }
 
 

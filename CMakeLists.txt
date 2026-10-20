@@ -301,6 +301,9 @@ endif()
 
 if(KLF_MACOSX_BUNDLES)
 
+  set(KLF_BUNDLE_LIBRARY_DIRS "" CACHE STRING
+    "Additional library search directories for fixing up the macOS app bundle (semicolon-separated)")
+
   if (KLF_MACOSX_BUNDLE_EXTRAS)
     message(STATUS
       "Will package library and framework dependencies into klatexformula app bundle (KLF_MACOSX_BUNDLE_EXTRAS)")

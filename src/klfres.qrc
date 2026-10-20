@@ -1,5 +1,8 @@
 <RCC>
   <qresource>
+    <file>macosx/app-icon.svg</file>
+    <file>pics/macos-chevron-dark.svg</file>
+    <file>pics/macos-chevron-light.svg</file>
     <file>pics/tab-scripts.png</file>
     <file>pics/tab-addons.png</file>
     <file>pics/tab-advanced.png</file>

@@ -28,8 +28,33 @@
 
 
 #include <Cocoa/Cocoa.h>
+#include <QtMath>
 
 #include <klfmainwin.h>
+
+int klf_mac_modern_window(QWidget *widget)
+{
+  NSView *view = reinterpret_cast<NSView *>(widget->winId());
+  NSWindow *window = [view window];
+  if (!window) return 0;
+  [NSApplication sharedApplication].appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+  window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+  window.titlebarAppearsTransparent = YES;
+  // Paint the Qt background behind the native title bar as well. Separate
+  // AppKit and Qt fills can differ even when given the same numeric color.
+  if (!(window.styleMask & NSWindowStyleMaskFullSizeContentView))
+    window.styleMask |= NSWindowStyleMaskFullSizeContentView;
+  const CGFloat background = 41.0 / 255.0;
+  window.backgroundColor = [NSColor colorWithSRGBRed:background green:background
+                                              blue:background alpha:1.0];
+  if (@available(macOS 11.0, *)) {
+    window.toolbarStyle = NSWindowToolbarStyleUnified;
+    window.titlebarSeparatorStyle = NSTitlebarSeparatorStyleNone;
+  }
+  // Reserve the native controls' area without replacing their layout or drag
+  // behavior. The content view now includes the title bar's height.
+  return qCeil(NSMaxY(window.contentView.bounds) - NSMaxY(window.contentLayoutRect));
+}
 
 
 #ifdef QT_MAC_USE_COCOA

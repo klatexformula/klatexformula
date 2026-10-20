@@ -5,12 +5,8 @@
 # ######################################## #
 
 
-# Rely on CMake utilities for fixing up bundle dependencies
-#
-if(KLF_MACOSX_BUNDLES)
-  include(BundleUtilities)
-#include(KLFMacBundle)
-endif(KLF_MACOSX_BUNDLES)
+# BundleUtilities is loaded by the post-build fixup script, not at configure
+# time (which is disallowed by CMake policy CMP0080).
 
 
 # Set up -DKLF_WS_<window-system-name> -DKLF_WS="..." to indicate window system in use
@@ -154,6 +150,7 @@ if(KLF_BUILD_GUI)
 
   set(klatexformula_post_build_commands )
   set(klatexformula_bundle_include_libs )
+  set(klatexformula_bundle_include_dirs ${KLF_BUNDLE_LIBRARY_DIRS})
 
   # Adjustments for certain platforms and options -- special features
   if(KLF_WS STREQUAL "win")
@@ -176,6 +173,7 @@ if(KLF_BUILD_GUI)
   if(KLF_WS STREQUAL "mac")
     target_sources(klatexformula PRIVATE
       macosx/klfmacclipboard.cpp
+      macosx/klfmacstyle.cpp
       macosx/klfmainwin_mac.mm
       macosx/klfcmdifacedispatch_mac.mm
       )
@@ -200,7 +198,7 @@ if(KLF_BUILD_GUI)
     target_sources(klatexformula PRIVATE
       # more stuff we may want to import/copy privately in the App bundle
       macosx/qt.conf
-      macosx/klatexformula.icns
+      macosx/klatexformula-macos.icns
       ${KLF_INCLUDE_FONTS}
       klatexformula-16.png
       klatexformula-32.png
@@ -218,7 +216,7 @@ if(KLF_BUILD_GUI)
     set_target_properties(klatexformula PROPERTIES
       MACOSX_BUNDLE                      true
       OUTPUT_NAME                        klatexformula
-      MACOSX_BUNDLE_ICON_FILE            klatexformula.icns
+      MACOSX_BUNDLE_ICON_FILE            klatexformula-macos.icns
       MACOSX_BUNDLE_INFO_PLIST           "${CMAKE_CURRENT_SOURCE_DIR}/macosx/Info.plist.in"
       MACOSX_BUNDLE_INFO_STRING          "KLatexFormula version ${KLF_VERSION}"
       MACOSX_BUNDLE_GUI_IDENTIFIER       "org.klatexformula.klatexformula"
@@ -235,7 +233,7 @@ if(KLF_BUILD_GUI)
       klatexformula-256.png
       klatexformula-512.png
       klatexformula-1024.png
-      macosx/klatexformula.icns
+      macosx/klatexformula-macos.icns
       PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
       )
     if(KLF_INCLUDE_FONTS)

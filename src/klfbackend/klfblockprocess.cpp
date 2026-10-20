@@ -78,7 +78,9 @@ const static QString script_extra_paths =
                 KLF_EXTRA_SEARCH_PATHS ":" // include compilation-specified extra paths
 #  endif
                 "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin:" // general unix
-                "/usr/local/opt/*/bin:/opt/local/bin:" // homebrew
+                "/opt/homebrew/bin:/opt/homebrew/sbin:" // Apple Silicon homebrew
+                "/opt/homebrew/opt/*/bin:/usr/local/opt/*/bin:" // homebrew interpreters
+                "/opt/local/bin:" // macports
                 "/opt/local/sbin:" // macports
                 "/Library/TeX/texbin:/usr/texbin"; // mactex binaries
 const static QString exe_suffix = "";

@@ -547,7 +547,11 @@ int main(int argc, char **argv)
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
 
+#ifdef KLF_WS_MAC
+    app.setWindowIcon(QIcon(":/macosx/app-icon.svg"));
+#else
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
+#endif
 
 
 
@@ -858,6 +862,11 @@ int main(int argc, char **argv)
 
       klfDbg("klfconfig.UI.useSystemAppFont = " << klfconfig.UI.useSystemAppFont
 	     << " ; klfconfig.UI.applicationFont = " << klfconfig.UI.applicationFont) ;
+#ifdef KLF_WS_MAC
+      // Resolve the native font through Qt instead of naming or emulating it.
+      klfconfig.UI.useSystemAppFont = true;
+      QApplication::setFont(QFontDatabase::systemFont(QFontDatabase::GeneralFont));
+#endif
       if (!klfconfig.UI.useSystemAppFont) {
 	QApplication::setFont(klfconfig.UI.applicationFont);
       }

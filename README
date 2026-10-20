@@ -23,6 +23,8 @@ and a C++ library is provided to perform the same job.
 INSTALLATION
 ------------
 
+For a native Apple Silicon macOS development build, see APPLE-SILICON.md.
+
 Installation instructions can be found at
 
   https://klatexformula.sourceforge.io/doc/install
